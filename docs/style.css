@@ -148,6 +148,21 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
 #corona-play,#map-play{display:inline-flex;align-items:center;gap:6px;min-width:63px}
 #corona-play svg,#map-play svg{width:12px;height:12px}
 #map-play output{font-variant-numeric:tabular-nums}
+.map-box[data-mode=map] .map-hud{max-width:calc(100% - 28px);flex-wrap:wrap}
+.map-rate{position:relative;display:inline-flex;align-items:center;flex:none}
+.map-rate span,.map-rate svg{position:absolute;pointer-events:none}
+.map-rate span{left:11px;font:530 11px var(--sans);color:#b8c9ce}
+.map-rate svg{right:8px;width:10px;height:10px;color:#b8c9ce}
+#map-rate{appearance:none;cursor:pointer;padding-inline:37px 21px;font-variant-numeric:tabular-nums}
+#map-rate option{background:#152229;color:#e4efef}
+#map-rate:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+@media(max-width:640px){
+ .map-box[data-mode=map] .map-hud{gap:4px}
+ .map-hud .map-light{padding-inline:9px}
+ .map-rate span{left:8px}
+ #map-rate{padding-inline:32px 17px}
+ .map-rate svg{right:5px}
+}
 .map-box.cinemascope[data-mode=map] .map-hud .status{display:none}
 
 .map-actions{position:absolute;z-index:4;top:clamp(14px,3.3%,30px);right:clamp(12px,2.3%,35px);display:flex;align-items:center;gap:6px}

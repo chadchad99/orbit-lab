@@ -17,7 +17,24 @@
     Object.assign(state,guides[next]);state.scope=scope;
     if(["near","sun","lunar"].includes(scope))state.fixedCamera=false;
   }
-  let conditionPending=false,conditionFrame=0,runningRate=15,previous=null,pendingDays=0,lastReadout=-Infinity,dirty=true;
+  let conditionPending=false,conditionFrame=0,previous=null,pendingDays=0,lastReadout=-Infinity,dirty=true;
+  const mapRate=el("map-rate"),labRate=el("rate");
+  let runningRate=location.hash?15:3,rateChosen=false;
+  for(const rate of [.25,.5,1,2,3,5,10,15,30,45,90]){
+    mapRate.add(new Option(rate+"×",String(rate)));
+    labRate.add(new Option(rate+"일 / 초",String(rate)));
+  }
+  function setPlaybackRate(rate){
+    if(state.running&&previous!==null&&rate!==runningRate){
+      // Time before the selection still belongs to the previous speed.
+      const now=performance.now();
+      pendingDays+=Math.max(0,now-previous)*runningRate/1000;
+      previous=now;
+    }
+    runningRate=rate;
+    mapRate.value=labRate.value=String(rate);
+  }
+  setPlaybackRate(runningRate);
   const map=createLabMap(el("sky"),el("star-field"),i=>{if(typeof i==="string"){state.catalog.openGroup(i);return;}setScope(i===0?"sun":"near");selectPlanet(i);},zoom=>{
     el("plus").disabled=zoom>=11.999;el("minus").disabled=zoom<=.45001;
   });
@@ -254,7 +271,10 @@
   el("peek").addEventListener("click",()=>{jump(90,true);announce("90일 후 두 위치를 표시합니다.")});
   el("time").addEventListener("input",e=>jump(Number(e.target.value)));
   document.querySelectorAll("[data-day]").forEach(b=>b.addEventListener("click",()=>jump(Number(b.dataset.day))));
-  el("rate").addEventListener("change",e=>{runningRate=Number(e.target.value);previous=null});
+  for(const select of [mapRate,labRate])select.addEventListener("change",()=>{
+    rateChosen=true;
+    setPlaybackRate(Number(select.value));
+  });
   el("reset").addEventListener("click",()=>{
     flushCondition();stage();announce("태양과 여덟 행성을 실험 전 상태로 복원했습니다.");
   });
@@ -263,8 +283,8 @@
   });
   function showView(scope){
     setScope(scope);
-    if(scope==="fit"){state.reference="galaxy";el("rate").value="15";runningRate=15;}
-    if(scope==="lunar"){el("rate").value="1";runningRate=1;}
+    if(scope==="fit"){state.reference="galaxy";if(!rateChosen)setPlaybackRate(15);}
+    if(scope==="lunar"&&!rateChosen)setPlaybackRate(1);
 
     if(scope==="lunar"&&state.watch!==M.EARTH&&state.watch!==M.MOON)selectPlanet(M.MOON);
     if((scope==="fit"||scope==="lunar")&&!state.applied&&!state.observing&&!motionPreference.matches){
@@ -329,14 +349,14 @@
     setScope(match[3]==="trails"?"fit":match[3]==="lunar"?"lunar":match[2]==="sun"?"sun":match[3]==="wide"||!match[2]?"wide":"near");
     if(match[2]==="sun")state.sunBand=match[3]==="euv"?"euv":"radiant";
     const target=planets.findIndex(body=>body.id===match[2]);if(target>0)selectPlanet(target);
-    if(state.scope==="lunar"){runningRate=1;el("rate").value="1";}
+    if(state.scope==="lunar"&&!rateChosen)setPlaybackRate(1);
     if(match[4]&&!motionPreference.matches){
       state.applied=false;state.observing=true;state.running=true;previous=null;
     }
     map.reset();updateControls();mark();
   }
   openMapLink();
-  if(!location.hash){state.running=state.observing=true;runningRate=3;el("rate").value="3";updateControls();}
+  if(!location.hash){state.running=state.observing=true;updateControls();}
   fullFlag(true);window.addEventListener("hashchange",openMapLink);
   function animate(now){
     const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open;
@@ -365,7 +385,7 @@
         dirty=false;
       }
     }
-    previous=now;requestAnimationFrame(animate);
+    previous=Math.max(previous??now,now);requestAnimationFrame(animate);
   }
   requestAnimationFrame(animate);
 })();
