@@ -83,13 +83,13 @@ globalThis.OrbitMapSpace = (() => {
     const a=bounds(t0),b=bounds(t0+interval),u=(s.day-t0)/interval;return a.map((v,i)=>v+(b[i]-v)*u);
   }
   function wideGalacticCamera(p,s,run,zoom,yaw,pitch){
-    const tall=p.h>p.w*1.16,az=-2.46+yaw,el=clamp(-1.07+pitch,-1.43,1.43);
+    const az=-2.46+yaw,el=clamp(-1.07+pitch,-1.43,1.43);
     const front=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)];
     let right=[-Math.sin(az),Math.cos(az),0],up=norm(cross(front,right));
-    const roll=Math.atan2(dot(direction,up),dot(direction,right))-(tall?Math.PI/2-.10:.46);
+    const roll=Math.atan2(dot(direction,up),dot(direction,right))-.46;
     right=comb(right,up,Math.cos(roll),Math.sin(roll));up=norm(cross(front,right));
     const b=trailEnvelope(s,run,right,up);
-    const mx=Math.min(p.w*.115,tall?45:84),top=Math.min(p.h*.23,tall?142:107),bottom=Math.min(p.h*.20,tall?100:83);
+    const mx=Math.min(p.w*.115,84),top=Math.min(p.h*.23,107),bottom=Math.min(p.h*.20,83);
     const px=Math.min((p.w-2*mx)/Math.max(1,b[1]-b[0]),(p.h-top-bottom)/Math.max(1,b[3]-b[2]))*zoom;
     const midX=(b[0]+b[1])/2,midY=(b[2]+b[3])/2,center=comb(right,up,midX,midY);
     const ox=p.x+p.w*.5-midX*px,oy=p.y+(p.h+top-bottom)*.5+midY*px;
@@ -97,7 +97,25 @@ globalThis.OrbitMapSpace = (() => {
     function project(v){return {x:ox+dot(v,right)*px,y:oy-dot(v,up)*px,z:dist-dot(v,front),scale:px,inFront:true};}
     return {run,day:s.day,project,projectDisplay:project,orthographic:true,ox,oy,dist,px,near:.001,eye,front,up,right,center,principal:[.5,.49],focal:px*dist,skyFocal:Math.min(p.h*.85,p.w*.91),closeBody:null,pane:p};
   }
+  const desktopPane={x:0,y:0,w:1120,h:720};
+  function fitOverview(c,p){
+    // Preserve the desktop composition. The extra space on a portrait screen
+    // looks farther into the sky, while labels and touch controls stay legible.
+    const scale=Math.min(p.w/desktopPane.w,p.h/desktopPane.h);
+    const left=p.x+(p.w-desktopPane.w*scale)/2,top=p.y+(p.h-desktopPane.h*scale)/2;
+    function fit(q){q.x=left+q.x*scale;q.y=top+q.y*scale;q.scale*=scale;return q;}
+    const principal=[(left-p.x+c.principal[0]*desktopPane.w*scale)/p.w,
+                     (top-p.y+c.principal[1]*desktopPane.h*scale)/p.h];
+    const fitted={...c,pane:p,principal,overviewScale:scale,overviewShortSide:desktopPane.h,
+      focal:c.focal*scale,skyFocal:c.skyFocal*scale,px:c.px*scale,
+      project:v=>fit(c.project(v)),projectDisplay:v=>fit(c.projectDisplay(v))};
+    if(c.orthographic){fitted.ox=left+c.ox*scale;fitted.oy=top+c.oy*scale;}
+    return fitted;
+  }
   function camera(p,s,run,range,zoom,yaw,pitch){
+    if(s.scope==="wide"&&(p.h>p.w||p.w<900)){
+      return fitOverview(camera(desktopPane,s,run,range,zoom,yaw,pitch),p);
+    }
     const galaxy=s.reference==="galaxy", close=s.scope==="near";
     if(s.scope==="wide"&&galaxy&&!s.fixedCamera)return wideGalacticCamera(p,s,run,zoom,yaw,pitch);
     let focal=Math.min(p.h*.96,p.w*(close?.80:1.36));
@@ -110,14 +128,12 @@ globalThis.OrbitMapSpace = (() => {
       distanceToCenter=Math.hypot(1,focal/imageRadius)*radii[0]/M.AU;eye=along(center,front,distanceToCenter);
       principal=[.5+clamp(yaw,-4,4)*.20,.5+clamp(pitch,-3,3)*.20];
     }else if(s.scope==="wide"&&!galaxy){
-      // Frame the ecliptic along the long dimension of the actual viewport.
       // A distant viewpoint limits perspective distortion across Neptune's orbit.
-      const tall=p.h>p.w;
-      const major=tall?p.h*.394:p.w*.451,minor=tall?p.w*.425:p.h*.361;
+      const major=p.w*.451,minor=p.h*.361;
       const az=-2.24+yaw,el=clamp(-Math.asin(clamp(minor/major,.12,.95))+pitch,-1.44,1.44);
       front=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)];
       right=[-Math.sin(az),Math.cos(az),0];up=norm(cross(front,right));
-      const roll=tall?1.48:-.12;
+      const roll=-.12;
       right=comb(right,up,Math.cos(roll),Math.sin(roll));up=norm(cross(front,right));
       center=[0,0,0];principal=[.50,.49];focal=major*9;
       distanceToCenter=(s.allFit?(compressed(s)?57:980):30.5)*9/zoom;eye=along(center,front,distanceToCenter);

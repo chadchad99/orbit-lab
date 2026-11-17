@@ -163,6 +163,10 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
  #map-rate{padding-inline:32px 17px}
  .map-rate svg{right:5px}
 }
+@media(max-width:360px){
+ #map-play,#corona-play{min-width:54px}
+ .map-hud #map-light{padding-inline:8px}
+}
 .map-box.cinemascope[data-mode=map] .map-hud .status{display:none}
 
 .map-actions{position:absolute;z-index:4;top:clamp(14px,3.3%,30px);right:clamp(12px,2.3%,35px);display:flex;align-items:center;gap:6px}

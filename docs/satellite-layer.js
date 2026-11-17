@@ -105,9 +105,10 @@ globalThis.LabFullLayer=(()=>{
       if(body.x<p.x-25||body.y<p.y-25||body.x>p.x+p.w+25||body.y>p.y+p.h+25)continue;
       if(idx==null){ctx.fillStyle=group.points.length?'#c6ba9fbb':'#9eaaa955';ctx.fillRect(body.x-1,body.y-1,2,2);}
       if(!group.points.length)continue;
-      const sp=sprite(group,c,Math.round(body.radius),idx==null),side=sp.side;
+      const scale=c.overviewScale??1;
+      const sp=sprite(group,c,Math.round(body.radius/scale),idx==null),side=sp.side*scale;
       ctx.drawImage(sp.im,body.x-side/2,body.y-side/2,side,side);
-      if(idx!==undefined){const r=side*.48;hits.push({index:group.key,panel:p,box:{x:body.x-r,y:body.y-r,w:r*2,h:r*2}});}
+      if(idx!==undefined){const r=Math.max(7,side*.48);hits.push({index:group.key,panel:p,box:{x:body.x-r,y:body.y-r,w:r*2,h:r*2}});}
     }
   }
   return {load,density,satellites,galLocation,name,group:k=>systems.get(k),get survey(){return survey;}};

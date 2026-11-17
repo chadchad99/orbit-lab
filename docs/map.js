@@ -153,10 +153,10 @@
       const enlarged=(isStar?18.8:20*(S.radii[index]/69911)**.53)*layout*clamp(c.dist/Math.max(c.near,q.z),.25,2.8)*zoom**.36;
       const distanceInRadii=c.dist*M.AU/S.radii[index];
       const lunarSize=Math.min(p.w,p.h)*.115*(S.radii[index]/S.radii[M.EARTH])*zoom;
-      const shortSide=Math.min(p.w,p.h);
+      const shortSide=c.overviewShortSide??Math.min(p.w,p.h);
       const wideSize=index===0?(c.orthographic?clamp(shortSide*.061,17,43):clamp(shortSide*.077+3,18,60)):
         isStar?clamp(shortSide*.053,14,46):clamp(shortSide*.039,11,32)*(S.radii[index]/S.radii[5])**.49;
-      const radius=s.scope==="wide"&&!s.actualSize?Math.max(physical(S.radii[index]),wideSize*zoom**.37):s.scope==="lunar"&&!s.actualSize?Math.max(physical(S.radii[index]),lunarSize):index===c.closeBody?c.focal/Math.sqrt(distanceInRadii**2-1):
+      const radius=s.scope==="wide"&&!s.actualSize?Math.max(physical(S.radii[index]),wideSize*(c.overviewScale??1)*zoom**.37):s.scope==="lunar"&&!s.actualSize?Math.max(physical(S.radii[index]),lunarSize):index===c.closeBody?c.focal/Math.sqrt(distanceInRadii**2-1):
         real?physical(S.radii[index]):Math.max(physical(S.radii[index]),enlarged*(s.displayScale??1.8));
       const solidReach=radius*(index===6?2.3:1);
       const reach=index===0&&s.scope==="wide"&&!s.actualSize?radius*1.48:solidReach;
@@ -259,8 +259,9 @@
         const earth=list.find(q=>q.index===M.EARTH),moon=list.find(q=>q.index===M.MOON);
         if(earth&&moon){
           const dx=moon.x-earth.x,dy=moon.y-earth.y,gap=Math.hypot(dx,dy);
-          moon.reach=moon.radius=Math.max(1.7,earth.radius*S.radii[M.MOON]/S.radii[M.EARTH]);moon.diam=2*moon.radius;
-          const leg=earth.radius+moon.radius+3;
+          const scale=c.overviewScale??1;
+          moon.reach=moon.radius=Math.max(1.7*scale,earth.radius*S.radii[M.MOON]/S.radii[M.EARTH]);moon.diam=2*moon.radius;
+          const leg=earth.radius+moon.radius+3*scale;
           if(gap<leg){const angle=Math.atan2(dy,dx);moon.x=earth.x+leg*Math.cos(angle);moon.y=earth.y+leg*Math.sin(angle);}
         }
       }
