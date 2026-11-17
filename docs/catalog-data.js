@@ -1,7 +1,7 @@
 // Only the light overview sample is needed on the default map. Full catalogues are paged on demand.
 globalThis.LabCatalog = (() => {
   'use strict';
-  const root='assets/catalog/', publicRoot='https://9m4m47wtyc-cpu.github.io/orbit-lab/', cache=new Map();
+  const root='assets/catalog/', publicRoot='https://chadchad99.github.io/orbit-lab/', cache=new Map();
   const large=path=>path.startsWith('small/search/')||path.startsWith('small/bodies/');
   async function decode(bytes) {
     if(bytes[0]===31&&bytes[1]===139){

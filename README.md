@@ -2,9 +2,11 @@
 
 태양을 없애거나 질량을 바꾸면 지구의 궤도는 어떻게 달라질까요? 태양계의 조건을 바꿔 원래 궤도와 실험 궤도를 비교하는 한국어 웹 시뮬레이션입니다.
 
-**[태양계 실험실 열기](https://9m4m47wtyc-cpu.github.io/orbit-lab/)** · [기본 관측소 열기](https://9m4m47wtyc-cpu.github.io/orbit-lab/observatory/)
+**[태양계 실험실 열기](https://chadchad99.github.io/orbit-lab/)** · [기본 관측소 열기](https://chadchad99.github.io/orbit-lab/observatory/)
 
 첫 화면에서 **은하 궤적**이 자동 재생됩니다. 재생 버튼 옆 **배속**에서 0.25배부터 90배까지 조절할 수 있습니다. 1배속은 실제 1초에 시뮬레이션 1일이며, 첫 화면은 3배속입니다. 태양과 여덟 행성이 우리은하 안을 이동한 지난 365일의 자취에 맞춰 시야가 조절됩니다. 관측 시간은 730일을 지나서도 마지막 위치와 속도에서 계속 이어집니다. 태양이나 행성을 선택해 가까이 볼 수 있고, 지구 곁에서는 달도 관찰할 수 있습니다. **코로나** 버튼은 궤도 시계와 독립적으로 태양 가장자리의 관측 영상을 멈추거나 재생합니다. 전체 지도에서는 흑점을 강조하고 코로나의 높이를 2.35배로 표시합니다.
+
+웹 접속이 어려운 컴퓨터에서는 [오프라인 ZIP](https://github.com/chadchad99/orbit-lab/releases/download/downloads-2026-11-17/orbit-lab-offline.zip)을 내려받아 압축을 푼 뒤 `index.html`을 여세요. [A2 인쇄용 은하 궤적 이미지](https://github.com/chadchad99/orbit-lab/releases/download/downloads-2026-11-17/orbit-print-A2-600ppi.png)도 내려받을 수 있습니다.
 
 ## 내 컴퓨터에서 실행하기
 

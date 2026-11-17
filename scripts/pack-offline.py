@@ -22,7 +22,7 @@ def data(path):
     assert mime,path
     return 'data:'+mime+';base64,'+b64encode(path.read_bytes()).decode()
 html=(root/'index.html').read_text();css=(root/'style.css').read_text()
-html=html.replace('href="observatory/"', 'href="https://9m4m47wtyc-cpu.github.io/orbit-lab/observatory/"')
+html=html.replace('href="observatory/"', 'href="https://chadchad99.github.io/orbit-lab/observatory/"')
 css=re.sub(r'url\("(assets/[^"]+)"\)',lambda m:'url("'+data(root/m[1])+'")',css)
 assert 'url("assets/' not in css
 html=re.sub(r'<link rel="stylesheet" href="style\.css(?:\?[^"]*)?">',lambda _: '<style>'+css+'</style>',html)
