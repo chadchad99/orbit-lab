@@ -6,8 +6,10 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   const buffer = document.createElement("canvas");
   const panorama = new Image();
   const gl = buffer.getContext("webgl", {alpha:false, depth:false, antialias:false});
+  const photoCache=typeof withCatalog==="function"?document.createElement("canvas"):null;let photoKey="";
   let program, uniforms, texture, pixels, started = false, loaded = false, lastKey = "", annotations=[];
-  const celestial=withCatalog?CosmicSky.setupBackdrop(()=>{lastKey="";invalidate();}):null;
+  const refresh=()=>{lastKey="";invalidate();};
+  const celestial=typeof withCatalog==="function"?withCatalog(refresh):withCatalog?CosmicSky.setupBackdrop(refresh):null;
   const vertex = "attribute vec2 corner; varying vec2 screen; void main(){ screen=corner; gl_Position=vec4(corner,0.,1.); }";
   const fragment = `precision highp float;
     varying vec2 screen; uniform sampler2D stars; uniform mat3 galactic;
@@ -80,7 +82,8 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   }
   return function paint(width,height,ratio,views){
     if(!started) load();
-    const key=[width,height,ratio,...views.flatMap(({pane,camera,exposure,showSurvey})=>[pane.x,pane.y,showSurvey?1:0,celestial?Math.floor((camera.day??0)/32):0,camera.closeBody??0,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
+    const geometry=[width,height,ratio,...views.flatMap(({pane,camera,exposure})=>[pane.x,pane.y,pane.w,pane.h,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
+    const key=geometry+"/"+views.map(({skyId,showSurvey,camera})=>[skyId??"",!!showSurvey,celestial?Math.floor((camera.day??0)/32):0,camera.closeBody??0].join("|")).join("/");
     if(key===lastKey) return annotations;
     lastKey=key;annotations=[];
     const cw=Math.round(width*ratio),ch=Math.round(height*ratio);
@@ -88,6 +91,14 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
     context.setTransform(ratio,0,0,ratio,0,0);
     context.fillStyle="#020305";context.fillRect(0,0,width,height);
     if(!loaded) return annotations;
+    // A change in the catalogue epoch only moves individual stars. Reuse the
+    // panorama projection while the field of view and exposure are unchanged.
+    const cachePhoto=photoCache&&views.length===1;
+    if(cachePhoto&&geometry===photoKey){
+      context.drawImage(photoCache,0,0,width,height);
+      const {pane,camera,showSurvey,exposure}=views[0];
+      annotations.push(celestial(context,pane,camera,showSurvey,exposure));return annotations;
+    }
     for(const {pane,camera,exposure,showSurvey} of views){
       const m=[camera.right,camera.up,camera.front].flatMap(OrbitFrames.panorama);
       const focal=camera.skyFocal??camera.focal;
@@ -102,6 +113,10 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
         gl.drawArrays(gl.TRIANGLES,0,3);image=buffer;
       }else image=software(pane.w,pane.h,m,aperture,offset,exposure);
       context.drawImage(image,pane.x,pane.y,pane.w,pane.h);
+      if(cachePhoto){
+        if(photoCache.width!==cw||photoCache.height!==ch){photoCache.width=cw;photoCache.height=ch;}
+        photoCache.getContext("2d").drawImage(canvas,0,0);photoKey=geometry;
+      }
       if(celestial)annotations.push(celestial(context,pane,camera,showSurvey,exposure));
     }
     return annotations;

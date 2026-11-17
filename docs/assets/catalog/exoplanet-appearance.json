@@ -1,0 +1,108 @@
+{
+  "worlds": {
+    "trappist-1-b": {
+      "kind": "rock",
+      "surface": "현무암 평원과 충돌 분지",
+      "tiltDeg": 7,
+      "meridian": 0.701
+    },
+    "trappist-1-c": {
+      "kind": "rock",
+      "surface": "밝은 고지대와 검은 용암 대지",
+      "tiltDeg": 3,
+      "meridian": 0.208
+    },
+    "trappist-1-d": {
+      "kind": "rock",
+      "surface": "황갈색 광물층과 침식 골짜기",
+      "tiltDeg": 14,
+      "meridian": 0.456
+    },
+    "trappist-1-e": {
+      "kind": "coast",
+      "surface": "바다와 구름을 가정한 암석 행성",
+      "tiltDeg": 9,
+      "meridian": 0.004
+    },
+    "trappist-1-f": {
+      "kind": "ice",
+      "surface": "서리와 암반이 섞인 고원",
+      "tiltDeg": 18,
+      "meridian": 0.523
+    },
+    "trappist-1-g": {
+      "kind": "ice",
+      "surface": "갈라진 빙원과 광물 능선",
+      "tiltDeg": 4,
+      "meridian": 0.408
+    },
+    "trappist-1-h": {
+      "kind": "ice",
+      "surface": "밝은 얼음판과 어두운 균열",
+      "tiltDeg": 21,
+      "meridian": 0.898
+    },
+    "kepler-90-b": {
+      "kind": "rock",
+      "surface": "충돌구가 빽빽한 어두운 암반",
+      "tiltDeg": 13,
+      "meridian": 0.468
+    },
+    "kepler-90-c": {
+      "kind": "rock",
+      "surface": "철빛 고지대와 굳은 용암류",
+      "tiltDeg": 6,
+      "meridian": 0.087
+    },
+    "kepler-90-i": {
+      "kind": "rock",
+      "surface": "밝은 광물과 침식된 분지",
+      "tiltDeg": 11,
+      "meridian": 0.13
+    },
+    "kepler-90-d": {
+      "kind": "gas",
+      "surface": "황갈색 안개 아래 흐르는 구름",
+      "tiltDeg": 19,
+      "meridian": 0.114
+    },
+    "kepler-90-e": {
+      "kind": "mist",
+      "surface": "진주빛 구름과 옅은 청록색 소용돌이",
+      "tiltDeg": 12,
+      "meridian": 0.165
+    },
+    "kepler-90-f": {
+      "kind": "mist",
+      "surface": "청회색 대기와 길게 뻗은 구름",
+      "tiltDeg": 23,
+      "meridian": 0.332
+    },
+    "kepler-90-g": {
+      "kind": "gas",
+      "surface": "구릿빛 구름띠와 난류",
+      "tiltDeg": 8,
+      "meridian": 0.725
+    },
+    "kepler-90-h": {
+      "kind": "mist",
+      "surface": "푸른 구름띠와 거대 소용돌이",
+      "tiltDeg": 15,
+      "meridian": 0.795
+    },
+    "kepler-16-b": {
+      "kind": "gas",
+      "surface": "두 별이 비추는 크림색 구름과 폭풍",
+      "tiltDeg": 10,
+      "meridian": 0.342
+    }
+  },
+  "imagePrompts": {
+    "rock": "Scientific-educational production asset for a 3D exoplanet simulator. One seamless full-globe equirectangular diffuse ALBEDO atlas, 2:1 panoramic landscape, ideally 3072 by 1536 or higher. Edge-to-edge rectangular orthographic unwrapped planetary terrain, all pixels are surface. Artist's impression, spacecraft geological mapping detail: complex ancient ochre basaltic highlands, dark flood basalts, branching pale mineral outcrops, overlapping degraded impact basins, a few fresh radial ejecta, varied crater scales, mountain chains with intermittent sharp scarps and winding rifts. A few large quiet plains next to intricate rough regions. Subdued warm grey and rust umber, accurate subtle tonal changes, clear large features readable on a sphere at small sizes, huge wealth of crisp fine detail when enlarged. Fine rock texture not photographic noise. Longitude must wrap from left to right. Both poles continuous in equirectangular projection. Flat neutral illumination with no global cast shadows, no atmosphere, no day/night, no horizon, no curved globe, no ocean or foliage, no sky, no grid or typography, no borders. Single texture map.",
+    "ice": "Scientific-educational production asset for a 3D exoplanet simulator. One very high resolution, flat edge-to-edge 2:1 equirectangular global ALBEDO texture of an imagined cold terrestrial exoplanet, full 360 degree longitude (seamlessly horizontal) and 180 latitude. NASA spacecraft geological mapping aesthetic. Varied regions of slate mineral plates under blue-grey fractured glacial ice, several vast brighter pale ivory frost sheets, intricate branching cyan and charcoal fissures at multiple scales, weathered impact basins and long glacier corridors, quiet smooth areas beside layered chaotic terrain. Restrained cool mineral blue, dark umber ground, off-white frost, subtle realistic colour separation like natural-colour satellite mosaics. Carefully resolved small-scale texture without oversharpening. Uniform overcast nondirectional illumination, no global highlights, no baked terminator. All pixels are terrain, not a disk. Single atlas, no blank margins, stars, labels, grid lines, letters, borders or decorative overlay. Output ideally 3072 by 1536 or larger.",
+    "gas": "Scientific-educational reusable gas giant cloud material for a realistic 3D exoplanet simulator. One ultra-detailed, horizontally wrapping 2:1 equirectangular FULL planetary albedo panorama, rectangular full bleed, flat map from north to south pole. Like a natural-colour global spacecraft mosaic of a physically plausible distant gas giant. West-east jets in many irregular widths run seamlessly the entire 360 degrees, cream anvil tops casting very gentle local relief, charcoal-blue hazy troughs with intricate Kelvin-Helmholtz rolls, curling filaments, interwoven pale ochre and pearl belts, one subtly elongated asymmetric white anticyclone, several eddies of various sizes fringed by fine turbulent trails. Calm broad smooth regions between very detailed eddies, balanced contrast, no repeating ring motif. High acuity. Nondirectional even lighting, purely reflectance; no global shadows, no sphere, no outer space, no sunset, no view of a disk. No grid, frame, labels, typography or watermarks. Ideally 3072 by 1536 or higher.",
+    "coast": "Scientific-educational production material. Single equirectangular global albedo map 2:1 (wide landscape), edge-to-edge rectangular, to wrap an artist's-impression TRAPPIST-1e on a real-time sphere. Hypothetical temperate rocky surface: three unequal continents with recognizably non-Earth silhouettes, long broken volcanic islands, subtle mountain folds, rust ochre stripped-soil highlands and desaturated slate estuaries, moderately luminous deep mineral-teal seas and a few intricate turquoise shelves, small pale high-latitude ice. About 48% open water, 52% land. No vegetation, urban lights or buildings. Richly resolved geological detail like natural-color spacecraft mapping, sophisticated subdued photographic colours, distinctive continent-scale structure to read from afar, no exaggerated contrast. Important: cloud-free map; our renderer adds its own moving clouds. Uniform nondirectional lighting, no terminator, darkening or globe silhouette. The left and right edges must join seamlessly, and polar texture should be stretched laterally as in equirectangular projection. No text, grids, margin or sky. High resolution.",
+    "mist": "Scientific-educational material asset. Photorealistic edge-to-edge equirectangular 360 degree equirectangular, 2:1 panoramic flat albedo map of a hypothetical blue-grey ice giant upper atmosphere. A family of broad soft cyan and cornflower-grey latitudinal bands with pockets of exceptionally detailed ivory cirrus, long delicate irregular streaks, a few darker marine blue vortex eyes and lifted bright wisps. Atmospheric fluid motion like Voyager and modern telescopic global mosaics, physically plausible, subtle photographic contrast and well-differentiated large features, not fantasy. Cloud structures very different from Jupiter's tight tan bands. Calm polar haze, smoothly wrapping horizontal edges, consistent exposure across every pixel, no globe shadow, no light hotspot, no halo, no space or borders. Texture only, no words. High resolution."
+  },
+  "credit": "Artist impressions. Five original image-generation material sources, prepared with the built-in ImageGen tool. Global material maps, clouds and stellar granulation are illustrative. The corona uses the existing NASA/SDO AIA animation as a solar analogue."
+}
