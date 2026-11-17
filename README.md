@@ -25,3 +25,5 @@ python3 scripts/pack-offline.py
 GitHub Pages는 `main` 브랜치의 `docs/` 폴더를 배포합니다. 실험실의 시작 파일은 `docs/index.html`, 기본 관측소의 시작 파일은 `docs/observatory/index.html`입니다.
 
 초기 위치와 속도는 NASA/JPL Horizons 자료를, 태양 표면과 코로나는 NASA/SDO 관측 자료를 사용합니다. 이미지별 출처와 가공 내역은 실험실의 **실험 안내 → 자료와 이미지 출처**에서 확인할 수 있습니다. [관측 이미지별 출처 파일](docs/assets/space/) · [글꼴 라이선스](docs/assets/fonts/)
+
+전체 지도 오른쪽 위의 **천체 찾기**에서 행성·왜행성·고리, 자연위성, 소행성·혜성, 인공위성을 찾을 수 있습니다. 2026년 11월 17일에 수집한 JPL 소천체 1,585,109개와 자연위성 955개(별도 후보 38개), CelesTrak SATCAT 인공 물체 71,323개의 스냅샷입니다. 인공 물체에는 발사체와 잔해, 과거 기록도 포함됩니다. 각 화면에 궤도의 기준일과 자료 출처가 표시됩니다. 검색 색인과 궤도 자료는 필요할 때 나눠 읽습니다. [NASA/JPL](https://ssd.jpl.nasa.gov/) · [CelesTrak](https://celestrak.org/satcat/) · [GCAT](https://planet4589.org/space/gcat/)

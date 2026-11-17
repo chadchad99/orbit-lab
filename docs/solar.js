@@ -26,7 +26,8 @@ globalThis.createSolarOptics=function(invalidate){
     return pictures.get(file);
   }
   function advance(s,seconds){
-    if(s.scope!=="wide"||s.actualSize||!s.coronaPlaying||!pictures.has("corona-sequence"))return false;
+    const visible=s.scope==="wide"&&!s.actualSize||s.scope==="sun"&&s.sunBand==="radiant";
+    if(!visible||!s.coronaPlaying||!pictures.has("corona-optical"))return false;
     if(s.applied&&!s.split&&(s.kind==="vanish"||s.kind==="black"))return false;
     const delta=Math.min(seconds,.25);
     framePosition=(framePosition+delta*corona.fps)%corona.count;
@@ -35,39 +36,40 @@ globalThis.createSolarOptics=function(invalidate){
     untilPaint=1/24;
     return true;
   }
-  function drawOverview(ctx,q,s){
-    const surface=request("sun-atlas-visible"),poster=request("corona-limb-preview");
-    const sequence=s.coronaPlaying?request("corona-sequence"):pictures.get("corona-sequence");
+  function starlight(ctx,q){
+    const r=q.radius,reach=r*3.2,scatter=request("sun-scatter");
+    ctx.save();ctx.globalCompositeOperation="screen";
+    if(scatter)ctx.drawImage(scatter,q.x-reach,q.y-reach,2*reach,2*reach);
+    else{
+      const light=ctx.createRadialGradient(q.x,q.y,.84*r,q.x,q.y,reach);
+      light.addColorStop(0,"rgba(255,236,187,.83)");light.addColorStop(.09,"rgba(255,217,150,.42)");light.addColorStop(.34,"rgba(248,189,100,.13)");light.addColorStop(1,"rgba(244,164,78,0)");ctx.fillStyle=light;ctx.fillRect(q.x-reach,q.y-reach,reach*2,reach*2);
+    }
+    ctx.restore();
+  }
+  function luminousDisk(ctx,q,s,close=false){
+    starlight(ctx,q);
+    const lite=request("sun-radiant"),surface=close?(request("sun-radiant-close")||lite):lite;
+    const poster=request("corona-optical-poster"),sequence=s.coronaPlaying?request("corona-optical"):pictures.get("corona-optical");
     const size=q.radius/corona.diskFraction,x=q.x-size/2,y=q.y-size/2;
-    ctx.save();
-    ctx.imageSmoothingEnabled=true;
-    ctx.imageSmoothingQuality="high";
-    // Add the observed off-limb radiance behind the opaque white-light photosphere.
-    ctx.globalCompositeOperation="lighter";
+    ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.globalCompositeOperation="lighter";
     if(sequence){
       const first=Math.floor(framePosition),mix=framePosition-first;
       for(let i=0;i<2;i++){
-        const weight=i===0?1-mix:mix;
-        if(weight===0)continue;
-        const frame=(first+i)%corona.count;
-        const sx=(frame%corona.columns)*corona.tile,sy=Math.floor(frame/corona.columns)*corona.tile;
-        ctx.globalAlpha=weight;
-        ctx.drawImage(sequence,sx,sy,corona.tile,corona.tile,x,y,size,size);
+        const weight=i===0?1-mix:mix;if(weight===0)continue;
+        const frame=(first+i)%corona.count,sx=(frame%corona.columns)*corona.tile,sy=Math.floor(frame/corona.columns)*corona.tile;
+        ctx.globalAlpha=.94*weight;ctx.drawImage(sequence,sx,sy,corona.tile,corona.tile,x,y,size,size);
       }
-    }else if(poster){
-      ctx.drawImage(poster,x,y,size,size);
-    }
+    }else if(poster){ctx.globalAlpha=.94;ctx.drawImage(poster,x,y,size,size);}
+    ctx.restore();ctx.save();
+    const r=q.radius;
+    if(surface){ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(surface,q.x-r,q.y-r,r*2,r*2);}
+    else{const core=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,r);core.addColorStop(0,"#fffbed");core.addColorStop(.82,"#ffedbf");core.addColorStop(1,"#eeb96f");ctx.fillStyle=core;ctx.beginPath();ctx.arc(q.x,q.y,r,0,tau);ctx.fill();}
     ctx.restore();
-    if(!surface)return false;
-    ctx.save();
-    ctx.beginPath();ctx.arc(q.x,q.y,q.radius,0,tau);ctx.clip();
-    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
-    ctx.drawImage(surface,q.x-q.radius,q.y-q.radius,q.radius*2,q.radius*2);
-    ctx.restore();
-    return true;
   }
   function disk(ctx,q,c,s,companion){
-    if(!companion&&s.scope==="wide"&&!s.actualSize&&drawOverview(ctx,q,s))return;
+    const observational=c.closeBody===0&&!companion&&s.sunBand!=="radiant";
+    if(!observational&&!s.actualSize&&q.radius>=2&&!companion){luminousDisk(ctx,q,s,c.closeBody===0);return;}
+    if(c.closeBody===0&&s.sunBand==="radiant"&&!companion){luminousDisk(ctx,q,s,true);return;}
     const close=c.closeBody===0&&!companion;
     const band=close&&s.sunBand==="euv"?"euv":"visible";
     const g=geometry[band],lite=request("sun-"+band+"-lite");
@@ -76,9 +78,7 @@ globalThis.createSolarOptics=function(invalidate){
     if(r<.65){ctx.fillStyle="#eeeae0";ctx.fillRect(q.x-.45,q.y-.45,.9,.9);return;}
     ctx.save();
     if(!close&&r>2){
-      const glow=ctx.createRadialGradient(q.x,q.y,r*.96,q.x,q.y,r*1.65);
-      glow.addColorStop(0,"rgba(240,224,192,.09)");glow.addColorStop(.28,"rgba(231,212,176,.026)");glow.addColorStop(1,"rgba(225,209,180,0)");
-      ctx.fillStyle=glow;ctx.fillRect(q.x-1.65*r,q.y-1.65*r,r*3.3,r*3.3);
+      starlight(ctx,q);
     }
     ctx.beginPath();ctx.arc(q.x,q.y,r,0,tau);
     if(!photo){ctx.fillStyle="#e6e4dc";ctx.fill();ctx.restore();return;}

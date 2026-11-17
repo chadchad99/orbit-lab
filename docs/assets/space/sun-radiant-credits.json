@@ -1,0 +1,235 @@
+{
+  "title": "Orbit Lab solar light display",
+  "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "displayDisclosureKo": "광휘 모드는 SDO/HMI 가시광 흑점과 SDO/AIA 극자외선 활동 영역을 겹치고 색과 빛 번짐을 조정한 시각화입니다. 태양계 지도에서만 흑점이 확대됩니다.",
+  "originalObservations": {
+    "photosphericContinuum": {
+      "instrument": "SDO/HMI continuum near Fe I 6173 Å (617.3 nm)",
+      "dateObsStartUTC": "2024-05-10T08:44:50.500Z",
+      "source": "https://api.helioviewer.org/v2/getJP2Image/?id=156610536",
+      "header": "https://api.helioviewer.org/v2/getJP2Header/?id=156610536",
+      "overviewPrior": "sun-atlas-visible.webp",
+      "overviewPriorSHA256": "eaaecb2c6bea2701669ea8385315cd6ac5edbe88957e445b9b49d9ba59cb58cc",
+      "continuumInput": "sun-visible.webp",
+      "continuumInputSHA256": "cc2fbf229653d3ca1a5b8e9fff85aaa1dad0ccd4f22e6b95fee475565f0ac472",
+      "overviewProcessingRecord": "sun-atlas-visible-credits.json"
+    },
+    "corona": {
+      "instrument": "SDO/AIA 171 Å (17.1 nm), extreme UV display; predominantly Fe IX",
+      "dateObsStartUTC": "2024-05-10T08:46:09.350Z",
+      "jpegStampUTC": "2024-05-10T08:46:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_084610_4096_0171.jpg",
+      "header": "https://api.helioviewer.org/v2/getJP2Header/?id=156608312",
+      "inputSHA256": "960f17eb808d2880e6004ac6878f64315f4bf07aadb190608a8c0e2f233a2eff",
+      "moviePrior": "corona-sequence.webp",
+      "moviePriorSHA256": "766723fa9dd80c6d780cd14eedd6e6ea9a0b6c566c92b1319666c84e50b0d51c",
+      "movieFrameProvenance": "corona-sequence-credits.json",
+      "moviePeriodUTC": [
+        "2024-05-10T08:46:10Z",
+        "2024-05-11T07:47:10Z"
+      ]
+    },
+    "registration": "North up and solar west to the right in both channels. For AIA use source center (2048,2048), radius 1583.4944 pixels. HMI native continuum uses measured center (2047.9316,2048.0496), radius 1583.82556 in its own 4096 frame. The data are separated by 78.85 seconds.",
+    "sourceTerms": "https://sdo.gsfc.nasa.gov/gallery/copyright.php",
+    "channelDescriptions": "https://sdo.gsfc.nasa.gov/data/channels.php"
+  },
+  "displayProcessing": {
+    "radiantOverview": "512 px RGBA. Disk inscribed in the square with center 0.5,0.5 and radius 0.5 of width. Optical radiance palette is warm white/gold. On-disk AIA contains the real maxima and missing-emission lanes, with the median radial signature gently reduced and separate smooth/detail contrast. The measured darkest HMI groups use the existing map-wide visibility enlargement from sun-atlas-visible; magnified spots keep the recorded group centers. No painted features, procedural sunspots, fractals, copied convection texture or invented flare.",
+    "radiantClose": "1536 px RGBA, same disk geometry. Generated independently from both full-resolution co-aligned instrument images. Native white-light spot coordinates, relative dimensions and separation are retained. No dilation or local magnification; the visible native HMI intensity variation modulates the composite at small scales. Recoloring/emissive contrast are a display choice.",
+    "scatter": "640 px RGBA, center [320,320], light-source disk radius 100 px, output to 3.2R each side. Optical visualization, not measured telescope PSF. Six positive circular Gaussian response widths (3.5,9,18,34,60,110 stamp pixels) operate on the measured source envelope. The wide wings take weak asymmetric contributions from the temporal mean of the observed off-limb data; narrow wings principally follow the disk to avoid freezing prominent coronal fans at one location. One smooth exposure map with warm low-intensity wings. Fully fades to transparent well within 3.2R. No artificial rays or diffraction spikes.",
+    "opticalMovie": "Optional alternative to the existing 24-frame film in the radiant visualization. Same source crop, times, square 320-pixel tiles, 6 columns by 4 rows, original north-up geometry and 96-pixel reference limb radius. Redistributes part of each original premultiplied frame through fixed 2.8- and 7.4-pixel Gaussian blurs. Smoothing rises more gently at increasing radius so the largest stretched fans dissolve into the dark field while measured low arches remain sharp. No temporal interpolation or added structures. Original geometric exaggeration (off-limb height ×2.35) remains."
+  },
+  "recommendedCompositing": {
+    "order": [
+      "sun-scatter.webp using screen at alpha 1.0, destination side = 6.4 × display solar radius",
+      "corona-optical.webp, or original corona-sequence.webp, row-major subrect 320x320. Use lighter at alpha 0.94 (use 0.88–0.92 for original harder-edged film); destination side = display radius / 0.30. When interpolating, the pair of weights must sum to layer opacity.",
+      "sun-radiant.webp overview or sun-radiant-close.webp in emissive close-up using source-over at 1.0, destination side = display radius × 2"
+    ],
+    "observationModes": "Original HMI continuum and AIA extreme-ultraviolet photographs are separate from this composite.",
+    "surfaceGeometry": {
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "radiusUV": 0.5
+    },
+    "scatterGeometry": {
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "radiusUV": 0.15625
+    },
+    "movieGeometry": {
+      "tilePx": 320,
+      "columns": 6,
+      "rows": 4,
+      "count": 24,
+      "diskRadiusOverTileWidth": 0.3
+    }
+  },
+  "files": [
+    {
+      "file": "sun-radiant.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 191888,
+      "sha256": "65aa76bf34eaae6fce282de81fb689d23f9a4b91a90ac7ab043291071ccb4a67"
+    },
+    {
+      "file": "sun-radiant-close.webp",
+      "width": 1536,
+      "height": 1536,
+      "bytes": 417000,
+      "sha256": "1d1a0636eba18c3615e315bf5422845236ed3ecbbb2a013f80f8aceda36c042e"
+    },
+    {
+      "file": "sun-scatter.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 36368,
+      "sha256": "92fcd086a559f39ac90be86080059bd528bd116667af12a11960a7dc665e654c"
+    },
+    {
+      "file": "corona-optical.webp",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 950676,
+      "sha256": "ac09b860384a68c2a0c989a2e72ddc8667f5cb3ee75e4f5b9237a120c3860780"
+    }
+  ],
+  "verification": {
+    "method": "Checked decoded RGBA files. Used Lanczos downsampling to native disk sizes; evaluated luma = 0.2126 R + 0.7152 G + 0.0722 B in 8-bit display codes. Disk statistics use radius <0.93 R and measured AR3664 ROI. Motion was checked on all 24 individually drawn frames, at radii 1.015–1.54 R, against the original standalone film. Scatter spatial luminance represented by median and directional 5th / 95th percentiles at stated radial distances.",
+    "results": {
+      "targets": [
+        {
+          "diskPx": 58,
+          "medianDiskRGB": [
+            255,
+            243,
+            201
+          ],
+          "diskLumaP10P50P90": [
+            232.3,
+            242.5,
+            250.3
+          ],
+          "duskySpotsPixelsLuma100": 6,
+          "mainSpotGroupMinLuma": 49.1,
+          "mainGroupQuiet95Luma": 253.7,
+          "motion": {
+            "screen": {
+              "range32WithNewScatter": 856,
+              "range32BaselineSameFilter": 1169,
+              "threeFramePixelDelta22": 109,
+              "baselineThreeFramePixelDelta22": 224,
+              "rmsTemporalRatio": 0.715
+            },
+            "lighter": {
+              "range32WithNewScatter": 1106,
+              "range32BaselineSameFilter": 1169,
+              "threeFramePixelDelta22": 181,
+              "baselineThreeFramePixelDelta22": 224,
+              "rmsTemporalRatio": 0.915
+            }
+          },
+          "recommendedOpticalComposite": {
+            "mode": "screen scatter at 1.0, then lighter optical film at 0.94, then opaque surface",
+            "ringPixelsTested": 3568,
+            "median3FrameChange22": 115.0,
+            "reference3FrameChange22": 224.0,
+            "dynamicRange32PixelsAcrossSequence": 910,
+            "referenceDynamicRange32": 1169,
+            "meanTemporalStdDevRatioVsOriginal": 0.784,
+            "opticalMovieRatioWithoutScatter": 0.893
+          }
+        },
+        {
+          "diskPx": 115,
+          "medianDiskRGB": [
+            255,
+            244,
+            202
+          ],
+          "diskLumaP10P50P90": [
+            230.5,
+            243.2,
+            251.4
+          ],
+          "duskySpotsPixelsLuma100": 33,
+          "mainSpotGroupMinLuma": 30.3,
+          "mainGroupQuiet95Luma": 254.4,
+          "motion": {
+            "screen": {
+              "range32WithNewScatter": 3608,
+              "range32BaselineSameFilter": 4821,
+              "threeFramePixelDelta22": 519,
+              "baselineThreeFramePixelDelta22": 1000,
+              "rmsTemporalRatio": 0.705
+            },
+            "lighter": {
+              "range32WithNewScatter": 4625,
+              "range32BaselineSameFilter": 4821,
+              "threeFramePixelDelta22": 793,
+              "baselineThreeFramePixelDelta22": 1000,
+              "rmsTemporalRatio": 0.9
+            }
+          },
+          "recommendedOpticalComposite": {
+            "mode": "screen scatter at 1.0, then lighter optical film at 0.94, then opaque surface",
+            "ringPixelsTested": 14016,
+            "median3FrameChange22": 484.0,
+            "reference3FrameChange22": 1000.0,
+            "dynamicRange32PixelsAcrossSequence": 3795,
+            "referenceDynamicRange32": 4821,
+            "meanTemporalStdDevRatioVsOriginal": 0.761,
+            "opticalMovieRatioWithoutScatter": 0.88
+          }
+        }
+      ],
+      "scatterLumaByRadiusP05P50P95": {
+        "1.02": [
+          150.9,
+          169.1,
+          187.7
+        ],
+        "1.1": [
+          84.4,
+          92.4,
+          102.6
+        ],
+        "1.23": [
+          50.6,
+          54.9,
+          61.7
+        ],
+        "1.4": [
+          32.8,
+          36.0,
+          40.9
+        ],
+        "1.6": [
+          21.8,
+          24.2,
+          27.3
+        ],
+        "2.0": [
+          9.6,
+          11.1,
+          12.6
+        ],
+        "2.5": [
+          3.7,
+          4.4,
+          4.4
+        ],
+        "3.0": [
+          0.0,
+          0.0,
+          0.7
+        ]
+      }
+    }
+  },
+  "preview": "sun-radiant-preview.png"
+}

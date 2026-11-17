@@ -26,16 +26,24 @@ html=html.replace('href="observatory/"', 'href="https://9m4m47wtyc-cpu.github.io
 css=re.sub(r'url\("(assets/[^"]+)"\)',lambda m:'url("'+data(root/m[1])+'")',css)
 assert 'url("assets/' not in css
 html=re.sub(r'<link rel="stylesheet" href="style\.css(?:\?[^"]*)?">',lambda _: '<style>'+css+'</style>',html)
-html=re.sub(r'(?:src|href)="(assets/[^"]+)"',lambda m:m[0].split('=')[0]+'="'+data(root/m[1])+'"',html)
 scripts=re.findall(r'<script defer src="([^"]+)"></script>',html)
 assert scripts and scripts[-1].split('?',1)[0]=='app.js'
 html=re.sub(r'<script defer src="[^"]+"></script>','',html)
+html=re.sub(r'(?:src|href)="(assets/[^"]+)"',lambda m:m[0].split('=')[0]+'="'+data(root/m[1])+'"',html)
 paths=[p for p in (root/'assets').rglob('*') if p.suffix in ('.png','.webp')]
 inline='\n<script>globalThis.LabPacked='+json.dumps({str(p.relative_to(root)):data(p) for p in sorted(paths)},separators=(',',':'))+';</script>\n'
+catalog=root/'assets/catalog'
+# Scientific data is embedded as inert blocks; the browser decodes only requested pages.
+blocks=[]
+for item in sorted(catalog.rglob('*')):
+    if item.suffix not in ('.json','.gz'):continue
+    key=item.relative_to(catalog).as_posix()
+    blocks.append('<script type="application/octet-stream" id="catalog-data-'+key+'">'+b64encode(item.read_bytes()).decode()+'</script>')
+inline+=''.join(blocks)+'\n'
 for name in scripts:
     code=(root/name.split('?',1)[0]).read_text();assert '</script' not in code.lower()
     inline+='<script>'+code+'</script>\n'
-licenses='\n'.join(p.read_text() for p in sorted((root/'assets/fonts').glob('*OFL.txt')))
+licenses='\n'.join(p.read_text() for p in [*sorted((root/'assets/fonts').glob('*OFL.txt')),root/'assets/vendor/satellite-LICENSE.txt'])
 credits={p.name:json.loads(p.read_text()) for p in sorted((root/'assets/space').glob('*-credits.json'))}
 inline+='\n<script type="application/json" id="asset-attribution">'+json.dumps(credits,ensure_ascii=False).replace('<','\\u003c')+'</script>\n'
 html=html.replace('</body>',inline+'\n<!-- Font licenses\n'+licenses.replace('--','—')+'\n-->\n</body>')

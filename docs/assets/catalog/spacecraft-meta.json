@@ -1,0 +1,51 @@
+{
+  "asOf": "2026-11-17",
+  "satcat": 71323,
+  "payloads": 28329,
+  "debris": 35947,
+  "rocketBodies": 6929,
+  "unidentified": 118,
+  "gp": 17228,
+  "source": "https://celestrak.org/pub/satcat.csv",
+  "elements": "https://celestrak.org/NORAD/elements/",
+  "gpGroups": [
+    "active",
+    "amateur",
+    "SPECIAL=GPZ",
+    "last-30-days",
+    "CATNR=22077"
+  ],
+  "namesSource": "https://planet4589.org/space/gcat/",
+  "namesCredit": "GCAT, Jonathan C. McDowell (2020), CC BY; 2026-11-15 names and status.",
+  "fields": [
+    "norad",
+    "name",
+    "cospar",
+    "type",
+    "status",
+    "owner",
+    "launch",
+    "decay",
+    "center",
+    "orbitType",
+    "perigeeKm",
+    "apogeeKm",
+    "inclinationDeg",
+    "periodMin",
+    "alternateName",
+    "history",
+    "gp"
+  ],
+  "gpFields": [
+    "epochUTC",
+    "meanMotionRevDay",
+    "eccentricity",
+    "inclination",
+    "node",
+    "argPericenter",
+    "meanAnomaly",
+    "bstar",
+    "meanMotionDot",
+    "meanMotionDdot"
+  ]
+}

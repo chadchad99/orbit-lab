@@ -164,9 +164,33 @@
       ctx.strokeStyle="#91a1a48a";ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(x,y-3);ctx.lineTo(x,y);ctx.lineTo(x+l,y);ctx.lineTo(x+l,y-3);ctx.stroke();
       ctx.font='9px "IBM Plex Mono",monospace';ctx.fillStyle="#b0babc";ctx.textBaseline="bottom";ctx.fillText(text,x,y-5);
     }
+    function catalogPoints(p,c,s,testView){
+      const catalog=s.catalog;
+      if(!catalog||s.scope!=="wide"||s.reference!=="solar"||s.actualSize||s.applied&&testView)return;
+      const region=catalog.marker?.region;
+      const points=region?catalog.regionRows(region).map(row=>CatalogOrbits.position(CatalogOrbits.small(row),LabInitial.jd+s.day)):catalog.beltAt(s.day);
+      ctx.fillStyle=region?"rgba(213,202,163,.70)":"rgba(191,170,132,.32)";
+      for(const point of points){if(!point)continue;const q=c.project(point);if(q.inFront&&inPanel(p,q))ctx.fillRect(q.x,q.y,region?1.6:1.05,region?1.6:1.05);}
+    }
+    function catalogMark(p,c,s,run,testView){
+      const chosen=s.catalog?.marker;if(!chosen||s.scope!=="wide"||s.reference!=="solar"||chosen.region||s.applied&&testView)return;
+      const source=chosen.orbit;let target,radius=5;
+      if(source){
+        target=CatalogOrbits.position(source,LabInitial.jd+s.day);if(!target)return;
+        if(s.showPaths){const line=CatalogOrbits.curve(source,Math.max(48,Math.hypot(...target)*1.1));curve(c,line,"rgba(242,195,126,.68)",1.1,[3,4]);}
+      }else{const index=bodies.findIndex(b=>b.id===chosen.host);if(index<0)return;target=S.world(s,run,index,s.day);radius=visualBody(index,target,c,p,s).radius+4;}
+      const q=c.project(target);if(!q.inFront)return;
+      const visible=inPanel(p,q,8),x=clamp(q.x,p.x+9,p.x+p.w-9),y=clamp(q.y,p.y+15,p.y+p.h-15);
+      ctx.save();ctx.strokeStyle="#f3ca86";ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.arc(x,y,visible?radius:5,0,tau);ctx.stroke();ctx.setLineDash([]);
+      if(source&&visible&&!chosen.parentOnly){ctx.fillStyle="#ffe4b0";ctx.beginPath();ctx.arc(x,y,2.3,0,tau);ctx.fill();}
+      const label=chosen.label+(chosen.parentOnly?" · 중심 천체":"")+(visible?"":" · 화면 밖");ctx.font="550 11px "+font;ctx.textBaseline="middle";
+      const width=ctx.measureText(label).width,tx=clamp(x+Math.min(radius,45)+8,p.x+4,p.x+p.w-width-5),ty=clamp(y-13,p.y+17,p.y+p.h-19);
+      ctx.fillStyle="#0c1119e6";ctx.fillRect(tx-3,ty-8,width+6,16);ctx.fillStyle="#ffdc9f";ctx.fillText(label,tx,ty);ctx.restore();
+    }
     function drawPanel({pane:p,camera:c,run,testView},s){
       ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();
       const world=(index)=>S.world(s,run,index,s.day);
+      catalogPoints(p,c,s,testView);
       if(s.showPaths){
         if(s.scope==="lunar")curve(c,timePoints(s,run,M.MOON,s.day-27.32,s.day,144),"rgba(183,197,202,.52)",1.2);
         else if(s.reference==="galaxy")galacticTrails(p,c,s,run,testView);else solarTrails(p,c,s,run);
@@ -179,7 +203,7 @@
         ctx.restore();return;
       }
       const ids=s.scope==="lunar"?[M.EARTH,M.MOON]:run.active;
-      const list=ids.map(i=>visualBody(i,world(i),c,p,s)).filter(q=>q.inFront&&inPanel(p,q,-q.reach));
+      const list=ids.map(i=>visualBody(i,world(i),c,p,s)).filter(q=>q.inFront&&inPanel(p,q,-(q.index===0?Math.max(q.reach,3.2*q.radius):q.reach)));
       if(s.scope!=="lunar"&&s.scope!=="near"&&s.scope!=="sun"&&!s.actualSize){
         const earth=list.find(q=>q.index===M.EARTH),moon=list.find(q=>q.index===M.MOON);
         if(earth&&moon){
@@ -211,7 +235,7 @@
           list.push({...ref,index:-1,diam:6,reach:3,radius:3,label:"원래 "+names[s.watch],ghost:true});
         }
       }
-      labels(p,c,s,list);if(!(s.scope==="wide"&&s.reference==="solar"&&!s.linearDistances&&!s.actualSize))scaleBar(p,c);
+      labels(p,c,s,list);catalogMark(p,c,s,run,testView);if(!(s.scope==="wide"&&s.reference==="solar"&&!s.linearDistances&&!s.actualSize))scaleBar(p,c);
       if(p.layer!=="both"){
         ctx.font="550 11px "+font;ctx.textBaseline="top";ctx.fillStyle=p.layer==="base"?mint:coral;
         ctx.fillText(p.layer==="base"?"원래 태양계":"실험 태양계",p.x+14,p.y+((p.x===0&&p.y===0)?43:13));

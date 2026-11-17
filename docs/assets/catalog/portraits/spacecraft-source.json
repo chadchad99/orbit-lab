@@ -1,0 +1,96 @@
+{
+  "scope": "Real photographs of exactly the named mission hardware for an educational web simulation. IDs are NORAD catalog numbers supplied by the site. Cropped and downsampled in WebP.",
+  "reuse": "NASA media guidelines specifically allow educational/informational uses and attribution; LROC permits educational use with credit NASA/GSFC/Arizona State University. All website and title credits are kept in index.json.",
+  "creditsRecord": {
+    "25544": {
+      "originalDimensions": [
+        1280,
+        850
+      ],
+      "cropPixelsXYXY": [
+        111,
+        40,
+        1111,
+        840
+      ],
+      "sourceSHA256": "0b0c390144e1da5f5e03a2a92ea0520a5becd7f82e0a170f45c6b43719a8aa10",
+      "outputSHA256": "48bef6fa428232c76a5c257fd95e12d0e6cae52c7fc5ccc9271e5e9462b06d6c",
+      "bytes": 21362
+    },
+    "20580": {
+      "originalDimensions": [
+        2048,
+        1361
+      ],
+      "cropPixelsXYXY": [
+        636,
+        384,
+        1461,
+        1044
+      ],
+      "sourceSHA256": "9781d53a0040880116f3d26b3926e985ead6f6fe17ea028a8d4ac87f30517aae",
+      "outputSHA256": "c0410db9e3ac512e4449d528bb6b7ef07ed9570d0890a28123bbe33ad43fc7dc",
+      "bytes": 11852
+    },
+    "50463": {
+      "originalDimensions": [
+        1083,
+        1173
+      ],
+      "cropPixelsXYXY": [
+        5,
+        106,
+        1078,
+        1173
+      ],
+      "sourceSHA256": "08e3ae766085dadd9f86f0eed0880404fadf6274618e6008b30c40186bf0d75c",
+      "outputSHA256": "9d46fca549573ae4bdf379af3ce785eefb8db5047d175dddcc074aed10240a9b",
+      "bytes": 7496
+    },
+    "10321": {
+      "originalDimensions": [
+        1006,
+        1280
+      ],
+      "cropPixelsXYXY": [
+        0,
+        74,
+        1006,
+        1240
+      ],
+      "sourceSHA256": "86613968c3074d2bee37cfcfc0e13dd27aa6a6fc8068356b2a9b24b0f54fde38",
+      "outputSHA256": "51a7f5a009d603fbfcae75973e578956574b15de8883ca188808f8be72a4f419",
+      "bytes": 17552
+    },
+    "53365": {
+      "originalDimensions": [
+        1100,
+        1100
+      ],
+      "cropPixelsXYXY": [
+        358,
+        709,
+        726,
+        1004
+      ],
+      "sourceSHA256": "714b084448fa572d155cf0f24e7043aee8ef9eac913cd4fab1b1bc15383e2694",
+      "outputSHA256": "4daea81a6f0f5af23a0951fcc6bc8c7b76687fe2d2ce93a0d6531e9c37676ae8",
+      "bytes": 15844
+    }
+  },
+  "omitted": {
+    "22077": {
+      "name": "KITSAT-1 / 우리별 1호",
+      "reason": "Checked original KAIST/SaTReC program page, which states all rights reserved. Korean government anniversary press material specifies text-only free-use terms and warns its photos are separately licensed. No explicitly reusable photograph of the actual flight spacecraft located in this search.",
+      "references": [
+        "https://satrec.kaist.ac.kr/e_02_01.php",
+        "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156520599"
+      ]
+    }
+  },
+  "notes": {
+    "50463": "In-flight engineering pupil image made by NIRCam of its own real primary mirror segments, not an exterior artist rendering. Credit NASA/STScI. Original page credit text is in the linked caption.",
+    "53365": "Northbound/southbound lunar orbital flyby. The dim elongated spacecraft is the observed feature, as explained in the NASA release. Its physical outline is not resolved. The 16-bit source was scaled linearly to 8-bit gray, cropped around the feature, and reduced for display.",
+    "10321": "NASA Kennedy catalog description names Voyager-1 specifically; the photo predates its September 5 launch. Do not label as photographed in flight."
+  }
+}
