@@ -8,7 +8,7 @@
 
 은하 궤적과 전체 지도에서 ESO의 은하수 사진과 히파르코스 별을 같은 하늘 방향에 겹쳐 봅니다. 화성과 목성 사이에는 JPL 목록에서 뽑은 소행성 1,024개의 위치를 날짜에 따라 계산합니다. 세레스나 베스타의 이름을 누르면 궤도를 볼 수 있습니다. **태양계 밖 → 별하늘 → 궁수자리 A***에서 은하 중심의 방향과 EHT가 관측한 전파 고리를 확인할 수 있습니다. [ESO 은하수 사진](https://www.eso.org/public/images/eso0932a/) · [EHT Collaboration 관측](https://www.eso.org/public/images/eso2208-eht-mwa/)
 
-웹 접속이 어려운 컴퓨터에서는 [오프라인 ZIP](https://github.com/chadchad99/orbit-lab/releases/download/sky-map-2026-11-17/orbit-lab-offline.zip)을 내려받아 압축을 푼 뒤 `index.html`을 여세요. [A2 인쇄용 은하 궤적 이미지](https://github.com/chadchad99/orbit-lab/releases/download/downloads-2026-11-17/orbit-print-A2-600ppi.png)도 내려받을 수 있습니다.
+[A2 인쇄용 은하 궤적 이미지](https://github.com/chadchad99/orbit-lab/releases/download/downloads-2026-11-17/orbit-print-A2-600ppi.png)를 내려받을 수 있습니다.
 
 ## 내 컴퓨터에서 실행하기
 
