@@ -12,6 +12,8 @@
 
 **다른 항성계**에서 [트라피스트-1](https://chadchad99.github.io/orbit-lab/#system/trappist-1), [케플러-90](https://chadchad99.github.io/orbit-lab/#system/kepler-90), [케플러-16](https://chadchad99.github.io/orbit-lab/#system/kepler-16)을 열 수 있습니다. 세 계 모두 은하 궤적으로 열립니다. 고유운동·시선속도와 태양의 은하 운동을 합쳐 최근 수일에서 수개월의 궤적을 계산합니다. **항성 기준**으로 바꾸면 같은 행성의 공전을 비교할 수 있습니다. 행성 이름을 누르면 확대할 때에만 고해상도 지형·구름 자료를 읽습니다. [트라피스트-1e의 가상 바다와 구름](https://chadchad99.github.io/orbit-lab/#system/trappist-1/e), [케플러-90h의 구름띠](https://chadchad99.github.io/orbit-lab/#system/kepler-90/h), [케플러-16b에서 본 두 별](https://chadchad99.github.io/orbit-lab/#system/kepler-16/b/sky)을 바로 열 수 있습니다. 행성 표면과 항성 활동은 상상도입니다. 별하늘의 방향과 겉보기 밝기는 각 항성계에서 거리가 알려진 히파르코스 별을 바라보는 기준입니다. 항성계와 주변 별의 상대 운동, 행성 곁에서의 시차를 재생 시각에 적용합니다. 전체 지도에서는 **카메라 선회**, [행성 곁에서는 자전 따라보기](https://chadchad99.github.io/orbit-lab/#system/trappist-1/e/spin)로 시점을 바꿀 수 있습니다. **모형과 관측 자료**에서 궤도 근사와 출처를 확인할 수 있습니다. [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/)
 
+**블랙홀이 있는 항성계**도 같은 메뉴에서 열 수 있습니다. [가이아 BH1의 은하 궤적](https://chadchad99.github.io/orbit-lab/#system/gaia-bh1)에서 태양형 동반별이 약 185일에 한 번 공전하며 지구 쪽으로 다가오고 멀어지는 속도를 볼 수 있습니다. [백조자리 X-1의 블랙홀](https://chadchad99.github.io/orbit-lab/#system/cygnus-x1/BH)을 확대하면 청색 초거성의 항성풍이 공급하는 강착원반이 보입니다. 궤도는 관측에서 구한 두 천체의 질량과 궤도 요소로 계산합니다. 확대 화면의 원반은 구대칭 중력장을 통과하는 빛의 경로에 가시색을 입힌 모형이며, 가이아 BH1의 점선 기호는 블랙홀의 추정 위치를 표시합니다. [가이아 BH1의 궤도 연구](https://doi.org/10.1088/1538-3873/ad1ba7) · [백조자리 X-1의 궤도 연구](https://doi.org/10.1126/science.abb3363)
+
 [A2 인쇄용 은하 궤적 이미지](https://github.com/chadchad99/orbit-lab/releases/download/downloads-2026-11-17/orbit-print-A2-600ppi.png)를 내려받을 수 있습니다.
 
 ## 내 컴퓨터에서 실행하기

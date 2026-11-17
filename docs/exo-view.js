@@ -6,6 +6,7 @@ globalThis.createExoViewer=function(onClose){
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
   const format=(v,d=2)=>v.toLocaleString('ko-KR',{maximumFractionDigits:d});
   const links=new Set(Array.from(picker.options,o=>o.value)),models=new Map(),pointers=new Map();
+  let compactOptics;
   const material=createExoMaterials(schedule),ink=['#dcc3a5','#96b6be','#c3b29c','#91bec1','#b9a5ae','#b4c4ac','#99b8cb','#c2b9aa'];
   let sky,system,task=0,selected='',days=0,rate=.25,manualRate=false,playing=true,linear=false,paths=true,event=null;
   let frame=0,last=null,lastDay='',yaw=.58,elevation=.57,roll=-.22,zoom=1,starsBasis,spots=[],gesture,galactic=true,overviewCamera=null,skyCamera=null,following=false,followDay=0,sweep=0;
@@ -17,32 +18,46 @@ globalThis.createExoViewer=function(onClose){
     target.value=selected;el('exo-home').hidden=!body;
     dialog.dataset.reference=galactic?'galaxy':'host';
     button('exo-galaxy',galactic);button('exo-host',!galactic);
-    el('exo-summary').textContent=system.className+' · '+format(system.distancePc*3.26156,1)+'광년 · 행성 '+system.planets.length+'개'+(galactic&&!body?' · 지난 '+system.trailDays+'일':'');
-    el('exo-readout').textContent=!body?'':body.star?
-      '질량 '+format(body.massSolar,3)+' 태양질량'+(body.kelvin?' · 표면 '+format(body.kelvin,0)+' K':''):
+    const pair=system.blackHole;
+    el('exo-host').textContent=pair?'질량중심':'항성 기준';
+    const members=pair?'공전 주기 '+format(system.binary.period,2)+'일':'행성 '+system.planets.length+'개';
+    el('exo-summary').textContent=system.className+' · '+format(system.distancePc*3.26156,pair?0:1)+'광년 · '+members+(galactic&&!body?' · 지난 '+system.trailDays+'일':'');
+    el('exo-readout').textContent=!body?'':body.star||body.blackHole?
+      '태양 질량의 '+format(body.massSolar,3)+'배'+(body.kelvin?' · 표면 '+format(body.kelvin,0)+' K':''):
       '공전 '+format(body.period,3)+'일 · '+format(body.axis,4)+' AU · 반지름 지구의 '+format(body.radiusEarth,2)+'배 · '+(body.locked?'동주기 자전 가정':'자전 '+format(body.spinDays*24,1)+'시간 가정');
     el('exo-play').textContent=playing?'Ⅱ 일시정지':'▶ 재생';button('exo-play',playing);
-    el('exo-event').textContent=event?'원래 궤도로':system.binary?'두 별 없애기':'중심별 없애기';
+    el('exo-event').textContent=event?'원래 궤도로':pair?'블랙홀 없애기':system.binary?'두 별 없애기':'중심별 없애기';
     button('exo-event',!!event);button('exo-paths',paths);button('exo-linear',linear);
     el('exo-paths').disabled=el('exo-linear').disabled=!!body;
     el('exo-minus').disabled=zoom<=.56;el('exo-plus').disabled=zoom>=5;
-    for(const o of target.options)if(o.value==='A'||o.value==='B')o.disabled=!!event;
+    for(const o of target.options)o.disabled=!!event&&system.bodies.some(b=>b.id===o.value&&event.removed.has(b));
     rateMenu.value=String(rate);
-    const follow=el('exo-follow');follow.hidden=!!skyCamera;follow.textContent=body?'자전 따라보기':'카메라 선회';button('exo-follow',following);
-    const twins=el('exo-twins');twins.hidden=!system.binary||!body||body.star||!!event;
+    const follow=el('exo-follow');follow.hidden=!!skyCamera;follow.textContent=body&&!body.blackHole?'자전 따라보기':'카메라 선회';button('exo-follow',following);
+    const twins=el('exo-twins');twins.hidden=!!pair||!system.binary||!body||body.star||!!event;
     twins.textContent=skyCamera?'행성 곁으로':'두 별을 향해 보기';button('exo-twins',!!skyCamera);
-    el('exo-surface').textContent=body?(body.star?'광구와 코로나 상상도':body.appearance.surface+' · 표면 상상도'):'';
+    el('exo-surface').textContent=body?.blackHole?(body.kind==='dormant'?'배경 별빛의 중력렌즈 효과 · 확대 모형':'뜨거운 강착원반 · X선 방출을 색으로 표현한 확대 모형'):body?(body.star?(body.kelvin>15000?'청색 초거성의 광구 · 표면 상상도':'광구와 코로나 상상도'):body.appearance.surface+' · 표면 상상도'):'';
   }
   function chooseBody(id,updateRoute=true){
     if(!system)return;
     if(following)setFollow(false,false);
     if(skyCamera){({yaw,elevation,roll,zoom}=skyCamera);skyCamera=null;}
-    const body=system.bodies.find(b=>b.id===id&&(!event||!b.star));
+    const body=system.bodies.find(b=>b.id===id&&!event?.removed.has(b));
     if(body&&!selected)overviewCamera={yaw,elevation,roll,zoom,rate};
     selected=body?.id||'';
     if(body){
       zoom=1;roll=-.14;
-      if(!body.star&& !event){
+      if(body.blackHole){
+        const sky=CosmicSky.ecl(CosmicSky.vec(266.4,-29)),front=system.basis.map(v=>-dot(v,sky));
+        let dir=front;
+        if(body.kind==='accreting'){
+          const pole=body.diskNormal,along=dot(front,pole),edge=norm(front.map((v,i)=>v-along*pole[i]));
+          dir=comb(edge,pole,.937,.349);
+        }
+        yaw=Math.atan2(dir[1],dir[0]);elevation=Math.asin(dir[2]);
+        if(body.kind==='accreting'){
+          const [right,up]=axes();roll+=-.20-Math.atan2(dot(body.diskNormal,right),dot(body.diskNormal,up));
+        }
+      }else if(!body.star&&!event){
         const lights=system.stars.map(b=>({body:b,physical:M.position(b,days)}));
         const rays=M.lights(M.position(body,days),lights),main=rays.reduce((a,b)=>a.power>b.power?a:b);
         const side=norm(cross([0,0,1],main.dir));
@@ -75,7 +90,7 @@ globalThis.createExoViewer=function(onClose){
       const [right,,front]=axes();following=false;yaw=Math.atan2(front[1],front[0]);elevation=Math.asin(clamp(front[2],-1,1));
       const x=[-Math.sin(yaw),Math.cos(yaw),0];roll=Math.atan2(dot(right,cross(front,x)),dot(right,x));
     }
-    if(write&&selected)history.replaceState(history.state,'','#system/'+system.id+'/'+selected+(following?'/spin':''));
+    if(write&&selected)history.replaceState(history.state,'','#system/'+system.id+'/'+selected+(following?(system.blackHole?.id===selected?'/orbit':'/spin'):''));
     sync();schedule();
   }
   el('exo-follow').onclick=()=>setFollow(!following,true);
@@ -95,12 +110,13 @@ globalThis.createExoViewer=function(onClose){
   }
   function terminal(text){el('exo-status').textContent=text;}
   function details(sys){
-    el('exo-description').textContent=sys.binary?
+    el('exo-description').textContent=sys.description??(sys.binary?
       '두 별은 질량중심을 약 41일마다 돌고, 행성은 두 별을 함께 약 229일마다 돕니다. 관측 논문의 초기 궤도 요소에서 두 케플러 궤도를 독립적으로 계산했습니다.':
-      '행성마다 관측된 공전 주기와 궤도 크기를 적용했습니다. 통과 시각을 기준으로 원궤도를 근사하며, 행성 사이의 중력 섭동은 생략했습니다.';
+      '행성마다 관측된 공전 주기와 궤도 크기를 적용했습니다. 통과 시각을 기준으로 원궤도를 근사하며, 행성 사이의 중력 섭동은 생략했습니다.');
     const links=el('exo-links');links.replaceChildren();
     el('exo-motion').textContent='은하 중심 기준 속도 약 '+format(sys.speed,0)+' km/s. 고유운동과 시선속도에 태양의 은하 공전 속도(230 km/s)를 더해 짧은 구간을 직선으로 근사했습니다. 궤도면의 하늘 방향은 일부 가정했습니다. 기본 화면은 행성 간격과 항성 이동 거리를 각각 압축합니다. ‘거리 비례’에서 같은 축척으로 봅니다.';
-    for(const [name,url] of [['NASA 외계행성 자료',sys.source],['쌍성 궤도 연구',sys.orbitSource],['별의 공간운동',sys.motion.source!==sys.source?sys.motion.source:null]]){
+    if(sys.blackHole)el('exo-motion').textContent='공통 질량중심이 은하 안에서 이동하는 속도는 약 '+format(sys.speed,0)+' km/s입니다. 십자 표시는 두 천체의 공통 질량중심입니다. 천체 크기와 렌즈 효과는 확대했습니다. '+(sys.blackHole.kind==='accreting'?'원반은 궤도면과 나란하다고 가정했고 가스 흐름은 느리게 표시했습니다.':'근접 화면은 배경별의 빛이 휘는 모습을 근사한 상상도입니다.');
+    for(const [name,url] of [[sys.blackHole?'관측 해설':'NASA 외계행성 자료',sys.source],['쌍성 궤도 연구',sys.orbitSource],['별의 공간운동',sys.motion.source!==sys.source?sys.motion.source:null]]){
       if(!url)continue;const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noreferrer';a.textContent=name+' ↗';
       if(links.childNodes.length)links.append(' · ');links.append(a);
     }
@@ -111,16 +127,17 @@ globalThis.createExoViewer=function(onClose){
     target.replaceChildren(new Option('항성계 전체',''));el('exo-summary').textContent='';el('exo-readout').textContent='';
     ctx.clearRect(0,0,canvas.width,canvas.height);
     try{
-      if(!models.size){
-        const [catalog,appearance]=await Promise.all([LabCatalog.load('exoplanets.json'),LabCatalog.load('exoplanet-appearance.json')]);
-        for(const s of catalog.systems)models.set(s.id,M.system(s,appearance.worlds));
+      if(!models.has(id)){
+        const compact=picker.selectedOptions[0].hasAttribute('data-compact');
+        const [catalog,appearance]=await Promise.all([LabCatalog.load(compact?'compact-binaries.json':'exoplanets.json'),compact?null:LabCatalog.load('exoplanet-appearance.json')]);
+        for(const s of catalog.systems)models.set(s.id,M.system(s,appearance?.worlds));
       }
       if(ticket!==task||!dialog.open)return;
       system=models.get(id);material.prepare(system);
       starsBasis=system.basis;galactic=true;resetOrientation();
-      for(const b of system.bodies)target.add(new Option(b.name+(b.star?' · 항성':''),b.id));
-      if(!manualRate)rate=id==='trappist-1'?.25:id==='kepler-90'?1:3;
-      details(system);terminal('');chooseBody(bodyId,!twins);if(twins==='sky')lookAtTwins(true);else if(twins==='spin'&&selected)setFollow(true,true);
+      for(const b of system.bodies)target.add(new Option(b.name+(b.star&&!system.blackHole?' · 항성':''),b.id));
+      if(!manualRate)rate=({'trappist-1':.25,'kepler-90':1,'cygnus-x1':.25,'gaia-bh1':5})[id]??3;
+      details(system);terminal('');chooseBody(bodyId,!twins);if(twins==='sky')lookAtTwins(true);else if((twins==='spin'||twins==='orbit')&&selected)setFollow(true,true);
     }catch{
       if(ticket===task&&dialog.open)terminal('궤도 자료를 열지 못했습니다. 항성계를 다시 선택해 주세요.');
     }
@@ -129,7 +146,7 @@ globalThis.createExoViewer=function(onClose){
   function advance(now){
     if(last!=null&&playing&&system){
       const seconds=Math.max(0,now-last)/1000;days+=seconds*rate;
-      if(following&&!selected)sweep=(sweep+Math.min(seconds,.24)*.085)%tau;
+      if(following&&(!selected||selected===system.blackHole?.id))sweep=(sweep+Math.min(seconds,.24)*.085)%tau;
     }
     last=now;
   }
@@ -144,7 +161,7 @@ globalThis.createExoViewer=function(onClose){
     if(galactic){
       const g=norm(system.velocity);
       // Opening camera angles keep adjoining orbits and the binary components readable.
-      [yaw,elevation]={'trappist-1':[.13,-.98],'kepler-90':[-1.57,.37],'kepler-16':[-.72,-.37]}[system.id];
+      [yaw,elevation]={'trappist-1':[.13,-.98],'kepler-90':[-1.57,.37],'kepler-16':[-.72,-.37],'gaia-bh1':[.49,.57],'cygnus-x1':[-1.13,.49]}[system.id];
       const [right,up]=axes();
       roll+=Math.atan2(dot(g,up),dot(g,right))-.40;
     }
@@ -154,10 +171,11 @@ globalThis.createExoViewer=function(onClose){
   }
   el('exo-galaxy').onclick=()=>reference(true);el('exo-host').onclick=()=>reference(false);
   function axes(){
-    const az=yaw+(following&&!selected?sweep:0),ce=Math.cos(elevation),se=Math.sin(elevation),cy=Math.cos(az),sy=Math.sin(az);
+    const sweepView=!selected||selected===system?.blackHole?.id;
+    const az=yaw+(following&&sweepView?sweep:0),ce=Math.cos(elevation),se=Math.sin(elevation),cy=Math.cos(az),sy=Math.sin(az);
     const front=[cy*ce,sy*ce,se],x=[-sy,cy,0],y=cross(front,x);
     const right=comb(x,y,Math.cos(roll),Math.sin(roll)),view=[right,cross(front,right),front];
-    if(!following||!selected)return view;
+    if(!following||sweepView)return view;
     const body=system.bodies.find(b=>b.id===selected),axis=M.pole(body);
     const angle=tau*((days-followDay)%body.spinDays)/body.spinDays,cs=Math.cos(angle),sn=Math.sin(angle);
     return view.map(v=>{const tangent=cross(axis,v),parallel=dot(axis,v)*(1-cs);return v.map((n,i)=>n*cs+tangent[i]*sn+axis[i]*parallel);});
@@ -172,13 +190,13 @@ globalThis.createExoViewer=function(onClose){
     const view=axes(),[right,up,front]=view,world=v=>[0,1,2].map(k=>v.reduce((sum,n,j)=>sum+n*starsBasis[j][k],0));
     sky??=createMapSky(el('exo-sky'),schedule,localStars);
     function paintSky(camera,focal,exposure,principal,observer){
-      sky(w,h,dpr,[{pane:{x:0,y:0,w,h},camera:{right:world(camera[0]),up:world(camera[1]),front:world(camera[2]),principal,focal,observer,day:days},
+      return sky(w,h,dpr,[{pane:{x:0,y:0,w,h},camera:{right:world(camera[0]),up:world(camera[1]),front:world(camera[2]),principal,focal,observer,day:days},
         skyId:system.id+'/'+selected+'/'+Math.floor(days/12)+'/'+!!event,exposure}]);
     }
     const mobile=w<650,land=h<455&&w>=500;
     const top=Math.min(h*.40,Math.max(el('exo-target').getBoundingClientRect().bottom+14,land?77:mobile?152:145));
     const bottom=land?49:mobile?120:84,cx=w*.5,cy=(h+top-bottom)/2;
-    const bodies=(event?system.planets:system.bodies).map(body=>{
+    const bodies=system.bodies.filter(b=>!event?.removed.has(b)).map(body=>{
       const physical=M.position(body,days,event),factor=M.displayFactor(body,system.outer,linear);
       return {body,physical,factor};
     });
@@ -204,7 +222,15 @@ globalThis.createExoViewer=function(onClose){
       if(el('exo-surface').textContent!==caption)el('exo-surface').textContent=caption;
       return;
     }
-    paintSky(view,Math.min(w,h)*.76,selected?.23:event?.93:.84,[.5,.5],focus?.physical);
+    const exposure=focus?.body.blackHole?(focus.body.kind==='dormant'?.72:.38):selected?.23:event?.93:.84;
+    const skyFrame=paintSky(view,Math.min(w,h)*.76,exposure,[.5,.5],focus?.physical);
+    if(system.blackHole&&!focus&&!event){
+      const a=bodies.find(p=>p.body.star),b=bodies.find(p=>p.body.blackHole);
+      const au=Math.hypot(...a.physical.map((v,i)=>v-b.physical[i]));
+      const delta=.002,earlier=M.position(a.body,days-delta),later=M.position(a.body,days+delta);
+      const rv=(earlier[1]-later[1])*GravityLab.AU/(2*delta*GravityLab.SECONDS);
+      const text='두 천체 사이 '+au.toFixed(3)+' AU · 동반별 시선속도 '+(rv<0?'−':'+')+Math.abs(rv).toFixed(1)+' km/s (질량중심 기준)';if(el('exo-surface').textContent!==text)el('exo-surface').textContent=text;
+    }
     const drift=galactic?M.travelVector(system,linear):[0,0,0],span=system.trailDays;
     const trailLength=Math.hypot(...drift)*span;
     const reach=bodies.reduce((max,p)=>Math.max(max,Math.hypot(...p.physical)*p.factor),1);
@@ -233,13 +259,14 @@ globalThis.createExoViewer=function(onClose){
         p.trace=M.trace(p.body,days,duration,event).map(row=>include(projected(row.p,p.factor,row.t-days+centerTime)));
       }
     }
-    const pad=Math.min(w*.13,mobile?40:60),halfH=Math.max(25,(h-top-bottom)/2);
+    const pad=system.blackHole?Math.min(w*.17,mobile?51:96):Math.min(w*.13,mobile?40:60),halfH=Math.max(25,(h-top-bottom)/2);
     const scale=Math.min((w-2*pad)/Math.max(.15,bounds[1]-bounds[0]),2*Math.max(20,halfH-Math.min(halfH*.24,35))/Math.max(.15,bounds[3]-bounds[2]))*zoom;
     const ox=cx-(bounds[0]+bounds[1])*.5*scale,oy=cy+(bounds[2]+bounds[3])*.5*scale;
     const base=clamp(Math.min(w/930,h/650),.64,1.38)*zoom**.32;
     for(const p of bodies){
       p.x=ox+p.projected.x*scale;p.y=oy-p.projected.y*scale;
-      p.r=base*p.projected.k*(p.body.star?(p.body.id==='B'?17:24+12*Math.sqrt(p.body.radiusSolar)):(7.1+5.6*Math.sqrt(p.body.radiusEarth)));
+      const radius=p.body.blackHole?(p.body.kind==='dormant'?17:31):p.body.star?(p.body.id==='B'?17:24+12*Math.sqrt(p.body.radiusSolar)):(7.1+5.6*Math.sqrt(p.body.radiusEarth));
+      p.r=base*p.projected.k*(system.blackHole?Math.min(radius,51):radius);
     }
     if(focus){focus.x=cx;focus.y=cy;focus.r=Math.min(w*.40,Math.max(38,(h-top-bottom)*.435))*zoom;
     }else if(paths){
@@ -250,7 +277,7 @@ globalThis.createExoViewer=function(onClose){
         ctx.stroke();
       };
       for(const p of bodies){
-        const b=p.body,colour=b.star?(b.id==='B'?'#eca27f':'#f0cb88'):ink[system.planets.indexOf(b)%ink.length];
+        const b=p.body,colour=b.blackHole?'#9abdd5':b.star?(b.id==='B'?'#eca27f':'#f0cb88'):ink[system.planets.indexOf(b)%ink.length];
         if(p.ellipse?.length){ctx.strokeStyle=colour;ctx.globalAlpha=.30;ctx.lineWidth=.8;stroke(p.ellipse,0,p.ellipse.length-1);}
         if(!p.trace)continue;
         ctx.strokeStyle=colour;
@@ -263,10 +290,15 @@ globalThis.createExoViewer=function(onClose){
       }
       ctx.restore();
     }
+    if(!focus&&system.blackHole&&!event&&paths){
+      const origin=projected([0,0,0],0,centerTime),x=ox+origin.x*scale,y=oy-origin.y*scale;
+      ctx.save();ctx.strokeStyle='#b1c7c787';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-4,y);ctx.lineTo(x+4,y);ctx.moveTo(x,y-4);ctx.lineTo(x,y+4);ctx.stroke();ctx.restore();
+    }
     const visible=focus?[focus]:bodies.sort((a,b)=>a.z-b.z).filter(p=>p.x+p.r>=0&&p.x-p.r<=w&&p.y+p.r>=0&&p.y-p.r<=h);
     for(const p of visible)if(p.body.star)material.glow(ctx,p,days);
     for(const p of visible){
-      material.body(ctx,p,system,view,stars,days,!!focus,dpr);
+      if(p.body.blackHole)(compactOptics??=createCompactOptics()).draw(ctx,p,view,days,!!focus,el('exo-sky'),skyFrame,dpr);
+      else material.body(ctx,p,system,view,stars,days,!!focus,dpr);
     }
     spots=[];
     if(!focus)labelBodies(visible,w,h,mobile);
@@ -277,7 +309,7 @@ globalThis.createExoViewer=function(onClose){
     const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
     for(const p of all){
       spots.push({x:p.x,y:p.y,r:p.r,id:p.body.id,z:p.z});
-      const name=p.body.star?(system.binary?'항성 '+p.body.id:system.designation):'행성 '+p.body.id;
+      const name=system.blackHole?(p.body.blackHole?(p.body.kind==='dormant'?'블랙홀 위치':'블랙홀·강착원반'):p.body.name):p.body.star?(system.binary?'항성 '+p.body.id:system.designation):'행성 '+p.body.id;
       const width=ctx.measureText(name).width+5;
       let box;
       for(const extra of [0,12,25,45]){
@@ -307,7 +339,7 @@ globalThis.createExoViewer=function(onClose){
   el('exo-event').onclick=()=>{
     if(!system)return;advance(performance.now());
     if(event){event=null;terminal('');}
-    else{if(skyCamera)lookAtTwins(false);event=M.removeStars(system,days);if(system.stars.some(s=>s.id===selected))chooseBody('');playing=true;terminal('중심별 제거 · 행성은 관성으로 이동합니다');}
+    else{if(skyCamera)lookAtTwins(false);event=M.removeStars(system,days);if(system.bodies.some(b=>b.id===selected&&event.removed.has(b)))chooseBody('');playing=true;terminal(system.blackHole?'블랙홀 제거 · 동반별은 그 순간의 속도로 이동합니다':'중심별 제거 · 행성은 관성으로 이동합니다');}
     sync();schedule();
   };
   el('exo-paths').onclick=()=>{paths=!paths;sync();schedule();};
@@ -342,14 +374,15 @@ globalThis.createExoViewer=function(onClose){
     if(e.key.startsWith('Arrow')){e.preventDefault();yaw+=((e.key==='ArrowRight')-(e.key==='ArrowLeft'))*.11;elevation=clamp(elevation+((e.key==='ArrowUp')-(e.key==='ArrowDown'))*.1,-1.49,1.49);schedule();}
   };
   function route(){
-    const match=/^#system\/([a-z0-9-]+)(?:\/([A-Za-z])(?:\/(sky|spin))?)?$/.exec(location.hash);
+    const match=/^#system\/([a-z0-9-]+)(?:\/([A-Za-z]+)(?:\/(sky|spin|orbit))?)?$/.exec(location.hash);
     if(!match||!links.has(match[1])){if(dialog.open)dialog.close();return;}
     if(!dialog.open){dialog.showModal();playing=true;last=null;}
     if(!system||system.id!==match[1])activate(match[1],match[2],match[3]);
     else{
       if(selected!==(match[2]||''))chooseBody(match[2],!match[3]);
       if((match[3]==='sky')!==!!skyCamera)lookAtTwins(match[3]==='sky',false);
-      if(selected&&(match[3]==='spin')!==following)setFollow(match[3]==='spin',false);
+      const follow=match[3]==='spin'||match[3]==='orbit';
+      if(selected&&follow!==following)setFollow(follow,false);
     }
   }
   el('exo-open').onclick=()=>{history.pushState({exoFromMap:true},'','#system/'+picker.value);route();};

@@ -8,7 +8,7 @@ globalThis.createExoMaterials=function(redraw){
   const work=document.createElement('canvas'),paint=OrbitSoftware.make(work,{cutout:true,maxMapWidth:768});
   let high,highPaint,gpu=false,detailTarget='',detailSession=0,active='',generation=0;
   const detail=new Map();
-  const keyFor=(sys,b)=>sys.id+'-'+(b.star?'star-'+b.id.toLowerCase():b.id);
+  const keyFor=(sys,b)=>b.materialKey??(sys.id+'-'+(b.star?'star-'+b.id.toLowerCase():b.id));
   function rgb(hex){
     if(!colours.has(hex))colours.set(hex,[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255));
     return colours.get(hex);
@@ -29,8 +29,9 @@ globalThis.createExoMaterials=function(redraw){
       generation++;active=sys.id;selectDetail('');stamps.clear();frames.clear();
       for(const key of images.keys())if(key!=='corona')images.delete(key);
     }
-    load('corona','assets/space/corona-optical.webp');
+    if(sys.stars.some(b=>(b.kelvin??3300)<15000))load('corona','assets/space/corona-optical.webp');
     for(const b of sys.bodies){
+      if(b.blackHole)continue;
       const key=keyFor(sys,b);load(key,folder+key+'.webp');
       if(b.appearance.kind==='coast')load(key+':cloud',folder+key+'-weather.webp');
     }
@@ -50,7 +51,7 @@ globalThis.createExoMaterials=function(redraw){
     for(const [v,alpha] of [[0,'d4'],[.12,'85'],[.29,'37'],[.59,'0c'],[1,'00']])halo.addColorStop(v,t+alpha);
     ctx.save();ctx.fillStyle=halo;ctx.fillRect(x-r*3.3,y-r*3.3,r*6.6,r*6.6);
     const source=images.get('corona');
-    if(source){
+    if(source&&(body.kelvin??3300)<15000){
       ctx.translate(x,y);ctx.rotate(body.appearance.meridian*tau+(body.id==='B'?1.2:0));
       ctx.globalCompositeOperation='screen';const reach=r/.30;
       const time=(day*7+body.appearance.meridian*24)%24,start=Math.floor(time),mix=time-start;
