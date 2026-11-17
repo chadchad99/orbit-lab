@@ -1,0 +1,70 @@
+{
+  "asset": "sky.webp",
+  "title": "The Milky Way panorama",
+  "credit": "ESO/S. Brunier",
+  "image_page": "https://www.eso.org/public/images/eso0932a/",
+  "source_url": "https://cdn.eso.org/images/large/eso0932a.jpg",
+  "description_source": "https://www.eso.org/public/news/eso0932/",
+  "license": {
+    "name": "CC BY 4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "publisher_policy": "https://www.eso.org/public/copyright/",
+    "verified": "The publicly released 6000×3000 JPEG embeds its CC BY 4.0 usage terms and ESO/S. Brunier credit in its XMP metadata.",
+    "redistribution": "Redistribution and adaptation, including commercial display, are permitted with attribution, license link, and modification notice. Retain the full unaltered credit in a readable, active link associated with the photograph.",
+    "display_credit_html": "하늘 사진 <a href=\"https://www.eso.org/public/images/eso0932a/\">ESO/S. Brunier</a> · <a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a> · 크기·형식 변환"
+  },
+  "medium": "Photographic full-sphere mosaic of visible-light exposures taken in Chile and La Palma, published 2009-09-14. The source exposures included some Solar System bodies present at the time.",
+  "projection": {
+    "projection": "360×180° equirectangular photographic panorama",
+    "frame": "approximately Galactic, viewed from inside the celestial sphere",
+    "orientation": "Galactic centre near image centre; Galactic plane horizontal; north Galactic pole at top; Galactic longitude increases leftward. The montage is a visual sky background with no published pixel-to-sky astrometric WCS in the source JPEG.",
+    "uv_image_origin": "top left",
+    "formula": "u = fract(0.5 - atan2(gy, gx)/(2*pi)); v_top = 0.5 - asin(clamp(gz,-1,1))/pi for normalized Galactic directions. If rows are vertically flipped on GPU upload, invert v once.",
+    "texture_filtering": "Periodic wrap in longitude, clamp in latitude.",
+    "j2000_ecliptic_to_galactic_rows": [
+      [
+        -0.05487556041622,
+        -0.99382137906165,
+        -0.09647662612783
+      ],
+      [
+        0.49410942787558,
+        -0.11099073341744,
+        0.86228587509011
+      ],
+      [
+        -0.867666149019,
+        -0.00035158990483,
+        0.49714719171596
+      ]
+    ],
+    "matrix_convention": "Multiply rows by a column unit vector in J2000 ecliptic coordinates. The transformation accounts for mean obliquity and the standard equatorial-to-Galactic rotation; orientation of the original photo is approximate.",
+    "equatorial_rotation_source": "https://gea.esac.esa.int/archive/documentation/GDR3/Data_processing/chap_cu3ast/sec_cu3ast_intro/ssec_cu3ast_intro_tansforms.html",
+    "obliquity_arcsec": 84381.448,
+    "obliquity_source": "https://ssd.jpl.nasa.gov/astro_par.html"
+  },
+  "conversion": {
+    "input_pixels": [
+      6000,
+      3000
+    ],
+    "output_pixels": [
+      4096,
+      2048
+    ],
+    "format": "RGB sRGB WebP",
+    "transform": "Lanczos whole-sphere resize using 12px periodic longitude padding. Original tonal balance, orientation and framing preserved. Embedded sRGB ICC profile retained. WebP quality 91.",
+    "bytes": 2664096,
+    "sha256": "562905ffdb78b424ee2d70b4115b2adae16903b3dc924a3cd4c0bf27c8e1c5a8",
+    "source_sha256": "60400c92c54b7c1bd12299c69e83b16e5b6256e7dabacc478c021758ecd28179"
+  },
+  "verification": {
+    "rgb_channels": 3,
+    "alpha": false,
+    "wrap_mean_abs_rgb_255": 7.562,
+    "ordinary_adjacent_columns_median_abs_rgb_255": 8.349,
+    "ordinary_adjacent_columns_95pct_abs_rgb_255": 9.79,
+    "edge_channel_mean_difference_max_255": 0.213,
+    "views": "Six 90-degree perspective views inspected, including galactic centre, anticentre centred on the longitude join, both poles and both quarter turns. No apparent seam or missing caps."
+  }
+}

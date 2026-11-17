@@ -1,0 +1,174 @@
+{
+  "title": "Orbit Lab Earth close-up maps",
+  "credit": "Earth: Solar System Scope (INOVE), CC BY 4.0. Based on space images and geospatial data including NASA Blue Marble. Modified for web display.",
+  "credit_ko": "지구 지도: Solar System Scope(INOVE), CC BY 4.0. NASA Blue Marble를 포함한 위성사진·지리자료 합성. 웹 형식 변환, 구름 선명도 조정과 도시 불빛 추출.",
+  "creator": "Solar System Scope (INOVE)",
+  "source_collection": "https://www.solarsystemscope.com/textures/",
+  "source_description": "Solar System Scope describes its Earth maps as adjusted composites of geodata, space photos and NASA Blue Marble imagery. These files are composites distributed by Solar System Scope. The provider does not attribute a specific observing instrument or acquisition date to each individual layer.",
+  "license": "Creative Commons Attribution 4.0 International",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "orientation": "Equirectangular 360 by 180 degrees, north on top. Pixel edges span longitude −180° … +180° left to right and latitude +90° … −90° top to bottom. Greenwich is at horizontal centre. All three native 8192×4096 maps kept the same registration without cropping, rotating, or mirroring.",
+  "assets": [
+    {
+      "file": "earth-close.webp",
+      "source_url": "https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg",
+      "source_sha256": "88ab060b6e7d241cfc590c69f528fab2b3247b738d40124cb590999a6fe44abc",
+      "source_size": [
+        8192,
+        4096
+      ],
+      "size": [
+        8192,
+        4096
+      ],
+      "webp_quality": 88,
+      "bytes": 1961688,
+      "sha256": "1387cc197b70eb925c38f959ee97c222ba274380f26e19e3068c3805370a8b43",
+      "processing": "Daytime surface colour. Native dimensions and RGB values retained before WebP encoding.",
+      "verification": {
+        "compared_to_registered_existing_map": "earth.webp",
+        "luminance_correlation_after_reducing_both_to_1024x512": 0.99997,
+        "horizontal_flip_correlation": 0.63211,
+        "half_turn_correlation": 0.53965
+      }
+    },
+    {
+      "file": "clouds-close.webp",
+      "source_url": "https://www.solarsystemscope.com/textures/download/8k_earth_clouds.jpg",
+      "source_sha256": "c792eca228989d36ebb45d3ea6ff1198be5e21a25d70d2fbcb2124ffd14ba7f5",
+      "source_size": [
+        8192,
+        4096
+      ],
+      "size": [
+        8192,
+        4096
+      ],
+      "webp_quality": 52,
+      "bytes": 4612708,
+      "sha256": "85b49b47b81ceba13554792656e5de1180b6b61ce87d98e8cee50f7ffb140d06",
+      "processing": "Cloud coverage. Converted to grayscale and applied a mild unsharp mask with a 0.75-pixel radius, amount 27%, threshold 5/255. Red-channel luminance (0 clear, 255 thick cloud), opaque RGB container.",
+      "verification": {
+        "compared_to_registered_existing_map": "earth-clouds.webp",
+        "luminance_correlation_after_reducing_both_to_1024x512": 0.99988,
+        "horizontal_flip_correlation": 0.20676,
+        "half_turn_correlation": 0.10064
+      }
+    },
+    {
+      "file": "night-close.webp",
+      "source_url": "https://www.solarsystemscope.com/textures/download/8k_earth_nightmap.jpg",
+      "source_sha256": "9894e83a585a22c1c425e7ca4f987a9ba625bf08ecee45d3c9dcacae3c2ad5f7",
+      "source_size": [
+        8192,
+        4096
+      ],
+      "size": [
+        8192,
+        4096
+      ],
+      "webp_quality": 91,
+      "bytes": 852788,
+      "sha256": "fd524dc6fa5fc2c18d73197612e4e6e0f3a9bd61bf5b8e6a33674033063dd805",
+      "processing": "Warm city-light emission isolated from the dim blue background. In 8-bit source space gate = clamp((R-B-1)/13,0,1) × clamp((R-10)/22,0,1). Per-channel output = max(RGB-[3,5,11],0) × gate. Opaque RGB, black background.",
+      "verification": {
+        "compared_to_registered_existing_map": "earth-night.webp",
+        "luminance_correlation_after_reducing_both_to_1024x512": 0.99864,
+        "horizontal_flip_correlation": 0.03512,
+        "half_turn_correlation": 0.00063
+      }
+    }
+  ],
+  "saturn_ring": {
+    "file": "saturn-ring-close.png",
+    "size": [
+      8192,
+      16
+    ],
+    "bytes": 13198,
+    "sha256": "aa26581801ce3a478a009c873b595c1bd7b84e4492e84bf564eee4ebe7c08c71",
+    "credit": "Natural-colour mosaic NASA/JPL/Space Science Institute. Optical depth Cassini VIMS Team, NASA Planetary Data System, Ring-Moon Systems Node.",
+    "credit_ko": "토성 고리 자연색: NASA/JPL/Space Science Institute(카시니 ISS). 광학깊이: 카시니 VIMS 연구팀·NASA PDS. 관측 자료를 반지름 방향 RGBA 지도로 가공.",
+    "colour": {
+      "source_page": "https://science.nasa.gov/resource/a-full-sweep-of-saturns-rings-unlabeled/",
+      "source_file": "https://images-assets.nasa.gov/image/PIA11142/PIA11142~orig.jpg",
+      "source_sha256": "3e7e74257c918c84368adfe4ce8e02b14fc7d690fc6c2f265667ccd0f511aa42",
+      "source_size": [
+        12126,
+        1439
+      ],
+      "observation_date": "2008-11-26",
+      "product": "PIA11142, A Full Sweep of Saturn’s Rings. Natural-colour visible-light reflected radiance, illuminated side. The spacecraft viewed the rings from 10° below the plane. NASA reports a radial image sampling of about 6 km per pixel.",
+      "permissions_url": "https://www.jpl.nasa.gov/jpl-image-use-policy/"
+    },
+    "normal_opacity": {
+      "observation_date": "2008-08-25",
+      "observation_id": "S/OCC/CO/VIMS/2008-238/GAMCRU/IN",
+      "product_description": "Cassini VIMS, gamma Crucis stellar ingress, orbit 082, 10-km bins. PDS dataset CO-SR-VIMS-4/5-OCC-V2.1. Normal optical depth measured in the 2866–2977 nm band and used as an approximation of visible-light extinction.",
+      "source_page": "https://pds-rings.seti.org/cassini/vims/index.html",
+      "source_table": "https://pds-rings.seti.org/holdings/volumes/COVIMS_8xxx/COVIMS_8001/data/VIMS_2008_238_GAMCRU_I_TAU_10KM.TAB",
+      "source_label": "https://pds-rings.seti.org/holdings/volumes/COVIMS_8xxx/COVIMS_8001/data/VIMS_2008_238_GAMCRU_I_TAU_10KM.LBL",
+      "source_sha256": "61838dcd00e3db2123ac57c933529915f493c56e43960d51a9a16002bf124e7a",
+      "method": "For each bin, values below the tabulated minimum detectable depth were set to zero. Otherwise the 8-bit normal opacity is 255 × (1 − exp(−τ_normal)). Opacity is interpolated in radius.",
+      "angular_use": "For a homogeneous thin layer and a ray elevation cosine μ=abs(dot(ray,ringNormal)), transmitted fraction is approximately (1−alpha_normal)^(1/μ). This can be used for viewing and shadow rays."
+    },
+    "radial_geometry": {
+      "physical_reference_url": "https://pds-rings.seti.org/saturn/saturn_tables.html",
+      "saturn_equatorial_radius_km": 60268.0,
+      "radii_in_saturn_equatorial_radii": [
+        1.21,
+        2.27
+      ],
+      "radius_edges_km": [
+        72924.28,
+        136808.36000000002
+      ],
+      "x_direction": "inner edge to outer edge, identical rows. Existing shader parameter u=(radiusInEquatorialRadii−1.21)/1.06. The F ring lies outside the texture.",
+      "sampling": "8192 uniform pixel centres, about 7.80 km per output texel. Colour and optical-depth data have different spatial resolutions, observing times and ring longitudes.",
+      "feature_registration": "Averaged rows 743 through 750 inclusive (zero-based) near the image ansa. Used a monotonic interpolation between eight physical ring-feature ties, then small local shifts where visible brightness structure correlated strongly with the VIMS transmission profile. The Colombo and Maxwell ringlets, outer B-ring edge, Encke and Keeler gaps and outer A-ring edge provide registration landmarks. Registration is approximate.",
+      "ties_mosaic_x_and_radius_km": [
+        [
+          1119,
+          74490
+        ],
+        [
+          1698,
+          77860
+        ],
+        [
+          3310,
+          87540
+        ],
+        [
+          8103,
+          117490
+        ],
+        [
+          10558,
+          133423
+        ],
+        [
+          10607,
+          133745
+        ],
+        [
+          11025,
+          136505
+        ],
+        [
+          11065,
+          136788
+        ]
+      ]
+    },
+    "encoding": "Lossless straight RGBA PNG. RGB contains observed display colour and relative brightness of the actual lit-side mosaic. Alpha contains normal extinction. No artificial ring stripes or colour gradients.",
+    "check_normal_opacity_medians_0_to_255": {
+      "middle_B": 253.0,
+      "middle_A": 112.0,
+      "inner_C": 6.0,
+      "Cassini_division_inner": 26.0,
+      "Encke_gap": 0.0,
+      "Keeler_gap": 0.0
+    }
+  }
+}

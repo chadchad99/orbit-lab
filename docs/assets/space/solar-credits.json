@@ -1,0 +1,40 @@
+{
+  "asset": "solar.webp",
+  "title": "SDO/HMI quick-look photospheric continuum intensity",
+  "title_ko": "SDO/HMI 가시광 광구 연속광",
+  "product": "HMI Intensitygram – Gray (HMII), full disk, with limb darkening",
+  "instrument": "Helioseismic and Magnetic Imager (HMI), Solar Dynamics Observatory",
+  "producer": "NASA Solar Dynamics Observatory and HMI science team",
+  "display_credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "raster_source_url": "https://sdo.gsfc.nasa.gov/assets/img/browse/2026/11/16/20261116_001038_4096_HMII.jpg",
+  "description_url": "https://sdo.gsfc.nasa.gov/data/channels.php",
+  "product_gallery_url": "https://sdo.gsfc.nasa.gov/data/",
+  "archive_index_url": "https://sdo.gsfc.nasa.gov/assets/img/browse/2026/11/16/",
+  "permissions_url": "https://sdo.gsfc.nasa.gov/gallery/copyright/",
+  "observation_time_utc": "2026-11-16T00:10:38Z",
+  "observation_time_tai": "2026-11-16T00:11:15 TAI",
+  "time_evidence": "The source labels the frame 2026.11.16_00:11:15_TAI. Subtracting 37 s gives 00:10:38 UTC, matching the browse filename.",
+  "spectrum": "Continuum estimated from HMI filtergrams near the Fe I 617.3 nm absorption line in visible light.",
+  "image_orientation": "Original orientation retained.",
+  "input": {
+    "width": 4096,
+    "height": 4096,
+    "mode": "L",
+    "sha256": "c86aacfcf58c989a9043e843fc40962639d62b91e2c7aadc5d6373bd200169fd"
+  },
+  "processing": {
+    "limb": "Sampled 1800 radial profiles about the image centre. Robustly fitted a circle to the outer boundary above 2/255 in the original grayscale quick-look image. Coordinates below use zero-based pixel centres.",
+    "centre_xy_original_pixels": [
+      2048.235,
+      2047.363
+    ],
+    "radius_original_pixels": 1913.967,
+    "crop_resize": "Centred the fitted disk and resampled the square crop to 384×384 with Lanczos. Removed the external original black field and timestamp with an 8× antialiased circular alpha mask.",
+    "luminance": "Source JPEG is native single-channel grayscale. Multiplied the resized 8-bit display values by 1.85 for the web map and copied them to R, G and B, with 8-bit clipping. No gamma remapping or local contrast enhancement. Original limb darkening and sunspot structure retained.",
+    "output_disk_radius_px": 191.5,
+    "width": 384,
+    "height": 384,
+    "format": "lossless RGBA WebP"
+  },
+  "sha256": "fe9635a1cef26038d4fa9dac73e696e2d12346f3c5f7c2dbc07b08af32126d6e"
+}

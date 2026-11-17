@@ -1,0 +1,232 @@
+{
+  "collection": "Solar Textures",
+  "creator": "Solar System Scope (INOVE)",
+  "attributionKo": "행성·지구 지도 및 토성 고리: Solar System Scope (INOVE), CC BY 4.0. 웹용으로 변환하고 야간 지도에서 도시 불빛을 추출했습니다. 금성·천왕성·해왕성의 색과 명암을 조정했습니다.",
+  "sourcePage": "https://www.solarsystemscope.com/textures/",
+  "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "sourceNotes": "The creator combines NASA data and spacecraft imagery with tuned colors and some reconstruction where coverage is incomplete. Cloud and night maps are fixed composites.",
+  "assets": [
+    {
+      "file": "earth.webp",
+      "title": "Earth Day Map",
+      "source": "https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg",
+      "sourceDimensions": [
+        8192,
+        4096
+      ],
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "낮의 지표색. 별도 구름층 아래에 사용.",
+      "changes": "Lanczos resampled. Encoded as WebP.",
+      "sha256": "5a334e6068ea6678e2baf4a1a7391fbcbaa87fe65b0207d1cf2030754063bb7a"
+    },
+    {
+      "file": "earth-night.webp",
+      "title": "Earth Night Map",
+      "source": "https://www.solarsystemscope.com/textures/download/8k_earth_nightmap.jpg",
+      "sourceDimensions": [
+        8192,
+        4096
+      ],
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "도시 불빛만 남긴 가산 발광 지도. 낮에는 감쇠.",
+      "changes": "Attenuated cool background and dim terrain to isolate warm emissive lights. Lanczos resampled. Encoded as WebP.",
+      "sha256": "e87c6ff9fb224470f8e4507956271cd36875543aab37a29b7afdef628dbd5c7e"
+    },
+    {
+      "file": "earth-clouds.webp",
+      "title": "Earth Clouds",
+      "source": "https://www.solarsystemscope.com/textures/download/8k_earth_clouds.jpg",
+      "sourceDimensions": [
+        8192,
+        4096
+      ],
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "format": "grayscale WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "흑백 RGB. R 밝기가 구름량. 불투명도 채널은 없다.",
+      "changes": "Converted to grayscale. Lanczos resampled. Encoded as WebP.",
+      "sha256": "d8d162b7c35aa0805262ca0df54f54eda289e030732c4f04da561257757ebf40"
+    },
+    {
+      "file": "earth-ocean.webp",
+      "title": "Earth Specular Map",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_earth_specular_map.tif",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "grayscale WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "흑백 RGB. 밝으면 바다, 어두우면 육지. 물 반사에 사용.",
+      "changes": "Converted to grayscale. Encoded as WebP.",
+      "sha256": "41532f30bcf1ac784256a1933d3abd5734d6ad2026066bc944669bb96e5688c9"
+    },
+    {
+      "file": "mercury.webp",
+      "title": "Mercury",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "지표색.",
+      "changes": "Encoded as WebP.",
+      "sha256": "89ac06a110cc481a25a91cbadb4aa6ea1be797f78276a3569a593da7f1afe154"
+    },
+    {
+      "file": "venus.webp",
+      "title": "Venus Atmosphere",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_venus_atmosphere.jpg",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "상공에서 보이는 구름층.",
+      "changes": "Encoded as WebP. Adjusted mean color and cloud contrast for an approximate visible-light appearance; supplied color map retains its original geographic features.",
+      "sha256": "9a595b79c23a493b782263b045fc27b663e70b75777060b6e0dc2a0ce821f3f7",
+      "colorReference": "https://science.nasa.gov/image-detail/venus-single/"
+    },
+    {
+      "file": "mars.webp",
+      "title": "Mars",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_mars.jpg",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "지표색.",
+      "changes": "Encoded as WebP.",
+      "sha256": "e01394153d3ac1f9213b2c73b376f515b2c646a6bbadbab6841273b77cb88985"
+    },
+    {
+      "file": "jupiter.webp",
+      "title": "Jupiter",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_jupiter.jpg",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "상공에서 보이는 구름띠.",
+      "changes": "Encoded as WebP.",
+      "sha256": "9fb8ab519178f7d6d5ae5aae35be3a651411e389f6eb63538a1b14bbbda8295b"
+    },
+    {
+      "file": "saturn.webp",
+      "title": "Saturn",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_saturn.jpg",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "상공에서 보이는 구름띠.",
+      "changes": "Encoded as WebP.",
+      "sha256": "1cc5202f4efc5d3cda56912314a2d1c91c141e4802794e86454071c12437357f"
+    },
+    {
+      "file": "uranus.webp",
+      "title": "Uranus",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_uranus.jpg",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "상공에서 보이는 대기.",
+      "changes": "Encoded as WebP. Adjusted mean color and cloud contrast for an approximate visible-light appearance; supplied color map retains its original geographic features.",
+      "sha256": "80aebd23c2bbf68d81b9066bcff9a6e883cb2409e38a2426237dbb51f3be73ab",
+      "colorReference": "https://www.physics.ox.ac.uk/news/true-colours-neptune-and-uranus",
+      "colorReferenceCredit": "Patrick Irwin / University of Oxford (visible color reference). No source image pixels were reproduced."
+    },
+    {
+      "file": "neptune.webp",
+      "title": "Neptune",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_neptune.jpg",
+      "sourceDimensions": [
+        2048,
+        1024
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "format": "RGB WebP",
+      "mapping": "equirectangular; north at top",
+      "useKo": "상공에서 보이는 대기.",
+      "changes": "Encoded as WebP. Adjusted mean color and cloud contrast for an approximate visible-light appearance; supplied color map retains its original geographic features.",
+      "sha256": "86a6843b385980c1ae9541e275622f7c751128156bba1d686b40358844c36274",
+      "colorReference": "https://www.physics.ox.ac.uk/news/true-colours-neptune-and-uranus",
+      "colorReferenceCredit": "Patrick Irwin / University of Oxford (visible color reference). No source image pixels were reproduced."
+    },
+    {
+      "file": "saturn-ring.png",
+      "title": "Saturn Ring",
+      "source": "https://www.solarsystemscope.com/textures/download/2k_saturn_ring_alpha.png",
+      "sourceDimensions": [
+        2048,
+        125
+      ],
+      "dimensions": [
+        2048,
+        16
+      ],
+      "format": "RGBA PNG",
+      "mapping": "radial",
+      "useKo": "왼쪽이 안쪽, 오른쪽이 바깥쪽. 가로축이 반지름이며 A 채널에 고리의 불투명도가 있다.",
+      "changes": "Lanczos resampled. Repacked RGBA PNG with its radial profile running along X.",
+      "sha256": "fe31549ecc7e65b924fb7bc53c05d5e12ec0b5a16452232fd33abd5ec42adc1e"
+    }
+  ]
+}

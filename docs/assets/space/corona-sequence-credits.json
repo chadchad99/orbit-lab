@@ -1,0 +1,464 @@
+{
+  "title": "Observed solar corona around the Gannon storm, 10–11 May 2024",
+  "attribution": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "instrument": "Solar Dynamics Observatory / Atmospheric Imaging Assembly, 171 Å (17.1 nm), extreme ultraviolet. NASA gold display mapping.",
+  "creditPolicy": "https://sdo.gsfc.nasa.gov/gallery/copyright.php",
+  "channelReference": "https://sdo.gsfc.nasa.gov/data/channels.php",
+  "sourceDirectories": [
+    "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/",
+    "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/"
+  ],
+  "observationStartUTC": "2024-05-10T08:46:10Z",
+  "observationEndUTC": "2024-05-11T07:47:10Z",
+  "noteKo": "2024년 5월 10–11일 SDO/AIA 171 Å 코로나 관측. 태양 가장자리 바깥의 높이를 2.35배, 시간을 빠르게 표시. 밝기와 색은 모든 프레임에 같은 방식으로 처리했습니다.",
+  "atlas": {
+    "file": "corona-sequence.webp",
+    "width": 1920,
+    "height": 1280,
+    "columns": 6,
+    "rows": 4,
+    "frameCount": 24,
+    "tileSize": 320,
+    "layout": "row-major, top-left first; actual observations advance from left to right.",
+    "frameCentersWithinTilePx": [
+      160,
+      160
+    ],
+    "photosphericRadiusPx": 96.0,
+    "photosphericRadiusOverTileWidth": 0.3,
+    "sourceRectForFrame": "[(index % 6)*320, floor(index/6)*320, 320, 320]",
+    "destSquareWidthForSunRadiusR": "R/0.30",
+    "color": "lossless RGBA WebP, straight alpha, transparent photosphere and empty background",
+    "bytes": 992656,
+    "sha256": "766723fa9dd80c6d780cd14eedd6e6ea9a0b6c566c92b1319666c84e50b0d51c"
+  },
+  "processing": {
+    "geometry": "Solar north is up. The native photospheric reference center and radius are independently queried via Helioviewer WCS (4096 px map) for each SDO archive time and divided by 4 for 1024 px frames. No angular scaling or angular space/time rearrangement.",
+    "radialMapping": "displayR = 1 + (observedR − 1) × 2.35, only for observedR ≥ 1; radii in photospheric units. There is no sampled photosphere in the atlas.",
+    "taper": "Smooth off-limb edge fade across observed 1.145 to 1.247 R (display 1.341 to 1.580 R). Anti-aliased inner edge; one fixed acquisition-margin mask excludes the archive timestamp without introducing lettering.",
+    "exposure": "A single smooth radial background profile (55th percentile across all angles and 24 frames, scaled by 0.83) is subtracted from the same luma combination in every frame. One exposure and gamma are used throughout. Each pixel keeps the hue ratios of its original NASA AIA image. No frame-specific normalization, motion synthesis or temporal cross-fades are baked in.",
+    "resampling": "Bilinear sampling using the native observed position and radial mapping, 2× supersampled, followed by Lanczos reduction.",
+    "time": "One real frame about every hour; compare consecutive observation timestamps below, about 23 hours in total. First observation matches the separate AR 3664 AIA close-up. Return to initial time when the clip repeats."
+  },
+  "frames": [
+    {
+      "index": 0,
+      "displayUTC": "2024-05-10T08:46:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_084610_1024_0171.jpg",
+      "sourceSHA256": "18fbc6bca45fb376ca7ed5e64fe6bffa5dd100bfbcf22734f3f9d735c9288371",
+      "wcsJP2Id": "156608312",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156608312",
+      "wcsTimeUTC": "2024-05-10T08:46:09Z",
+      "radiusPxAtSource1024": 395.8736,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 1,
+      "displayUTC": "2024-05-10T09:46:22Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_094622_1024_0171.jpg",
+      "sourceSHA256": "1879057bb90b9830cad37a846a1a6aaacb4cbf8df34bb480e8c76031c8fa754a",
+      "wcsJP2Id": "156609376",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156609376",
+      "wcsTimeUTC": "2024-05-10T09:46:09Z",
+      "radiusPxAtSource1024": 395.87887,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 2,
+      "displayUTC": "2024-05-10T10:46:34Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_104634_1024_0171.jpg",
+      "sourceSHA256": "000d37c6021b9c9d6b999d77c169fb39a7d396f802660dca9cbe533c05a1b0bc",
+      "wcsJP2Id": "156610468",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156610468",
+      "wcsTimeUTC": "2024-05-10T10:46:45Z",
+      "radiusPxAtSource1024": 395.88907,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 3,
+      "displayUTC": "2024-05-10T11:46:34Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_114634_1024_0171.jpg",
+      "sourceSHA256": "edb2591031857618a8c950cb7ea883a15245e6a554181d20604c3364117cf99c",
+      "wcsJP2Id": "156611730",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156611730",
+      "wcsTimeUTC": "2024-05-10T11:46:45Z",
+      "radiusPxAtSource1024": 395.9031,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 4,
+      "displayUTC": "2024-05-10T12:46:22Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_124622_1024_0171.jpg",
+      "sourceSHA256": "78abb19586d4b3e51e55ffd3a4971de1deb4cc99fd232ec972932326397b8556",
+      "wcsJP2Id": "156612797",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156612797",
+      "wcsTimeUTC": "2024-05-10T12:46:09Z",
+      "radiusPxAtSource1024": 395.91958,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 5,
+      "displayUTC": "2024-05-10T13:46:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_134610_1024_0171.jpg",
+      "sourceSHA256": "bc991173f39bb6cbab4b26eaf72cf0abbf219b1698395f2b8bdc39bb5a1db6da",
+      "wcsJP2Id": "156613958",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156613958",
+      "wcsTimeUTC": "2024-05-10T13:46:21Z",
+      "radiusPxAtSource1024": 395.93765,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 6,
+      "displayUTC": "2024-05-10T14:46:46Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_144646_1024_0171.jpg",
+      "sourceSHA256": "02b7084649a98889faca437cbe56b710a4cd6c4605192c53761ef60ea1652e2c",
+      "wcsJP2Id": "156615124",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156615124",
+      "wcsTimeUTC": "2024-05-10T14:46:57Z",
+      "radiusPxAtSource1024": 395.9556,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 7,
+      "displayUTC": "2024-05-10T15:45:46Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_154546_1024_0171.jpg",
+      "sourceSHA256": "b916f0d365d6774163fcc889aecb31cb2325f14eb8f934e1261cb2208700c7f2",
+      "wcsJP2Id": "156616164",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156616164",
+      "wcsTimeUTC": "2024-05-10T15:45:45Z",
+      "radiusPxAtSource1024": 395.97147,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 8,
+      "displayUTC": "2024-05-10T16:46:58Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_164658_1024_0171.jpg",
+      "sourceSHA256": "f127657b269b90376a1303600518a3bbc8c0162a2073e6797e3c9352d9b6444c",
+      "wcsJP2Id": "156617411",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156617411",
+      "wcsTimeUTC": "2024-05-10T16:46:57Z",
+      "radiusPxAtSource1024": 395.9849,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 9,
+      "displayUTC": "2024-05-10T17:47:22Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_174722_1024_0171.jpg",
+      "sourceSHA256": "049657216814a3ebc71139e44e14ca2bdb0d6cbc383063a906624df6ce72cdcb",
+      "wcsJP2Id": "156618460",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156618460",
+      "wcsTimeUTC": "2024-05-10T17:47:21Z",
+      "radiusPxAtSource1024": 395.9939,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 10,
+      "displayUTC": "2024-05-10T18:46:58Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_184658_1024_0171.jpg",
+      "sourceSHA256": "e72121416995b3165b641e629c6eadc56e6c80c99b06f6735bd3d57d93f16e62",
+      "wcsJP2Id": "156619640",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156619640",
+      "wcsTimeUTC": "2024-05-10T18:46:57Z",
+      "radiusPxAtSource1024": 395.99782,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 11,
+      "displayUTC": "2024-05-10T19:46:22Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_194622_1024_0171.jpg",
+      "sourceSHA256": "91d6ab5203dad867638d5fe405fa0b7b70a12bb86c9a958223c10d616e45861e",
+      "wcsJP2Id": "156620791",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156620791",
+      "wcsTimeUTC": "2024-05-10T19:46:21Z",
+      "radiusPxAtSource1024": 395.9963,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 12,
+      "displayUTC": "2024-05-10T20:46:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_204610_1024_0171.jpg",
+      "sourceSHA256": "31c57a86fad6a0c4077aa4cb2c9a216522e783f11ccd060fb9b6c8e3f7970e6b",
+      "wcsJP2Id": "156622117",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156622117",
+      "wcsTimeUTC": "2024-05-10T20:46:21Z",
+      "radiusPxAtSource1024": 395.98913,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 13,
+      "displayUTC": "2024-05-10T21:46:46Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_214646_1024_0171.jpg",
+      "sourceSHA256": "6573a22607eb415ddbf2a2b2f6b3a97aafb2863b6f4135d51195bf286d082bb1",
+      "wcsJP2Id": "156623227",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156623227",
+      "wcsTimeUTC": "2024-05-10T21:46:57Z",
+      "radiusPxAtSource1024": 395.97635,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 14,
+      "displayUTC": "2024-05-10T22:46:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_224610_1024_0171.jpg",
+      "sourceSHA256": "6896fb79108a1c9f8c0afe644539ca132ad7aa83f1b220746f71feba13e94212",
+      "wcsJP2Id": "156624374",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156624374",
+      "wcsTimeUTC": "2024-05-10T22:46:21Z",
+      "radiusPxAtSource1024": 395.95902,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 15,
+      "displayUTC": "2024-05-10T23:46:58Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_234658_1024_0171.jpg",
+      "sourceSHA256": "45c0252e34f3aa74f125b31fa75f309dd6c0dc0414cea935f9b6d5210eb6ce40",
+      "wcsJP2Id": "156626215",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156626215",
+      "wcsTimeUTC": "2024-05-10T23:46:57Z",
+      "radiusPxAtSource1024": 395.93745,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 16,
+      "displayUTC": "2024-05-11T00:46:34Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_004634_1024_0171.jpg",
+      "sourceSHA256": "15d30ab9d8135598615e18a541c15b77c9c37e72ec26e93e0b53ebb36ea135eb",
+      "wcsJP2Id": "156627547",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156627547",
+      "wcsTimeUTC": "2024-05-11T00:46:21Z",
+      "radiusPxAtSource1024": 395.91363,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 17,
+      "displayUTC": "2024-05-11T01:46:46Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_014646_1024_0171.jpg",
+      "sourceSHA256": "a0656db6485833ec15dbd291170cd7ce77f439fc6cfede2154b882c617500036",
+      "wcsJP2Id": "156628756",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156628756",
+      "wcsTimeUTC": "2024-05-11T01:46:57Z",
+      "radiusPxAtSource1024": 395.888,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 18,
+      "displayUTC": "2024-05-11T02:46:34Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_024634_1024_0171.jpg",
+      "sourceSHA256": "1a5e9fbc7c9fbc06825f5c6086ab74a374eb7fa004052ca30035f1d9688ad40d",
+      "wcsJP2Id": "156629960",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156629960",
+      "wcsTimeUTC": "2024-05-11T02:46:21Z",
+      "radiusPxAtSource1024": 395.8631,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 19,
+      "displayUTC": "2024-05-11T03:46:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_034610_1024_0171.jpg",
+      "sourceSHA256": "cb38e5b44dc0b53aa0f1b15c34c2ed999458642b20619522fb3daa610a9385ab",
+      "wcsJP2Id": "156631250",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156631250",
+      "wcsTimeUTC": "2024-05-11T03:46:21Z",
+      "radiusPxAtSource1024": 395.83958,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 20,
+      "displayUTC": "2024-05-11T04:47:22Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_044722_1024_0171.jpg",
+      "sourceSHA256": "fad68308d8be6f62fa10d76e7926c087518364850bdb9d7fcde12ce2b18e0490",
+      "wcsJP2Id": "156632266",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156632266",
+      "wcsTimeUTC": "2024-05-11T04:47:33Z",
+      "radiusPxAtSource1024": 395.81862,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 21,
+      "displayUTC": "2024-05-11T05:46:22Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_054622_1024_0171.jpg",
+      "sourceSHA256": "f576e5fd6349dbfdeed9b70a2435e12968fc453de8c51899ed707545cef26bd5",
+      "wcsJP2Id": "156635897",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156635897",
+      "wcsTimeUTC": "2024-05-11T05:46:09Z",
+      "radiusPxAtSource1024": 395.80265,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 22,
+      "displayUTC": "2024-05-11T06:47:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_064710_1024_0171.jpg",
+      "sourceSHA256": "343d160718884c34fce6ba73092d1ff3e5ba2d2ae8be8bcd92510d3035721190",
+      "wcsJP2Id": "156639937",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156639937",
+      "wcsTimeUTC": "2024-05-11T06:47:21Z",
+      "radiusPxAtSource1024": 395.79105,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    },
+    {
+      "index": 23,
+      "displayUTC": "2024-05-11T07:47:10Z",
+      "source": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/11/20240511_074710_1024_0171.jpg",
+      "sourceSHA256": "3ba62a297f819dc398574ebb9e7eb5c4fe4c392d90634f83c763d201250c495f",
+      "wcsJP2Id": "156641017",
+      "wcsHeader": "https://api.helioviewer.org/v2/getJP2Header/?id=156641017",
+      "wcsTimeUTC": "2024-05-11T07:46:57Z",
+      "radiusPxAtSource1024": 395.7853,
+      "centerUV": [
+        0.5,
+        0.5
+      ],
+      "rotationDeg": 0
+    }
+  ],
+  "quality": {
+    "atlasDecodedMatchesAllSourceRenderedTiles": true,
+    "temporalDifference": {
+      "method": "Lossless decoded atlas, Lanczos scaled, composited onto black. Measure weighted RGB luma change around the disk at radii 1.006–1.54 R. Differences are in 8-bit display code values; no camera motion or purely radial animation.",
+      "55px": {
+        "pixelsTested": 3240,
+        "nativeSunDiameterPx": 55,
+        "threshold22": {
+          "1": {
+            "medianPixelsChanging22of255": 46.0,
+            "p10PixelsChanging22of255": 18.2,
+            "medianPeakDelta255": 64.58
+          },
+          "3": {
+            "medianPixelsChanging22of255": 194.0,
+            "p10PixelsChanging22of255": 146.0,
+            "medianPeakDelta255": 100.01
+          },
+          "6": {
+            "medianPixelsChanging22of255": 316.5,
+            "p10PixelsChanging22of255": 262.7,
+            "medianPeakDelta255": 112.74
+          }
+        },
+        "pixelsRange32AnywhereInSequence": 1072,
+        "fractionRange32": 0.331,
+        "p99Luma255": 180.61
+      },
+      "105px": {
+        "pixelsTested": 11768,
+        "nativeSunDiameterPx": 105,
+        "threshold22": {
+          "1": {
+            "medianPixelsChanging22of255": 219.0,
+            "p10PixelsChanging22of255": 137.4,
+            "medianPeakDelta255": 103.19
+          },
+          "3": {
+            "medianPixelsChanging22of255": 816.0,
+            "p10PixelsChanging22of255": 658.0,
+            "medianPeakDelta255": 137.18
+          },
+          "6": {
+            "medianPixelsChanging22of255": 1274.0,
+            "p10PixelsChanging22of255": 1081.5,
+            "medianPeakDelta255": 175.42
+          }
+        },
+        "pixelsRange32AnywhereInSequence": 4015,
+        "fractionRange32": 0.341,
+        "p99Luma255": 184.05
+      }
+    }
+  },
+  "poster": {
+    "file": "corona-limb-preview.webp",
+    "frame": 0,
+    "note": "Lossless first tile, used before the sequence loads and for reduced motion."
+  }
+}

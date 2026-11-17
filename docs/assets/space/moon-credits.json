@@ -1,0 +1,47 @@
+{
+  "title": "CGI Moon Kit — 2025 lunar color map",
+  "credit": "NASA's Scientific Visualization Studio",
+  "visualizer": "Ernie Wright",
+  "science": "Noah Petro (NASA/GSFC)",
+  "data": "Lunar Reconnaissance Orbiter Camera (LROC) Wide Angle Camera Hapke Normalized Mosaic; polar gaps filled from Lunar Orbiter Laser Altimeter (LOLA) albedo data.",
+  "page": "https://svs.gsfc.nasa.gov/4720/",
+  "original": "https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_16bit_srgb_4k.tif",
+  "original_sha256": "9731fa8af425b6c2f88f277ecca82bf8c603f3743894f64ed7b25c5bfefa22ff",
+  "orientation": {
+    "projection": "equirectangular, mean Earth/polar axis lunar coordinates, center 0° longitude",
+    "horizontal": "west to east (east-positive longitude), left seam −180°, middle 0°, right seam +180°",
+    "vertical": "north at top, from +90° latitude to −90°",
+    "u": "0.5 + signed_east_longitude_deg / 360",
+    "v_from_top": "0.5 - latitude_deg / 180",
+    "mean_subearth_uv_top_origin": [
+      0.5,
+      0.5
+    ],
+    "epoch_geocentric_apparent_east_lon_deg": -3.975453,
+    "epoch_geocentric_apparent_lat_deg": 2.065124,
+    "epoch_geocentric_apparent_uv_top_origin": [
+      0.488957075,
+      0.4885270888888889
+    ],
+    "orientation_reference": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%27301%27&CENTER=%27500%40399%27&OBJ_DATA=%27NO%27&EPHEM_TYPE=%27OBSERVER%27&MAKE_EPHEM=%27YES%27&TLIST=%272461360.5%27&TIME_TYPE=%27TT%27&QUANTITIES=%2714%2C17%27&EXTRA_PREC=%27YES%27&CSV_FORMAT=%27YES%27&ANG_FORMAT=%27DEG%27"
+  },
+  "conversion": "WebP RGB; no map rotation or image flips. Lite version downsampled with Lanczos.",
+  "files": {
+    "moon.webp": {
+      "pixels": [
+        4096,
+        2048
+      ],
+      "bytes": 1970644,
+      "sha256": "61b022efca2f12f3f0ee5c0988ba6e9ac794d461fce024267cf3420dec94e344"
+    },
+    "moon-lite.webp": {
+      "pixels": [
+        1024,
+        512
+      ],
+      "bytes": 122720,
+      "sha256": "57d9a70f179b0af112f0a109a80d1c6b3cef174ca23b76e8eebf6bd4a9154ca1"
+    }
+  }
+}

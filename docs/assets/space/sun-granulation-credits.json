@@ -1,0 +1,49 @@
+{
+  "asset": "sun-granules.webp",
+  "title": "Solar Granules, Intergranular Lanes, and Magnetic Elements of the Quiet Sun",
+  "title_ko": "조용한 태양 광구의 쌀알무늬",
+  "telescope": "U.S. National Science Foundation Daniel K. Inouye Solar Telescope, Haleakalā, Maui, Hawaiʻi. Operated by the National Solar Observatory (NSO), managed by AURA.",
+  "instrument": "Visible Broadband Imager (VBI), blue continuum.",
+  "wavelength_nm_on_source_plate": 450.4,
+  "observation_date": "2022-07-08",
+  "observation_timestamp_as_printed": "2022-07-08T18:42:42.000",
+  "coordinate_extent": "The official source caption describes the full square field as 30,720 km × 30,720 km on the solar photosphere.",
+  "full_field_size_km": [
+    30720,
+    30720
+  ],
+  "appearance": "The orange/yellow palette is the observatory’s false-colour presentation of a single blue-visible channel at 450.4 nm. The photospheric convection pattern and bright points are observed.",
+  "appearance_ko": "광구에서 뜨거운 플라스마가 솟는 밝은 쌀알과, 식은 플라스마가 내려가는 어두운 경계가 보입니다. 관측소가 가시광 청색 450.4 nm 밝기 영상을 금빛으로 채색했습니다.",
+  "image_credit": "NSF/AURA/NSO",
+  "image_processing_credit": "Friedrich Wöger (NSO), Catherine Fischer (NSO)",
+  "science_credit": "Serena Criscuoli (NSO)",
+  "project_id": "PID_1_49",
+  "source_page": "https://nso.edu/press-release/new-images-released-by-nsfs-inouye-solar-telescope/",
+  "source_download": "https://nso1.b-cdn.net/wp-content/uploads/2023/05/2022-07-08T18_42_42.000.zip",
+  "source_file_in_archive": "atst.ics.vbiBlue.dc.vcc.xfer.89208.100846-1.tif",
+  "caption_file_in_archive": "2022-07-08T18_42_42.000_caption",
+  "rights": "Creative Commons Attribution 4.0 International (CC BY 4.0) under the NSO Image Use Policy. Use the unaltered image credit clearly and visibly with an active online source link, and indicate the border crop and re-encoding.",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "image_policy_url": "https://nso.edu/about/image-use-policy/",
+  "instrument_url": "https://nso.edu/telescopes/dkist/instruments/vbi/",
+  "changes": "Removed only the white publication margin, date/wavelength label and black frame outside the science field. Full interior 1580×1580 observation retained at native pixel resolution, without retouching, sharpening or recolouring. Encoded losslessly as WebP.",
+  "source_plate_dimensions": [
+    2100,
+    2100
+  ],
+  "source_crop_xyxy_exclusive": [
+    287,
+    271,
+    1867,
+    1851
+  ],
+  "size": [
+    1580,
+    1580
+  ],
+  "bytes": 1673476,
+  "archive_sha256": "3ad6d470dbb839d2d24e781115267e5d17b03bb08e338bb699609a0c8593f320",
+  "original_tiff_sha256": "0d8043ffd55579a624036e2dfe9c56c515981946a0b41cb68444774d4679582a",
+  "sha256": "793a53c1f1715ec831aee0dd49f3f9239dc72900b4435aad2f3c982b76198252",
+  "verified": "Decoded WebP RGB samples equal the extracted source TIFF field pixel for pixel. The outer source pixels are the plate frame or publication margin."
+}

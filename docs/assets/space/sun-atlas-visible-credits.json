@@ -1,0 +1,485 @@
+{
+  "title": "Cartographic white-light solar photosphere with NOAA AR 3664",
+  "file": "sun-atlas-visible.webp",
+  "source_credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "display_credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "permissions": "SDO allows and encourages public education with attribution; SDO states its images and movies are not copyrighted unless explicitly noted.",
+  "permissions_url": "https://sdo.gsfc.nasa.gov/gallery/copyright/",
+  "source_page": "https://sdo.gsfc.nasa.gov/data/channels.php",
+  "source_image": "https://api.helioviewer.org/v2/getJP2Image/?id=156610536",
+  "source_fits_header": "https://api.helioviewer.org/v2/getJP2Header/?id=156610536",
+  "source_jp2_sha256": "dd441e568da1ca540e492a1acabdefeb527fd6779f5a453f22192215f6aaf3c7",
+  "prior_neutral_webp_sha256": "cc2fbf229653d3ca1a5b8e9fff85aaa1dad0ccd4f22e6b95fee475565f0ac472",
+  "wavelength_nm": 617.3,
+  "date_obs_start_utc": "2024-05-10T08:44:50.500Z",
+  "instrument": "NASA Solar Dynamics Observatory, Helioseismic and Magnetic Imager (HMI), visible-light continuum intensity.",
+  "educational_caption_ko": "2024년 5월 10일 SDO/HMI 가시광 관측. 궤도 지도에서는 작은 화면에서 보이도록 실제 흑점을 확대하고 명암을 강조했습니다.",
+  "purpose": "Small orbit-map body symbol, with spot size and contrast exaggerated for legibility. For observing actual sizes use the unmodified HMI asset.",
+  "geometry": {
+    "original_size": [
+      4096,
+      4096
+    ],
+    "source_limb_center_zero_based_pixel_centers": [
+      2047.9316,
+      2048.0496
+    ],
+    "source_limb_radius_px": 1583.82556,
+    "display_disk_center_uv": [
+      0.5,
+      0.5
+    ],
+    "display_disk_radius_uv": 0.5,
+    "square_image_size": [
+      384,
+      384
+    ],
+    "source_to_output": "North up, solar west to the right. The circle fitted to the original observed limb is inscribed in the texture square. Off-disk pixels transparent, antialiased on the limb.",
+    "group_centres_uv": [
+      [
+        0.79353,
+        0.64655
+      ],
+      [
+        0.47355,
+        0.24985
+      ],
+      [
+        0.29846,
+        0.32616
+      ],
+      [
+        0.11488,
+        0.31489
+      ],
+      [
+        0.96748,
+        0.4271
+      ]
+    ],
+    "group_centres_note": "Positions are darkness-weighted observed centroids held fixed during local magnification. First entry is NOAA AR 3664. Other groups were not assigned new identifiers."
+  },
+  "enhancements": {
+    "working_disk_size": 1536,
+    "limb_model": "Estimated median quiet-photosphere intensity in 219 concentric annuli from the disk centre to the limb and interpolated them radially. Boosted the resulting neutral profile by 10.5% and retained 56% of the observed small-amplitude residual, bounded at ±5 source levels to avoid duplicate spots.",
+    "observed_spots": "Used local fractional darkness relative to measured quiet-photosphere intensity. Gaussian-smoothed by 0.85 working px, accepted connected features with >17% contrast, at least 18 px area, and a dark core >36.5%. Rejected features exterior to 0.975 disk radii. Grouped nearby detections and retained the five observed group areas of 25+ working pixels.",
+    "magnification": "Magnified about the measured centre of each group without rotation or reflection. The two larger groups were enlarged by 1.86×; smaller regions were enlarged by 2.10× (1.974× for the smallest). In each region the actual darkness field was blended with its 5-working-pixel-radius greyscale maximum filter (59% filtered/41% raw). Used a continuous nonlinear transfer and an approximate 13/255 charcoal floor. Retained observed core/penumbra variation. Original group centres and relative orientation are retained; within-group distances and sizes are intentionally cartographically enlarged.",
+    "encoding": "384×384 RGBA, lossless WebP. Neutral R=G=B. All non-axisymmetric surface structures originate with the same single HMI measurement."
+  },
+  "validation": {
+    "measurement": "Lanczos resampling to native CSS diameters, no bloom or external tint. Reference is the unenhanced v5 HMI photosphere cropped to the same disk. Pixel/8-connected component counts consider the southwestern group: 0.64<u<0.95, 0.54<v<0.75, radius <0.914 of disk radius, opaque pixels only. Threshold counts avoid the solar limb.",
+    "native_preview": "native-comparison.png",
+    "native_sizes": [
+      {
+        "display_diameter_px": 50,
+        "v5": {
+          "min_intensity_0_255": 121,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 0,
+              "components": 0,
+              "component_sizes": []
+            },
+            "97": {
+              "pixels": 0,
+              "components": 0,
+              "component_sizes": []
+            },
+            "128": {
+              "pixels": 3,
+              "components": 1,
+              "component_sizes": [
+                3
+              ]
+            }
+          }
+        },
+        "atlas": {
+          "min_intensity_0_255": 45,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 5,
+              "components": 3,
+              "component_sizes": [
+                2,
+                2,
+                1
+              ]
+            },
+            "97": {
+              "pixels": 8,
+              "components": 4,
+              "component_sizes": [
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "128": {
+              "pixels": 17,
+              "components": 3,
+              "component_sizes": [
+                14,
+                2,
+                1
+              ]
+            }
+          }
+        }
+      },
+      {
+        "display_diameter_px": 58,
+        "v5": {
+          "min_intensity_0_255": 114,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 0,
+              "components": 0,
+              "component_sizes": []
+            },
+            "97": {
+              "pixels": 0,
+              "components": 0,
+              "component_sizes": []
+            },
+            "128": {
+              "pixels": 2,
+              "components": 1,
+              "component_sizes": [
+                2
+              ]
+            }
+          }
+        },
+        "atlas": {
+          "min_intensity_0_255": 32,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 5,
+              "components": 3,
+              "component_sizes": [
+                2,
+                2,
+                1
+              ]
+            },
+            "97": {
+              "pixels": 13,
+              "components": 5,
+              "component_sizes": [
+                7,
+                2,
+                2,
+                1,
+                1
+              ]
+            },
+            "128": {
+              "pixels": 24,
+              "components": 4,
+              "component_sizes": [
+                18,
+                4,
+                1,
+                1
+              ]
+            }
+          }
+        }
+      },
+      {
+        "display_diameter_px": 62,
+        "v5": {
+          "min_intensity_0_255": 112,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 0,
+              "components": 0,
+              "component_sizes": []
+            },
+            "97": {
+              "pixels": 0,
+              "components": 0,
+              "component_sizes": []
+            },
+            "128": {
+              "pixels": 4,
+              "components": 2,
+              "component_sizes": [
+                3,
+                1
+              ]
+            }
+          }
+        },
+        "atlas": {
+          "min_intensity_0_255": 38,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 7,
+              "components": 4,
+              "component_sizes": [
+                2,
+                2,
+                2,
+                1
+              ]
+            },
+            "97": {
+              "pixels": 14,
+              "components": 5,
+              "component_sizes": [
+                6,
+                3,
+                3,
+                1,
+                1
+              ]
+            },
+            "128": {
+              "pixels": 27,
+              "components": 3,
+              "component_sizes": [
+                21,
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      {
+        "display_diameter_px": 100,
+        "v5": {
+          "min_intensity_0_255": 81,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 0,
+              "components": 0,
+              "component_sizes": []
+            },
+            "97": {
+              "pixels": 1,
+              "components": 1,
+              "component_sizes": [
+                1
+              ]
+            },
+            "128": {
+              "pixels": 9,
+              "components": 3,
+              "component_sizes": [
+                4,
+                4,
+                1
+              ]
+            }
+          }
+        },
+        "atlas": {
+          "min_intensity_0_255": 17,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 24,
+              "components": 8,
+              "component_sizes": [
+                6,
+                6,
+                4,
+                3,
+                2,
+                1,
+                1,
+                1
+              ]
+            },
+            "97": {
+              "pixels": 39,
+              "components": 8,
+              "component_sizes": [
+                10,
+                8,
+                7,
+                6,
+                4,
+                2,
+                1,
+                1
+              ]
+            },
+            "128": {
+              "pixels": 64,
+              "components": 5,
+              "component_sizes": [
+                46,
+                10,
+                5,
+                2,
+                1
+              ]
+            }
+          }
+        }
+      },
+      {
+        "display_diameter_px": 110,
+        "v5": {
+          "min_intensity_0_255": 66,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 1,
+              "components": 1,
+              "component_sizes": [
+                1
+              ]
+            },
+            "97": {
+              "pixels": 3,
+              "components": 2,
+              "component_sizes": [
+                2,
+                1
+              ]
+            },
+            "128": {
+              "pixels": 11,
+              "components": 5,
+              "component_sizes": [
+                3,
+                3,
+                2,
+                2,
+                1
+              ]
+            }
+          }
+        },
+        "atlas": {
+          "min_intensity_0_255": 0,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 33,
+              "components": 8,
+              "component_sizes": [
+                9,
+                7,
+                5,
+                4,
+                3,
+                2,
+                2,
+                1
+              ]
+            },
+            "97": {
+              "pixels": 45,
+              "components": 7,
+              "component_sizes": [
+                12,
+                10,
+                8,
+                7,
+                4,
+                3,
+                1
+              ]
+            },
+            "128": {
+              "pixels": 84,
+              "components": 5,
+              "component_sizes": [
+                65,
+                11,
+                4,
+                3,
+                1
+              ]
+            }
+          }
+        }
+      },
+      {
+        "display_diameter_px": 120,
+        "v5": {
+          "min_intensity_0_255": 78,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 1,
+              "components": 1,
+              "component_sizes": [
+                1
+              ]
+            },
+            "97": {
+              "pixels": 3,
+              "components": 3,
+              "component_sizes": [
+                1,
+                1,
+                1
+              ]
+            },
+            "128": {
+              "pixels": 17,
+              "components": 5,
+              "component_sizes": [
+                9,
+                4,
+                2,
+                1,
+                1
+              ]
+            }
+          }
+        },
+        "atlas": {
+          "min_intensity_0_255": 7,
+          "region_values_below_threshold": {
+            "80": {
+              "pixels": 41,
+              "components": 8,
+              "component_sizes": [
+                12,
+                10,
+                8,
+                4,
+                3,
+                2,
+                1,
+                1
+              ]
+            },
+            "97": {
+              "pixels": 54,
+              "components": 7,
+              "component_sizes": [
+                14,
+                10,
+                10,
+                10,
+                5,
+                4,
+                1
+              ]
+            },
+            "128": {
+              "pixels": 98,
+              "components": 6,
+              "component_sizes": [
+                76,
+                14,
+                4,
+                2,
+                1,
+                1
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "file_bytes": 38570,
+  "sha256": "eaaecb2c6bea2701669ea8385315cd6ac5edbe88957e445b9b49d9ba59cb58cc"
+}

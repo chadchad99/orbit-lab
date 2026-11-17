@@ -1,0 +1,115 @@
+{
+  "title": "SDO photosphere and coronal loops in active region AR 3664",
+  "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+  "terms": "SDO allows and encourages public education with attribution; SDO states its images and movies are not copyrighted unless explicitly noted.",
+  "creditPolicy": "https://sdo.gsfc.nasa.gov/gallery/copyright.php",
+  "instrumentBandReference": "https://sdo.gsfc.nasa.gov/data/channels.php",
+  "missionDataAccess": "https://sdo.gsfc.nasa.gov/data/dataaccess.php",
+  "helioviewerDataSourceReference": "https://api.helioviewer.org/docs/v2/appendix/data_sources.html",
+  "eventReference": "https://ccmc.gsfc.nasa.gov/CMESB-Earth/PreviousPredictions/2024",
+  "visible": {
+    "title": "HMI continuum intensity near the Fe I 6173 Å line (617.3 nm)",
+    "sourceImage": "https://api.helioviewer.org/v2/getJP2Image/?id=156610536",
+    "sourceFormat": "4096 x 4096 single-component 8-bit grayscale JPEG2000. FITS record says CONTINUUM INTENSITY and HMI_FRONT2.",
+    "header": "https://api.helioviewer.org/v2/getJP2Header/?id=156610536",
+    "sourceSha256": "dd441e568da1ca540e492a1acabdefeb527fd6779f5a453f22192215f6aaf3c7",
+    "dateObsStartUTC": "2024-05-10T08:44:50.500Z",
+    "tObsTAI": "2024.05.10_08:45:50.015_TAI",
+    "processing": "Full grayscale continuum intensity map kept in neutral grayscale. Original limb darkening and measured sunspots retained. Full frame encoded as WebP; the lite file is a 1024-pixel Lanczos reduction. No local tone or detail adjustments.",
+    "companionColorBrowseJPEG": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_084500_4096_HMIIC.jpg",
+    "note": "The companion colorized HMIIC quick-look product uses a different image scale and is not used as the neutral texture."
+  },
+  "euv": {
+    "title": "AIA 171 Å (17.1 nm) extreme ultraviolet, predominantly Fe IX",
+    "sourceImage": "https://sdo.gsfc.nasa.gov/assets/img/browse/2024/05/10/20240510_084610_4096_0171.jpg",
+    "sourceFormat": "4096 x 4096 NASA SDO JPEG, standard gold EUV color mapping.",
+    "sourceSha256": "b10a4027115499c86b3d8e5ece83a2ee3fb186af9a98253c85726aa8b06b0fd9",
+    "header": "https://api.helioviewer.org/v2/getJP2Header/?id=156608312",
+    "dateObsStartUTC": "2024-05-10T08:46:09.350Z",
+    "tObsUTC": "2024-05-10T08:46:10.350Z",
+    "imageStampUTC": "2024-05-10T08:46:10Z",
+    "processing": "The full original field, off-limb loops and supplied gold display mapping are retained. Converted to WebP, also reduced to 1024 pixels with Lanczos.",
+    "captionBoundsUV": [
+      "0.009",
+      "0.962",
+      "0.483",
+      "0.988"
+    ],
+    "captionNote": "Bottom-left archive timestamp remains in the original texture margin. Outside this narrow rectangle measured coronal light continues to the edges."
+  },
+  "registration": {
+    "origin": "UV measured from top-left image edge. Solar north is upward. Solar west is toward the right.",
+    "referenceCenterUV": [
+      0.5,
+      0.5
+    ],
+    "referenceRadiusUV": 0.38659531,
+    "referenceRadiusPixels4096": 1583.4944,
+    "referenceBoundsXYXYNormalized": [
+      0.11340469,
+      0.11340469,
+      0.88659531,
+      0.88659531
+    ],
+    "sourcePixelCDELTArcsec": 0.60000002,
+    "sourceFITSCRPIX": [
+      2048.5,
+      2048.5
+    ],
+    "sourceDateObsStartSpacingSeconds": 78.85,
+    "HMIlimbMeasured": {
+      "xPixel": 2047.9315915185398,
+      "yPixel": 2048.0495577253046,
+      "radiusPx": 1583.82556305141,
+      "p95ResidualPx": 0.338067492875416
+    },
+    "AIAmedianBrightRidgePx": 1598,
+    "note": "Both instruments share reference WCS geometry. HMI has a distinct photospheric limb; measured first edge at 1583.83 px. EUV median brightness peaks at 1598 px in an annulus and real coronal structure extends substantially farther with no single outer rim.",
+    "activeRegion": {
+      "tag": "NOAA AR 3664",
+      "areaCentroidUV": [
+        0.728,
+        0.61309
+      ],
+      "largestConnectedUmbraUV": [
+        0.69267,
+        0.60973
+      ],
+      "secondConnectedUmbraUV": [
+        0.73725,
+        0.61348
+      ],
+      "method": "Connected components above a local 36% continuum intensity deficit within the southwestern group. Corresponding positions were visually checked against the co-aligned EUV loops."
+    }
+  },
+  "files": [
+    {
+      "file": "sun-visible.webp",
+      "width": 4096,
+      "height": 4096,
+      "bytes": 1785694,
+      "sha256": "cc2fbf229653d3ca1a5b8e9fff85aaa1dad0ccd4f22e6b95fee475565f0ac472"
+    },
+    {
+      "file": "sun-visible-lite.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 103338,
+      "sha256": "b31fe3d45f59331b45a04369045dc4def87ad121b99e217fbff01b14c252edd1"
+    },
+    {
+      "file": "sun-euv.webp",
+      "width": 4096,
+      "height": 4096,
+      "bytes": 2910402,
+      "sha256": "960f17eb808d2880e6004ac6878f64315f4bf07aadb190608a8c0e2f233a2eff"
+    },
+    {
+      "file": "sun-euv-lite.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 184554,
+      "sha256": "4bac790e4dff87792ea42cfbf23e32a98df957c42fba5ecd836ff5d09991b996"
+    }
+  ]
+}

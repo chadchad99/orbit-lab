@@ -1,0 +1,51 @@
+{
+  "title": "Merged Cassini and Juno global map of Jupiter",
+  "credit": "NASA / JPL-Caltech / SSI / Southwest Research Institute / Malin Space Science Systems / Italian Space Agency (ASI) / Italian National Institute for Astrophysics (INAF) / JIRAM / Björn Jónsson",
+  "mapmaker": "Björn Jónsson",
+  "publisher": "The Planetary Society, Bruce Murray Space Image Library",
+  "imagePage": "https://www.planetary.org/space-images/merged-cassini-and-juno",
+  "originalPng": "https://planetary.s3.amazonaws.com/assets/images/5-jupiter/2018/jupiter_map_css_plus_juno_bj.png",
+  "authorsProcess": "https://www.planetary.org/articles/0514-juno-meets-cassini-a-new",
+  "creditKo": "목성 구름 지도 · NASA / JPL-Caltech / SSI / Southwest Research Institute / Malin Space Science Systems / Italian Space Agency (ASI) / Italian National Institute for Astrophysics (INAF) / JIRAM / Björn Jónsson · CC BY 3.0. 원본의 가로세로 비율·방향·색을 유지하고 웹용으로 축소·변환했습니다.",
+  "license": "Creative Commons Attribution 3.0 Unported",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+  "redistribution": "The original image page specifies CC BY 3.0, allowing redistribution and adaptation with attribution, a source and license link, and notice of changes. No endorsement is implied.",
+  "projection": "Simple cylindrical equirectangular, north at top, unchanged horizontal orientation; no crops, flips, false contrast or tone adjustment.",
+  "sourcePixels": [
+    14400,
+    7200
+  ],
+  "sourceSha256": "76908726a37d46db5bcc7620b2fef688f44b6e15784773215d4e72cee37c2dc6",
+  "greatRedSpot": {
+    "u": 0.8505,
+    "v": 0.626,
+    "origin": "top left",
+    "method": "Center of oval visually identified on full map and detail crop. Approximate normalized coordinates in all derivatives."
+  },
+  "sourceQualification": "Late December 2000 Cassini cloud imagery between the poles; the polar mosaics combine later JunoCam and JIRAM observations. The equatorial Cassini map has an effective original resolution of 7560×3780; this source is a multi-epoch reconstruction, not a 2026 cloud map. The author used earlier Cassini true-color images as reference for a blue and near-infrared filter composite and synthetic green.",
+  "transform": "Color and contrast unchanged. Full map resampled with Lanczos and encoded as WebP for the browser.",
+  "files": [
+    {
+      "file": "jupiter-lite.webp",
+      "width": 4096,
+      "height": 2048,
+      "bytes": 1108766,
+      "sha256": "2e588feb0adc62aecc7d9a3b4ab9bf6aba737757ae33bae7a146f326125f3c10",
+      "webpQuality": 90,
+      "seamMeanRGBAbsDifference255": 3.226
+    },
+    {
+      "file": "jupiter-close.webp",
+      "width": 8192,
+      "height": 4096,
+      "bytes": 4734424,
+      "sha256": "a8989c287609f2816866c2d0df579fe236c03d3110a754116c32a585f845a124",
+      "webpQuality": 92,
+      "seamMeanRGBAbsDifference255": 2.931
+    }
+  ],
+  "orientationCheck": {
+    "crossCheck": "https://science.nasa.gov/photojournal/cassinis-best-maps-of-jupiter-cylindrical-map/",
+    "notes": "Compared the Great Red Spot, its turbulent wake to the left, and the northern equatorial belt against the north-up NASA Cassini cylindrical map and its gridded companion. Longitude phase differs, handedness agrees, west longitude decreases toward the right. Neither derivative is mirrored. Feature placement is approximate to the composite epoch. Left/right seams also verified numerically."
+  }
+}
