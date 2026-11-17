@@ -9,6 +9,11 @@ globalThis.CosmicSky = (()=>{
   function screen(pane,cam,v){const depth=-dot(v,cam.front);if(depth<=.005)return null;const f=(cam.skyFocal||cam.focal)/depth;return[pane.x+pane.w*cam.principal[0]+f*dot(v,cam.right),pane.y+pane.h*cam.principal[1]-f*dot(v,cam.up)];}
   function getImage(file,ready){if(!file)return null;if(!photo.has(file)){const im=new Image();im.decoding='async';im.onload=()=>{for(const fn of photo.get(file).ready)fn();photo.get(file).ready.clear();};photo.set(file,{im,ready:new Set()});im.src=LabMedia.file(src+file);}const cell=photo.get(file);if(!cell.im.complete&&ready)cell.ready.add(ready);return cell.im.naturalWidth?cell.im:null;}
   function color(bv){return bv==null?'#d9e4ef':bv<.05?'#bbd4ff':bv<.48?'#d6e5ff':bv<.8?'#f4eee2':bv<1.22?'#f3d9b7':'#ecc49d';}
+  function stellarMotion(ra,dec,muEast,muNorth){
+    const a=ra*r,d=dec*r,k=r/3600000;
+    return ecl([(-s(a)*muEast-c(a)*s(d)*muNorth)*k,
+      (c(a)*muEast-s(a)*s(d)*muNorth)*k,c(d)*muNorth*k]);
+  }
   const starSprites=new Map();
   function starSprite(tint){
     if(starSprites.has(tint))return starSprites.get(tint);
@@ -50,12 +55,37 @@ globalThis.CosmicSky = (()=>{
       if(annotations&&galaxyNames[g.id])annotations.push(note(center,g.id,galaxyNames[g.id],Math.max(4,Math.hypot(ax,ay)*.30)));
     }}
   function setupBackdrop(changed){
-    let stars=[],galaxies=[],centre=null,survey=null,reading=false;const bump=()=>changed();
-    LabCatalog.load('cosmos/stars.json').then(d=>{stars=d.rows.map(row=>({v:ecl(vec(row[1],row[2])),mag:row[3],color:color(row[4]),id:'hip'+row[0],label:d.meta.koreanNamesByHip[row[0]]}));bump();}).catch(()=>{});
+    let stars=[],galaxies=[],centre=null,survey=null,reading=false,lastObserver='';
+    const bump=()=>changed();
+    LabCatalog.load('cosmos/stars.json').then(d=>{
+      stars=d.rows.map(row=>{
+        const base=ecl(vec(row[1],row[2]));
+        return {base,v:base.slice(),perAU:row[5]>0?1/(row[5]*63241.077):0,
+          mag:row[3],color:color(row[4]),id:'hip'+row[0],label:d.meta.koreanNamesByHip[row[0]]};
+      });
+      lastObserver='';bump();
+      return LabCatalog.load('cosmos/starmotion.json.gz').then(m=>{
+        const speeds=new Map(m.rows.map(row=>[row[0],row]));
+        for(let i=0;i<stars.length;i++){
+          const row=d.rows[i],motion=speeds.get(row[0]);
+          if(motion)stars[i].drift=stellarMotion(row[1],row[2],motion[1],motion[2]);
+        }
+        lastObserver='';bump();
+      });
+    }).catch(()=>{});
     LabCatalog.load('cosmos/galaxies.json').then(d=>{const g=d.galaxies.find(x=>x.kindCode==='galactic-center');if(g)centre=ecl(vec(g.raDeg,g.decDeg));bump();}).catch(()=>{});
     LabCatalog.load('cosmos/skystamps.json').then(d=>{galaxies=d.stamps||d.galaxies||d;bump();}).catch(()=>{});
     return(ctx,p,cam,showSurvey,exposure)=>{
       const annotations=[],light=Math.min(1,exposure*1.15);
+      const day=cam.day??0,target=cam.closeBody??0;
+      const observerKey=[Math.floor(day/32),target,cam.run?.kind].join('/');
+      if(observerKey!==lastObserver){
+        lastObserver=observerKey;
+        const years=(LabInitial.jd-2451545+day)/365.25;
+        const eye=target&&cam.run?GravityLab.read(cam.run,target,day):[0,0,0];
+        for(const star of stars)for(let i=0;i<3;i++)
+          star.v[i]=star.base[i]+(star.drift?.[i]??0)*years-eye[i]*star.perAU;
+      }
       ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();dotStars(ctx,p,cam,stars,light,annotations);
       if(showSurvey&&!reading){reading=true;LabCatalog.load('cosmos/redshift.json.gz').then(d=>{survey=d.rows.map(row=>ecl(vec(row[1],row[2])));bump();}).catch(()=>{reading=false;});}
       if(showSurvey&&survey){ctx.fillStyle='rgba(162,183,190,.47)';for(const v of survey){const point=screen(p,cam,v);if(point&&point[0]>=p.x&&point[0]<=p.x+p.w&&point[1]>=p.y&&point[1]<=p.y+p.h)ctx.fillRect(point[0],point[1],.9,.9);}}
@@ -65,7 +95,7 @@ globalThis.CosmicSky = (()=>{
       return annotations;
     };
   }
-  return {vec,ecl,camera,screen,color,dotStars,stamps,getImage,setupBackdrop,src};
+  return {vec,ecl,camera,screen,color,stellarMotion,dotStars,stamps,getImage,setupBackdrop,src};
 })();
 
 globalThis.createCosmosViewer=function(){

@@ -15,7 +15,7 @@ canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();useCPU()});
 const small=matchMedia("(max-width: 720px)").matches;
 function ensure(name){if(assets.has(name)||pending.has(name))return;const im=new Image();pending.set(name,im);im.decoding="async";
   im.onload=()=>{assets.set(name,im);pending.delete(name);needs=true;};
-  im.onerror=()=>{failed=true;needs=true;};let filename=name==="ring"?"saturn-ring.png":name+".webp";
+  im.onerror=()=>{failed=true;needs=true;};let filename=name==="ring"?"saturn-ring-close.png":name+".webp";
   if(small&&["sky","earth","earth-night","earth-clouds"].includes(name))filename="lite-"+filename;
   im.src=LabMedia.file("assets/space/"+filename);}
 const reduced=matchMedia("(prefers-reduced-motion: reduce)");
@@ -55,7 +55,7 @@ function scene(s,w,h){
  const centreFar=mobile?.55:.51,centreNear=mobile?.59:.61;
  const focusX=(mobile?.505:.66)*(1-near)+(mobile?.62:.62)*near,focusY=centreFar*(1-near)+centreNear*near;
  metric(Math.round((dist-1)*sp[1]));
- return {id,body:index,dist,tilt:near*Math.asin(1/dist),focus:[focusX,focusY],air:sp[6],airColor:sp[7],sun:camLight(ls),star:camLight(ls2),flux,flux2,sunSize:Math.min(.09,.00465/r1),starSize:Math.min(.09,.00465/r2),skyPower:hasSun?(rise?.27:.40):.78,cloudsDrift:drift*.000018,viewToBody:vb,viewToGal:vg};}
+ return {id,body:index,dist,polarRatio:OrbitMapSpace.polarRatio(index),longitudeShift:OrbitFrames.surfaceShift(index,s.day),ringProfile:index===6?1:0,ringPhase:index===6?SaturnRings.frame(s.day):null,tilt:near*Math.asin(1/dist),focus:[focusX,focusY],air:sp[6],airColor:sp[7],sun:camLight(ls),star:camLight(ls2),flux,flux2,sunSize:Math.min(.09,.00465/r1),starSize:Math.min(.09,.00465/r2),skyPower:hasSun?(rise?.27:.40):.78,cloudsDrift:drift*.000018,viewToBody:vb,viewToGal:vg};}
 function draw(s,now){
  if(!visible)return;const delta=lastWall===null?0:clamp((now-lastWall)/1000,0,.085);lastWall=now;
  const transition=Math.abs(near-targetNear)>.0008;if(transition){near+=(targetNear-near)*(1-Math.exp(-delta*4.4));needs=true;}else if(near!==targetNear){near=targetNear;needs=true;}

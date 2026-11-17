@@ -31,5 +31,11 @@ const frames=specs.map((sp,i)=>{if(!i)return null;const pole=eclPole(sp[2],sp[3]
     const prime=norm(comb(face,pole,1,-dot(face,pole)));
     return [...cross(pole,prime),...pole,...prime];
   }
-  return {specs, frames,bodyFrame, eclGal, galactic, panorama, dot, norm, cross, comb};
+  // Signed sidereal rotation periods in Earth days. The Moon uses its Earth-facing frame.
+  const spins=[0,58.646,-243.025,.99727,1.02596,.41354,.44401,-.71833,.67125];
+  function surfaceShift(index,day){
+    const p=spins[index];
+    return (index===5?.221:0)-(p?(day%p)/p:0);
+  }
+  return {specs, frames,bodyFrame,surfaceShift, eclGal, galactic, panorama, dot, norm, cross, comb};
 })();

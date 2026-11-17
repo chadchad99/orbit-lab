@@ -1,0 +1,238 @@
+{
+  "source": "NASA Exoplanet Archive, Planetary Systems Composite Parameters (pscomppars)",
+  "columnUnits": "period in days, a in au, radiusEarth in Earth radii, angles in degrees; transit and epoch in BJD.",
+  "systems": [
+    {
+      "id": "trappist-1",
+      "name": "트라피스트-1",
+      "designation": "TRAPPIST-1",
+      "className": "초저온 적색왜성",
+      "distancePc": 12.42988881,
+      "ra": 346.6263919,
+      "dec": -5.0434618,
+      "source": "https://exoplanetarchive.ipac.caltech.edu/overview/TRAPPIST-1",
+      "stars": [
+        {
+          "id": "A",
+          "massSolar": 0.0898,
+          "radiusSolar": 0.1192,
+          "kelvin": 2566.0,
+          "tint": "#ffac72"
+        }
+      ],
+      "planets": [
+        {
+          "id": "b",
+          "a": 0.01154,
+          "period": 1.510826,
+          "radiusEarth": 1.116,
+          "inc": 89.728,
+          "transit": 2457322.514193
+        },
+        {
+          "id": "c",
+          "a": 0.0158,
+          "period": 2.421937,
+          "radiusEarth": 1.097,
+          "inc": 89.778,
+          "transit": 2457282.8113871
+        },
+        {
+          "id": "d",
+          "a": 0.02227,
+          "period": 4.049219,
+          "radiusEarth": 0.788,
+          "inc": 89.896,
+          "transit": 2457670.1463014
+        },
+        {
+          "id": "e",
+          "a": 0.02925,
+          "period": 6.101013,
+          "radiusEarth": 0.92,
+          "inc": 89.793,
+          "transit": 2457660.3676621
+        },
+        {
+          "id": "f",
+          "a": 0.03849,
+          "period": 9.20754,
+          "radiusEarth": 1.045,
+          "inc": 89.74,
+          "transit": 2457671.3737299
+        },
+        {
+          "id": "g",
+          "a": 0.04683,
+          "period": 12.352446,
+          "radiusEarth": 1.129,
+          "inc": 89.742,
+          "transit": 2457665.3628439
+        },
+        {
+          "id": "h",
+          "a": 0.06189,
+          "period": 18.772866,
+          "radiusEarth": 0.755,
+          "inc": 89.805,
+          "transit": 2457662.5741486
+        }
+      ],
+      "motion": {
+        "pmRaCosDec": 930.788,
+        "pmDec": -479.038,
+        "radialKmS": -52.003101,
+        "source": "https://simbad.cds.unistra.fr/simbad/sim-id?Ident=TRAPPIST-1"
+      }
+    },
+    {
+      "id": "kepler-90",
+      "name": "케플러-90",
+      "designation": "Kepler-90",
+      "className": "태양과 비슷한 별",
+      "distancePc": 848.254,
+      "ra": 284.4334642,
+      "dec": 49.3051239,
+      "source": "https://exoplanetarchive.ipac.caltech.edu/overview/KOI-351",
+      "stars": [
+        {
+          "id": "A",
+          "massSolar": 1.2,
+          "radiusSolar": 1.2,
+          "kelvin": 6080.0,
+          "tint": "#fff6db"
+        }
+      ],
+      "planets": [
+        {
+          "id": "b",
+          "a": 0.074,
+          "period": 7.008151,
+          "radiusEarth": 1.31,
+          "inc": 89.4,
+          "transit": 2454970.6906
+        },
+        {
+          "id": "c",
+          "a": 0.089,
+          "period": 8.719375,
+          "radiusEarth": 1.19,
+          "inc": 89.68,
+          "transit": 2454972.5687
+        },
+        {
+          "id": "i",
+          "a": 0.1201380843,
+          "period": 14.44912,
+          "radiusEarth": 1.32,
+          "inc": 89.2,
+          "transit": 2455644.3488
+        },
+        {
+          "id": "d",
+          "a": 0.32,
+          "period": 59.73667,
+          "radiusEarth": 2.87,
+          "inc": 89.71,
+          "transit": 2454991.9656
+        },
+        {
+          "id": "e",
+          "a": 0.42,
+          "period": 91.93913,
+          "radiusEarth": 2.66,
+          "inc": 89.79,
+          "transit": 2454967.3127
+        },
+        {
+          "id": "f",
+          "a": 0.48,
+          "period": 124.9144,
+          "radiusEarth": 2.88,
+          "inc": 89.77,
+          "transit": 2455087.704
+        },
+        {
+          "id": "g",
+          "a": 0.71704,
+          "period": 210.73514,
+          "radiusEarth": 7.718,
+          "inc": 89.92,
+          "transit": 2454979.97608
+        },
+        {
+          "id": "h",
+          "a": 0.97062,
+          "period": 331.60296,
+          "radiusEarth": 11.252,
+          "inc": 89.927,
+          "transit": 2454973.50056
+        }
+      ],
+      "motion": {
+        "pmRaCosDec": -4.37917,
+        "pmDec": -3.21398,
+        "radialKmS": -15.54,
+        "source": "https://simbad.cds.unistra.fr/simbad/sim-id?Ident=KOI-351"
+      }
+    },
+    {
+      "id": "kepler-16",
+      "name": "케플러-16",
+      "designation": "Kepler-16",
+      "className": "식쌍성",
+      "distancePc": 75.0852,
+      "ra": 289.0758307,
+      "dec": 51.757229,
+      "source": "https://exoplanetarchive.ipac.caltech.edu/overview/Kepler-16",
+      "stars": [
+        {
+          "id": "A",
+          "massSolar": 0.6897,
+          "radiusSolar": 0.6489,
+          "kelvin": 4450.0,
+          "tint": "#ffd7a5"
+        },
+        {
+          "id": "B",
+          "massSolar": 0.20255,
+          "radiusSolar": 0.22623,
+          "kelvin": null,
+          "tint": "#ffb585"
+        }
+      ],
+      "binary": {
+        "a": 0.22431,
+        "period": 41.07922,
+        "e": 0.15944,
+        "inc": 90.3401,
+        "w": 263.464,
+        "node": 0,
+        "meanLongitude": 92.352,
+        "epoch": 2455212.12316
+      },
+      "orbitSource": "https://doi.org/10.1126/science.1210923",
+      "elementsSource": "https://academic.oup.com/view-large/49102802",
+      "planets": [
+        {
+          "id": "b",
+          "a": 0.7048,
+          "period": 228.776,
+          "radiusEarth": 8.4493,
+          "inc": 90.0322,
+          "e": 0.0069,
+          "w": 318,
+          "node": 0.003,
+          "meanLongitude": 106.51,
+          "epoch": 2455212.12316
+        }
+      ],
+      "motion": {
+        "pmRaCosDec": 14.0407,
+        "pmDec": -48.601,
+        "radialKmS": -33.8065,
+        "source": "https://exoplanetarchive.ipac.caltech.edu/overview/Kepler-16"
+      }
+    }
+  ]
+}

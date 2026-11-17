@@ -80,7 +80,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   }
   return function paint(width,height,ratio,views){
     if(!started) load();
-    const key=[width,height,ratio,...views.flatMap(({pane,camera,exposure,showSurvey})=>[pane.x,pane.y,showSurvey?1:0,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
+    const key=[width,height,ratio,...views.flatMap(({pane,camera,exposure,showSurvey})=>[pane.x,pane.y,showSurvey?1:0,celestial?Math.floor((camera.day??0)/32):0,camera.closeBody??0,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
     if(key===lastKey) return annotations;
     lastKey=key;annotations=[];
     const cw=Math.round(width*ratio),ch=Math.round(height*ratio);

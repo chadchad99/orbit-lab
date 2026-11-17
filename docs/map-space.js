@@ -83,7 +83,7 @@ globalThis.OrbitMapSpace = (() => {
     const a=bounds(t0),b=bounds(t0+interval),u=(s.day-t0)/interval;return a.map((v,i)=>v+(b[i]-v)*u);
   }
   function wideGalacticCamera(p,s,run,zoom,yaw,pitch){
-    const az=-2.46+yaw,el=clamp(-1.07+pitch,-1.43,1.43);
+    const az=-1.85+yaw,el=clamp(.92+pitch,-1.43,1.43);
     const front=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)];
     let right=[-Math.sin(az),Math.cos(az),0],up=norm(cross(front,right));
     const roll=Math.atan2(dot(direction,up),dot(direction,right))-.46;
