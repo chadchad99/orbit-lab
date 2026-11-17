@@ -134,7 +134,8 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
 [data-scope=wide] .encounter-picker select{font-size:clamp(23px,2.5vw,37px)}
 .map-box[data-mode=map] .map-hud{bottom:60px}
 .map-box[data-mode=map] .tools{max-width:calc(100% - 16px);flex-wrap:wrap;justify-content:center}
-.map-box[data-mode=map].cinemascope{height:100dvh;width:100vw}
+/* The fixed inset follows the available height as mobile browser bars move. */
+.map-box.cinemascope[data-mode]{height:auto;width:100vw}
 @media(max-width:640px){
  .map-box[data-mode=map] .solar-controls{top:78px}
  .solar-controls button{padding-inline:8px}
