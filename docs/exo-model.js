@@ -7,8 +7,8 @@ globalThis.ExoOrbits=(()=>{
     const e=row.e||0,w=row.w||0,node=row.node||0;
     // With common, unmeasured sky nodes, the diagram plane is the system's
     // nearly edge-on plane rotated 90 degrees toward a face-on view.
-    return {q:row.a*(1-e),e,w,node,i:(row.inc??90)-90,period:row.period,
-      epoch:row.epoch??row.transit,mean:row.meanLongitude==null?90-w:row.meanLongitude-w-node};
+    return {q:row.a*(1-e),e,w,node,i:row.tracked?row.inc:(row.inc??90)-90,skyElements:!!row.tracked,period:row.period,
+      epoch:row.epoch??row.transit,mean:row.meanAnomaly??(row.meanLongitude==null?90-w:row.meanLongitude-w-node)};
   }
   function spaceMotion(data){
     const {dot,cross,norm,comb}=OrbitFrames,cam=CosmicSky.camera(data.ra,data.dec,1);
@@ -22,37 +22,52 @@ globalThis.ExoOrbits=(()=>{
   }
   function system(data,appearances={}){
     const binary=data.binary&&orbit(data.binary);
-    const mass=data.stars.reduce((sum,star)=>sum+star.massSolar,0);
-    const stars=data.stars.map((star,i)=>{
-      const share=binary?(i===0?-data.stars[1].massSolar/mass:data.stars[0].massSolar/mass):0;
-      const period=data.id==='trappist-1'?3.3:data.id==='kepler-16'&&i===0?35.1:i===0?24:18;
-      return {...star,star:true,share,orbit:binary,axis:data.binary?.a||0,spinDays:period,appearance:{kind:'star',tiltDeg:14+i*12,meridian:.16+i*.37},
-        name:data.name+(data.stars.length===2?' '+star.id:''),luminosity:star.radiusSolar**2*((star.kelvin??3300)/5772)**4};
+    const members=data.components??data.stars;
+    const mass=members.reduce((sum,b)=>sum+b.massSolar,0);
+    const companions=members.map((star,i)=>{
+      const tracked=data.binary?.tracked??members[1]?.id;
+      const share=binary?(star.id===tracked?1:-1)*members[1-i].massSolar/mass:0;
+      const common={...star,share,orbit:binary,axis:data.binary?.a||0,name:star.name??data.name+(members.length===2?' '+star.id:'')};
+      if(star.kind){
+        const inc=binary.i*Math.PI/180,node=binary.node*Math.PI/180;
+        const diskNormal=[Math.cos(node)*Math.sin(inc),-Math.cos(inc),-Math.sin(node)*Math.sin(inc)];
+        return {...common,blackHole:true,star:false,luminosity:0,diskNormal};
+      }
+      const period=star.spinDays??(data.id==='trappist-1'?3.3:data.id==='kepler-16'&&i===0?35.1:i===0?24:18);
+      return {...common,star:true,spinDays:period,appearance:{kind:'star',tiltDeg:14+i*12,meridian:.16+i*.37},
+        luminosity:star.radiusSolar**2*((star.kelvin??3300)/5772)**4};
     });
-    const planets=data.planets.map(row=>{
+    const stars=companions.filter(b=>b.star),blackHole=companions.find(b=>b.blackHole);
+    const planets=(data.planets??[]).map(row=>{
       // Spin is illustrative. Compact inner worlds are shown in synchronous rotation.
       const locked=data.id==='trappist-1'||row.period<18;
       const spinDays=locked?row.period:row.radiusEarth>=6?.414:row.radiusEarth>=2?.671:1;
       return {...row,star:false,share:1,axis:row.a,orbit:orbit(row),locked,spinDays,name:data.designation+' '+row.id,
         appearance:appearances[data.id+'-'+row.id]??{kind:row.radiusEarth>2?'gas':'rock',tiltDeg:8,meridian:.24}};
     });
-    const bodies=[...stars,...planets],outer=Math.max(...planets.map(p=>p.axis));
-    for(const body of bodies)body.path=body.orbit?O.curve(body.orbit).map(v=>vectorScale(v,body.share)):[];
-    const trailDays=Math.max(1,Math.round(Math.max(...planets.map(p=>p.period))*.85));
-    return {...data,stars,planets,bodies,outer,trailDays,...spaceMotion(data)};
+    const bodies=[...companions,...planets],outer=Math.max(data.binary?.a??0,...planets.map(p=>p.axis));
+    for(const body of bodies)body.path=body.orbit?O.curve(body.orbit).map(v=>orbitVector(body,v)):[];
+    const trailDays=Math.max(1,Math.round(Math.max(binary?.period??0,...planets.map(p=>p.period))*.85));
+    return {...data,stars,planets,blackHole,bodies,outer,trailDays,...spaceMotion(data)};
+  }
+  function orbitVector(body,v){
+    // Published visual-binary elements give north, east and receding coordinates.
+    // The viewer's right-handed local basis is west, towards Earth, south.
+    return vectorScale(body.orbit.skyElements?[-v[1],-v[2],-v[0]]:v,body.share);
   }
   function position(body,day,event){
     const departed=event?.states.get(body.id);
     if(departed&&day>=event.day)return departed.p.map((n,i)=>n+(day-event.day)*departed.v[i]);
-    return body.orbit?vectorScale(O.position(body.orbit,LabInitial.jd+day),body.share):[0,0,0];
+    return body.orbit?orbitVector(body,O.position(body.orbit,LabInitial.jd+day)):[0,0,0];
   }
   function removeStars(system,day){
     const states=new Map(),step=.001;
-    for(const body of system.planets){
+    const removed=new Set(system.blackHole?[system.blackHole]:system.stars);
+    for(const body of system.bodies.filter(b=>!removed.has(b))){
       const a=position(body,day-step),b=position(body,day+step);
       states.set(body.id,{p:position(body,day),v:b.map((n,i)=>(n-a[i])/(2*step))});
     }
-    return {day,states};
+    return {day,states,removed};
   }
   function displayFactor(body,outer,linear){
     if(!body.axis)return 0;

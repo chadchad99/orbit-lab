@@ -1,0 +1,32 @@
+{
+  "systems": [
+    {
+      "id": "gaia-bh1", "name": "가이아 BH1", "designation": "Gaia BH1", "className": "휴면 블랙홀 쌍성",
+      "distancePc": 478, "ra": 262.17120816, "dec": -0.58109202,
+      "source": "https://www.cfa.harvard.edu/news/astronomers-discover-closest-black-hole-earth",
+      "orbitSource": "https://doi.org/10.1088/1538-3873/ad1ba7",
+      "motion": {"pmRaCosDec": -7.70, "pmDec": -25.85, "radialKmS": 48.379, "source": "https://arxiv.org/abs/2209.06833"},
+      "description": "가이아가 기록한 동반별의 하늘 위치와 지상 망원경이 측정한 시선속도를 함께 분석해 보이지 않는 천체의 질량을 구했습니다. 2024년 궤도 해에서 두 천체는 약 0.78~1.98 AU 떨어진 타원 궤도를 돕니다. 블랙홀의 지도 기호는 궤도로 추정한 위치입니다.",
+      "components": [
+        {"id": "A", "name": "태양형 동반별", "massSolar": 0.93, "radiusSolar": 0.99, "kelvin": 5850, "tint": "#fff1d7", "materialKey": "kepler-90-star-a"},
+        {"id": "BH", "name": "휴면 블랙홀", "kind": "dormant", "massSolar": 9.27}
+      ],
+      "binary": {"tracked": "A", "a": 1.37994, "period": 185.387, "e": 0.43230, "inc": 126.8, "node": 97.0, "w": 16.509, "epoch": 2457391.07, "meanAnomaly": 0},
+      "elementsNote": "Nagarajan et al. (2024), Table 1 medians. Relative semimajor axis follows from the component masses and period. Positions and proper motion from El-Badry et al. (2023); systemic radial velocity from the 2024 fit."
+    },
+    {
+      "id": "cygnus-x1", "name": "백조자리 X-1", "designation": "Cygnus X-1", "className": "블랙홀 X선 쌍성",
+      "distancePc": 2220, "ra": 299.590299, "dec": 35.20141,
+      "source": "https://www.nasa.gov/universe/nasas-ixpe-reveals-shape-orientation-of-hot-matter-around-black-hole/",
+      "orbitSource": "https://doi.org/10.1126/science.abb3363",
+      "motion": {"pmRaCosDec": -3.804, "pmDec": -6.283, "radialKmS": -5, "source": "https://doi.org/10.1088/0004-637X/742/2/83"},
+      "description": "청색 초거성 HDE 226868에서 불어 나오는 항성풍 일부가 블랙홀 주위에 강착원반을 이룹니다. 뜨거운 가스에서 나오는 X선과 동반별의 궤도를 관측했습니다. 확대 화면은 회전하지 않는 블랙홀의 중력장에서 빛이 휘는 경로를 계산한 모형입니다. 가스의 흐름과 밝기는 눈으로 구별할 수 있도록 가시색으로 표현했습니다.",
+      "components": [
+        {"id": "A", "name": "청색 초거성", "massSolar": 40.6, "radiusSolar": 22.3, "kelvin": 31138, "tint": "#bddaff", "materialKey": "cygnus-x1-star-a", "spinDays": 5.33},
+        {"id": "BH", "name": "강착 중인 블랙홀", "kind": "accreting", "massSolar": 21.2}
+      ],
+      "binary": {"tracked": "BH", "a": 0.244, "period": 5.599829, "e": 0.0189, "inc": 152.9, "node": 64.1, "w": 125, "epoch": 2441164.13938, "meanAnomaly": 0},
+      "elementsNote": "Miller-Jones et al. (2021), Tables 1 and S3 (1-D astrometry). BH periastron epoch uses Brocksopp et al. (1999) superior conjunction HJD 2441163.529 plus 0.109 orbital cycles, as in Miller-Jones supplementary §2. Phase is approximate. Radial velocity is from Reid et al. (2011). Inner disk pictured aligned with the binary for illustration."
+    }
+  ]
+}
