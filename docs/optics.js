@@ -7,16 +7,28 @@ uniform vec2 size, focus;
 uniform float ringProfile, tanHalfFov, isolated, polarRatio, longitudeShift;
 uniform float dist, tilt, body, air, flux, flux2, sunSize, starSize, skyPower, cloudsDrift;
 uniform vec3 sun, star, airColor;
+uniform vec4 ringSin,ringCos;
 uniform mat3 viewToBody, viewToGal;
 uniform sampler2D surfaceMap, nightMap, cloudMap, oceanMap, skyMap, ringMap;
 const float pi=3.14159265359;
 vec2 sphereUV(vec3 n){return vec2(fract(.5+atan(n.x,n.z)/(2.*pi)),acos(clamp(n.y,-1.,1.))/pi);}
 float lum(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}
 vec3 film(vec3 x){return pow(max(vec3(0.),vec3(1.)-exp(-max(vec3(0.),x)*1.34)),vec3(.46));}
-float cloudAt(vec3 n){vec2 uv=sphereUV(n);uv.x=fract(uv.x+cloudsDrift);return smoothstep(.022,.95,texture2D(cloudMap,uv).r);}
+float cloudAt(vec3 n){vec2 uv=sphereUV(n);uv.x=fract(uv.x+cloudsDrift+longitudeShift);return smoothstep(.022,.95,texture2D(cloudMap,uv).r);}
 float hit(vec3 o,vec3 ray,float radius){float b=dot(o,ray);float d=radius*radius-dot(cross(o,ray),cross(o,ray));return d>=0.&&b<0.?-b-sqrt(max(0.,d)):1.e5;}
 vec4 ringAt(float r){float u=(r-1.21)/1.06;if(u<0.||u>1.)return vec4(0.);return texture2D(ringMap,vec2(clamp(u,.001,.999),.5));}
+${SaturnRings.shader}
 float ringShadow(vec3 p,vec3 l,vec3 pole){float ld=dot(l,pole);if(abs(ld)<.001)return 1.;float t=-dot(p,pole)/ld;if(t<=0.)return 1.;return 1.-.89*ringAt(length(p+t*l)).a;}
+float globeShadow(vec3 point,vec3 light,vec3 pole,float flatten){
+  vec3 p=point+flatten*dot(point,pole)*pole;
+  vec3 l=normalize(light+flatten*dot(light,pole)*pole);
+  return dot(p,l)<0.?mix(.07,1.,smoothstep(.99,1.01,length(cross(p,l)))):1.;
+}
+float ringLight(vec3 pt,vec3 l,vec3 pole,float dn,float a,float flatten){
+  float incidence=dot(l,pole);
+  float scatter=incidence*dn<0.?.60+.40*sqrt(abs(incidence)):.32+.32*(1.-a);
+  return scatter*globeShadow(pt,l,pole,flatten);
+}
 float irradiance(vec3 n,vec3 l,float f,float shadow){float nl=dot(n,l);return f*(max(nl,0.)*shadow+.009*smoothstep(-.12,.48,nl));}
 vec3 sunImage(vec3 r,vec3 l,float a,float f,vec3 tint){float co=dot(r,l);if(co<.9||f<=0.)return vec3(0.);float theta=length(cross(r,l));float w=.54/size.y;float core=1.-smoothstep(max(0.,a-w),a+w,theta);return tint*(core*2.8+min(.6,.10*exp(-theta/max(a*4.,.001))+.019*exp(-theta/max(a*16.,.003)))*min(f,1.));}
 void main(){
@@ -84,9 +96,10 @@ void main(){
   if(saturn){
     float dn=dot(ray,pole);if(abs(dn)>.0001){float rt=-dot(o,pole)/dn;if(rt>0.&&rt<t){
       vec3 pt=o+rt*ray;vec4 ring=ringAt(length(pt));if(ring.a>.002){
-        float sh1=hit(pt+sun*.001,sun,1.)<1.e4?.055:1.;float sh2=hit(pt+star*.001,star,1.)<1.e4?.055:1.;
-        float ir=flux*sh1*(.48+.52*abs(dot(pole,sun)))+flux2*sh2*(.48+.52*abs(dot(pole,star)));
-        vec3 rc=film(pow(ring.rgb,vec3(2.1))*(ir+.00018));
+        vec3 inPlane=viewToBody*pt;
+        float markings=ringContrast(length(pt),normalize(inPlane.xz));
+        float ir=flux*ringLight(pt,sun,pole,dn,ring.a,flatten)+flux2*ringLight(pt,star,pole,dn,ring.a,flatten);
+        vec3 rc=film(pow(ring.rgb,vec3(2.1))*(ir*markings+.00018));
         float opacity=ringProfile>.5?1.-pow(max(0.,1.-ring.a),1./max(.02,abs(dn))):clamp(ring.a*(1.06+.12*(1.-abs(dn))),0.,1.);
         float coverage=alpha*(1.-opacity)+opacity;
         color=(color*alpha*(1.-opacity)+rc*opacity)/max(.0001,coverage);alpha=coverage;
@@ -103,7 +116,7 @@ function make(canvas,{cutout=false}={}){
   const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const a=gl.getAttribLocation(pg,"point");gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   const aniso=gl.getExtension("EXT_texture_filter_anisotropic")||gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
   const names=["surfaceMap","nightMap","cloudMap","oceanMap","skyMap","ringMap"], textures=new Map(), u={};
-  for(const n of "ringProfile tanHalfFov isolated polarRatio longitudeShift size focus dist tilt body air flux flux2 sunSize starSize skyPower cloudsDrift sun star airColor viewToBody viewToGal".split(" "))u[n]=gl.getUniformLocation(pg,n);
+  for(const n of "ringSin ringCos ringProfile tanHalfFov isolated polarRatio longitudeShift size focus dist tilt body air flux flux2 sunSize starSize skyPower cloudsDrift sun star airColor viewToBody viewToGal".split(" "))u[n]=gl.getUniformLocation(pg,n);
   const maxSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   function upload(key,image){
     const old=textures.get(key);
@@ -136,6 +149,7 @@ function make(canvas,{cutout=false}={}){
     ["sun","star","airColor"].forEach(k=>gl.uniform3fv(u[k],s[k]));["viewToBody","viewToGal"].forEach(k=>gl.uniformMatrix3fv(u[k],false,s[k]));
     gl.uniform1f(u.ringProfile,s.ringProfile??0);gl.uniform1f(u.tanHalfFov,s.tanHalfFov??.54);gl.uniform1f(u.isolated,cutout?1:0);
     gl.uniform1f(u.polarRatio,s.polarRatio??1);gl.uniform1f(u.longitudeShift,s.longitudeShift??0);
+    if(s.body===6){const phase=s.ringPhase??SaturnRings.frame(0);gl.uniform4fv(u.ringSin,phase.s);gl.uniform4fv(u.ringCos,phase.c);}
     const earth=s.body===3;
     const keys=[s.id,earth?"earth-night":null,earth?"earth-clouds":null,earth?"earth-ocean":null,cutout?null:"sky",s.body===6?"ring":null];
     for(const [key,v] of textures)if(key!=="empty"&&!keys.includes(key)){gl.deleteTexture(v.texture);textures.delete(key);}

@@ -19,7 +19,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
   }
   opticCanvas.addEventListener("webglcontextlost",e=>{e.preventDefault();software();invalidate();});
   function filename(key){
-    if(key==="ring")return "saturn-ring.png";
+    if(key==="ring")return "saturn-ring-close.png";
     if(key==="moon")return "moon-lite.webp";
     if(key==="jupiter")return "jupiter-preview.webp";
     return (["earth","earth-night","earth-clouds"].includes(key)?"lite-":"")+key+".webp";
@@ -52,7 +52,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
       requestDetail(id,"jupiter-lite.webp",1);
       if(large&&detail.has(id))requestDetail(id,"jupiter-close.webp",2);
     }else if(id==="moon"){requestDetail("moon","moon.webp",1);
-    }else if(id==="saturn"){requestDetail("ring","saturn-ring-close.png",1);
+    }else if(id==="saturn"){load("ring");
     }else if(id==="earth"){
       for(const key of ["earth","earth-clouds","earth-night"])requestDetail(key,key+".webp",1);
       if(large&&detail.size>=3){
@@ -67,7 +67,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     const width=Math.max(2,Math.round(p.w*resolution)),height=Math.max(2,Math.round(p.h*resolution));
     if(closeCanvas.width!==width||closeCanvas.height!==height){closeCanvas.width=width;closeCanvas.height=height;}
     closeDraw({...lighting,dist:c.dist*GravityLab.AU/radii[q.index],tanHalfFov:p.h/(2*c.focal),
-      ringProfile:id==="saturn"&&detail.has("ring")?1:0,focus:[c.principal[0],1-c.principal[1]],polarRatio:OrbitMapSpace.polarRatio(q.index)},maps);
+      ringProfile:id==="saturn"?1:0,focus:[c.principal[0],1-c.principal[1]],polarRatio:OrbitMapSpace.polarRatio(q.index)},maps);
     ctx.drawImage(closeCanvas,p.x,p.y,p.w,p.h);return true;
   }
   function unresolved(ctx,q,flux){
@@ -93,13 +93,15 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     const sun=toView(primary),second=toView(secondary);
     const basis=OrbitFrames.bodyFrame(index,camera.run,camera.day),viewToBody=axes.flatMap(v=>[0,3,6].map(i=>dot(v,basis.slice(i,i+3))));
     const lighting={id,body:index,tilt:0,air:sp[6],airColor:sp[7],sun,star:second,flux,flux2,viewToBody,viewToGal:identity,
-      cloudsDrift:0,skyPower:0,sunSize:0,starSize:0,longitudeShift:index===5?.221:0};
+      cloudsDrift:0,skyPower:0,sunSize:0,starSize:0,longitudeShift:OrbitFrames.surfaceShift(index,camera.day),
+      polarRatio:OrbitMapSpace.polarRatio(index),ringProfile:saturn?1:0,ringPhase:saturn?SaturnRings.frame(camera.day):null};
     if(camera.closeBody===index&&encounter(ctx,camera,q,files,lighting,ratio))return;
     if(!assets.has(id)){unresolved(ctx,{...q,radius:.9},flux+flux2);return;}
     const physicalDistance=distance(camera.eye,q.position)*GravityLab.AU/radii[index];
     const d=clamp(physicalDistance,2.5,1800),extent=saturn?2.41:1.055;
     const size=Math.max(6,Math.min(640,Math.ceil(2*q.radius*extent*clamp(ratio*1.25,1.45,2.3)/2)*2));
-    const key=[index,size,Math.round(d*10),...sun.map(v=>Math.round(v*180)),...second.map(v=>Math.round(v*140)),...viewToBody.map(v=>Math.round(v*135)),Math.round(flux*130),Math.round(flux2*130)].join("/");
+    const rotationBins=Math.min(100,Math.max(6,Math.ceil(q.radius*1.6)));
+    const key=[index,size,Math.round(lighting.longitudeShift*rotationBins),...(saturn?lighting.ringPhase.s.concat(lighting.ringPhase.c).map(v=>Math.round(v*40)):[]),Math.round(d*10),...sun.map(v=>Math.round(v*180)),...second.map(v=>Math.round(v*140)),...viewToBody.map(v=>Math.round(v*135)),Math.round(flux*130),Math.round(flux2*130)].join("/");
     let stamp=stamps.get(key);
     if(!stamp){
       work.width=work.height=size;

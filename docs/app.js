@@ -19,9 +19,9 @@
   }
   let conditionPending=false,conditionFrame=0,previous=null,pendingDays=0,lastReadout=-Infinity,dirty=true;
   const mapRate=el("map-rate"),labRate=el("rate");
-  let runningRate=location.hash?15:3,rateChosen=false;
-  for(const rate of [.25,.5,1,2,3,5,10,15,30,45,90]){
-    mapRate.add(new Option(rate+"×",String(rate)));
+  let runningRate=location.hash.startsWith("#map")?15:3,rateChosen=false,priorSaturnRate=null;
+  for(const rate of [.03,.1,.25,.5,1,2,3,5,10,15,30,45,90]){
+    mapRate.add(new Option(rate===.03?"0.03× · 자전 관찰":rate+"×",String(rate)));
     labRate.add(new Option(rate+"일 / 초",String(rate)));
   }
   function setPlaybackRate(rate){
@@ -33,6 +33,10 @@
     }
     runningRate=rate;
     mapRate.value=labRate.value=String(rate);
+  }
+  const linkRate=Number(new URLSearchParams(location.search).get("rate"));
+  if(linkRate>0&&Array.from(mapRate.options).some(option=>Number(option.value)===linkRate)){
+    runningRate=linkRate;rateChosen=true;
   }
   setPlaybackRate(runningRate);
   const map=createLabMap(el("sky"),el("star-field"),i=>{
@@ -100,6 +104,13 @@
     ctx.font='9px "IBM Plex Mono","Lab Korean",sans-serif';ctx.fillStyle="#99aeb7";ctx.textBaseline="bottom";ctx.textAlign="left";ctx.fillText("0일",x0,chartH+1);ctx.textAlign="right";ctx.fillText("730일",x1,chartH+1);ctx.textAlign="left";
   }
   function updateControls(){
+    if(!rateChosen&&state.scope==="near"&&state.watch===6){
+      if(priorSaturnRate===null)priorSaturnRate=runningRate;
+      setPlaybackRate(.03);
+    }else if(priorSaturnRate!==null){
+      if(!rateChosen&&runningRate===.03)setPlaybackRate(priorSaturnRate);
+      priorSaturnRate=null;
+    }
     const active=state.applied;
     const status=state.running?"running":active||state.observing?"paused":"ready";
     el("status").dataset.state=status;
@@ -152,7 +163,7 @@
     el("size-toggle").disabled=near||sun;el("camera-anchor").hidden=!galaxy||near||sun||lunar;el("camera-anchor").setAttribute("aria-pressed",String(state.fixedCamera));el("map-travel").hidden=!galaxy||sun||lunar;
     el("map-description").textContent=lunar?"지구 중심 · 달의 지난 27.3일 궤적":sun?"태양 근접 관측":(galaxy?"은하 회전 방향 · 약 230 km/s"+(state.showPaths?" · 지난 365일의 자취":""):"태양을 기준으로 본 위치") + "  ·  " + (state.actualSize||near?"천체 실제 크기":"천체 확대 표시");
     el("sky").tabIndex=fly?-1:0;el("flight-gl").tabIndex=el("flight-cpu").tabIndex=fly?0:-1;
-    const moon=state.watch===3,notes=["","햇빛이 비스듬히 스치는 충돌구","두꺼운 구름이 감싼 행성","구름 아래로 낮과 밤이 지나갑니다","붉은 먼지가 덮인 지표","구름 띠 사이로 흐르는 소용돌이","고리 너머로 드리운 그림자","옅은 청록빛 구름층","푸른빛에 잠긴 먼 대기","충돌구와 바다가 이어지는 달 표면"];
+    const moon=state.watch===3,notes=["","햇빛이 비스듬히 스치는 충돌구","두꺼운 구름이 감싼 행성","구름 아래로 낮과 밤이 지나갑니다","붉은 먼지가 덮인 지표","구름 띠 사이로 흐르는 소용돌이","안쪽 고리가 더 빠릅니다 · 입자 무늬 강조","옅은 청록빛 구름층","푸른빛에 잠긴 먼 대기","충돌구와 바다가 이어지는 달 표면"];
     el("flight-note").textContent=!active?notes[state.watch]:state.kind==="vanish"?(moon?"햇빛이 사라지고 도시의 불빛만 남았습니다":"햇빛이 사라진 행성의 밤"):state.kind==="black"?"빛을 내지 않는 블랙홀 주위를 비행 중":state.kind==="binary"?"두 별의 빛이 서로 다른 방향에서 닿습니다":notes[state.watch];
     el("quick-experiment").querySelector("span:nth-child(2)").textContent=active?"실험 전으로":definitions[state.kind].action;
     el("rise-lens").disabled=active&&(state.kind==="vanish"||state.kind==="black");
@@ -165,7 +176,7 @@
     const offset=Math.floor(d/M.DAYS)*M.DAYS,bar=el("time");
     if(Number(bar.min)!==offset){bar.min=offset;bar.max=offset+M.DAYS;for(const tick of document.querySelectorAll('[data-day]')){const rel=Number(tick.dataset.relative??tick.dataset.day);tick.dataset.relative=rel;tick.dataset.day=offset+rel;tick.textContent=(offset+rel)+"일";}}
     const integer=Math.floor(d+1e-8),p=M.read(base,state.watch,d),q=state.applied?M.read(state.test,state.watch,d):p,dist=state.applied?M.distance(p,q):0;
-    el("day").textContent=integer;el("map-day").textContent=integer+"일";el("time").value=integer;el("time").setAttribute("aria-valuetext",integer+"일");
+    el("day").textContent=integer;el("map-day").textContent=runningRate<.25?(d<1?number(d*24,1)+"시간":number(d,2)+"일"):integer+"일";el("time").value=integer;el("time").setAttribute("aria-valuetext",integer+"일");
     el("time").style.setProperty("--fill",((d-offset)/M.DAYS*100)+"%");
     if(state.mode==="map"&&state.reference==="galaxy"){
       const travel="출발 후 "+number(d*OrbitMapSpace.speedInAU,1)+" AU 이동";
@@ -321,7 +332,7 @@
   for(const button of [immersive,el("map-full")])button.addEventListener("click",()=>{if(screen){closeScreen();return;}fullFlag(true);if(box.requestFullscreen){try{const req=box.requestFullscreen();if(req?.catch)req.catch(()=>{});}catch{} }else if(box.webkitRequestFullscreen){try{box.webkitRequestFullscreen();}catch{}}});
   for(const evt of ["fullscreenchange","webkitfullscreenchange"])document.addEventListener(evt,()=>fullFlag(!!(document.fullscreenElement||document.webkitFullscreenElement)));
   for(const evt of ["pointermove","pointerdown","keydown","focusin"])box.addEventListener(evt,wake);
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&screen&&!el("object-explorer").open&&!el("cosmos-view").open){closeScreen();}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&screen&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open){closeScreen();}});
   for(const [id,mode] of [["flight-mode","flight"],["map-mode","map"]])el(id).addEventListener("click",()=>{state.mode=mode;flight.setVisible(mode==="flight");updateControls();mark();});
   el("far-lens").addEventListener("click",()=>flight.setNear(false));el("near-lens").addEventListener("click",()=>flight.setNear(true));
   el("rise-lens").addEventListener("click",()=>flight.setRise());
@@ -332,7 +343,7 @@
   el("close-guide").addEventListener("click",()=>guide.close());guide.addEventListener("close",()=>mark());
   guide.addEventListener("click",e=>{if(e.target===guide){const r=guide.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)guide.close()}});
   document.addEventListener("keydown",e=>{
-    if(guide.open||el("object-explorer").open||el("cosmos-view").open||e.repeat||e.code!=="Space"||e.target.closest("button,input,select,a,summary"))return;
+    if(guide.open||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||e.repeat||e.code!=="Space"||e.target.closest("button,input,select,a,summary"))return;
     e.preventDefault();togglePlay();
   });
   document.addEventListener("visibilitychange",()=>mark());
@@ -340,6 +351,7 @@
   document.fonts?.ready.then(mark);
   el("credits").innerHTML="<ul>"+LabMedia.credits.map(([name,credit,url])=>'<li>'+credit+' · <a href="'+url+'" target="_blank" rel="noreferrer">'+name+' 원본</a></li>').join("")+"</ul>";
 
+  const exoplanets=createExoViewer(mark);
   const cosmos=createCosmosViewer();el("cosmos-view").addEventListener("close",()=>mark());
   state.catalog=createOrbitCatalog({day:()=>state.day,invalidate:mark,pin:()=>{
     if(state.applied)state.split=true;
@@ -361,10 +373,10 @@
     map.reset();updateControls();mark();
   }
   openMapLink();
-  if(!location.hash){state.running=state.observing=true;updateControls();}
-  fullFlag(true);window.addEventListener("hashchange",openMapLink);
+  if(!location.hash||location.hash.startsWith("#system/")){state.running=state.observing=true;updateControls();}
+  fullFlag(true);exoplanets.route();window.addEventListener("hashchange",openMapLink);
   function animate(now){
-    const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open;
+    const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open;
     if(previous===null)pendingDays=0;
     const elapsed=previous===null?0:Math.max(0,(now-previous)/1000);
     if(state.running){
