@@ -54,8 +54,9 @@
   }
 
   // Kick–drift–kick leapfrog. Daily output samples are independent of animation speed.
-  function solve(kind="control",value=1,days=DAYS,substeps=16,direction=1) {
+  function solve(kind="control",value=1,days=DAYS,substeps=16,direction=1,seed=null) {
     const {mu,state}=initialState(kind,value);
+    if(seed)state.set(seed);
     const active=Array.from(mu.keys()).filter(i=>mu[i]>0);
     const frames=new Float64Array((days+1)*STRIDE);
     const acc=new Float64Array(N*3);
@@ -81,11 +82,28 @@
     return {kind,value,mu,active,frames,days,direction};
   }
 
+  // Keep the original 730-day experiment plus a rolling 1,024-day window. A sparse
+  // state checkpoint permits older time-slider values to be reconstructed continuously.
+  const BLOCK=32;
+  function extension(run,idx){
+    run.segments??=new Map();run.checkpoints??=new Map([[0,run.frames.slice(-STRIDE)]]);
+    if(run.segments.has(idx))return run.segments.get(idx);
+    let first=idx,seed;
+    while(!seed){if(run.checkpoints.has(first))seed=run.checkpoints.get(first);else if(run.segments.has(first-1))seed=run.segments.get(first-1).slice(-STRIDE);else first--;}
+    let frames;
+    for(let n=first;n<=idx;n++){
+      frames=solve(run.kind,run.value,BLOCK,16,1,seed).frames;seed=frames.slice(-STRIDE);run.segments.set(n,frames);
+      if((n+1)%32===0)run.checkpoints.set(n+1,seed);
+      if(run.segments.size>36)run.segments.delete(run.segments.keys().next().value);
+    }
+    return frames;
+  }
   // Cubic Hermite interpolation preserves both the positions and velocities at each stored day.
   function read(run,body,day,out=new Float64Array(6)) {
     const sign=run.direction??1;
-    const t=clamp(day*sign,0,run.days),whole=Math.floor(t),f=t-whole;
-    const a=whole*STRIDE+body*6, frame=run.frames;
+    let t=clamp(day*sign,0,run.days),frame=run.frames;
+    if(sign>0&&day>run.days){const after=day-run.days,idx=Math.floor(after/BLOCK);frame=extension(run,idx);t=after-idx*BLOCK;}
+    const whole=Math.floor(t),f=t-whole,a=whole*STRIDE+body*6;
     if(f===0){for(let k=0;k<6;k++)out[k]=frame[a+k];return out}
     const b=a+STRIDE, f2=f*f, f3=f2*f;
     for(let k=0;k<3;k++){

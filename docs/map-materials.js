@@ -78,7 +78,8 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
   }
   function planet(ctx,q,camera,lights,ratio){
     const index=q.index,id=LabInitial.bodies[index].id,sp=specs[index],earth=index===3,saturn=index===6;
-    const toSun=subtract(lights.sun,q.position),toSecond=subtract(lights.companion,q.position);
+    const natural=GravityLab.read(camera.run,index,camera.day);
+    const toSun=subtract(lights.physicalSun,natural),toSecond=subtract(lights.physicalCompanion,natural);
     const initial=Math.hypot(...LabInitial.bodies[index].p),solarRange=Math.max(.018,Math.hypot(...toSun)),companionRange=Math.max(.018,Math.hypot(...toSecond));
     // Local exposure preserves visible surface detail on distant planets. Sources still obey inverse square falloff.
     const flux=lights.primary?Math.min(6,(initial/solarRange)**2):0,flux2=lights.secondary?Math.min(6,(initial/companionRange)**2):0;

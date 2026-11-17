@@ -5,7 +5,7 @@ globalThis.createSolarOptics=function(invalidate){
     visible:{cx:.5,cy:.5,r:.386595},euv:{cx:.5,cy:.5,r:.386595}
   };
   const corona={columns:6,count:24,tile:320,diskFraction:.30,fps:4};
-  let framePosition=0,untilPaint=0;
+  let framePosition=0;
   function coronaField(image){
     // Apodize only the edge of the square detector field, beyond the photographed limb.
     const field=document.createElement("canvas");field.width=image.naturalWidth;field.height=image.naturalHeight;
@@ -31,10 +31,7 @@ globalThis.createSolarOptics=function(invalidate){
     if(s.applied&&!s.split&&(s.kind==="vanish"||s.kind==="black"))return false;
     const delta=Math.min(seconds,.25);
     framePosition=(framePosition+delta*corona.fps)%corona.count;
-    untilPaint-=delta;
-    if(untilPaint>0)return false;
-    untilPaint=1/24;
-    return true;
+    return delta>0;
   }
   function starlight(ctx,q){
     const r=q.radius,reach=r*3.2,scatter=request("sun-scatter");

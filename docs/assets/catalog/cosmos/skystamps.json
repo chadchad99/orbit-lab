@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "stamps": [
+    {
+      "id": "m31",
+      "file": "sky-m31.webp",
+      "raDeg": 10.684583,
+      "decDeg": 41.269167,
+      "widthDeg": 4.85,
+      "heightDeg": 4.0424041,
+      "pixelWidth": 672,
+      "pixelHeight": 560,
+      "northUp": true,
+      "eastLeft": true,
+      "projection": "TAN",
+      "frame": "ICRS",
+      "epoch": "J2000",
+      "centerPixel": [
+        335.5,
+        279.5
+      ],
+      "pixelOrigin": "0-indexed, top-left",
+      "pixelPlaneRad": 0.000126040253,
+      "source": "https://esahubble.org/images/heic1112f/",
+      "imageUrl": "https://cdn.esahubble.org/archives/images/screen/heic1112f.jpg",
+      "credit": "ESA/Hubble & Digitized Sky Survey 2. Acknowledgment: Davide De Martin (ESA/Hubble).",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "observationBandKo": "가시광",
+      "sourceAvm": {
+        "referenceDimension": [
+          21299.0,
+          13775.0
+        ],
+        "referencePixel": [
+          10649.5,
+          6887.5
+        ],
+        "referenceValue": [
+          10.7523331482,
+          41.2596417071
+        ],
+        "scaleDegPerPixel": [
+          -0.000283216970837,
+          0.000283216970837
+        ],
+        "rotationDeg": 1.9200000000000017,
+        "frame": "ICRS",
+        "equinox": "J2000",
+        "quality": "Full"
+      },
+      "blackPedestalRemoved8bit": [
+        0.75,
+        1.0499999523162842,
+        1.1100000143051147
+      ],
+      "bytes": 161710,
+      "sha256": "8a62b30643c267ad3c5b394296b01d59e126e5b4b45493fb64dfd5acc138be6d",
+      "alignmentChecks": {
+        "m31": {
+          "catalogXY": [
+            335.5,
+            279.5
+          ],
+          "observedPeakXY": [
+            336,
+            280
+          ],
+          "offsetArcmin": 0.31
+        },
+        "m32": {
+          "catalogXY": [
+            336.59,
+            335.43
+          ],
+          "observedPeakXY": [
+            337,
+            335
+          ],
+          "offsetArcmin": 0.26
+        },
+        "m110": {
+          "catalogXY": [
+            396.77,
+            221.67
+          ],
+          "observedPeakXY": [
+            397,
+            222
+          ],
+          "offsetArcmin": 0.17
+        }
+      }
+    },
+    {
+      "id": "m33",
+      "file": "sky-m33.webp",
+      "raDeg": 23.462083,
+      "decDeg": 30.660278,
+      "widthDeg": 1.48,
+      "heightDeg": 1.4540379,
+      "pixelWidth": 456,
+      "pixelHeight": 448,
+      "northUp": true,
+      "eastLeft": true,
+      "projection": "TAN",
+      "frame": "ICRS",
+      "epoch": "J2000",
+      "centerPixel": [
+        227.5,
+        223.5
+      ],
+      "pixelOrigin": "0-indexed, top-left",
+      "pixelPlaneRad": 5.6649801e-05,
+      "source": "https://www.eso.org/public/images/eso1424a/",
+      "imageUrl": "https://cdn.eso.org/images/screen/eso1424a.jpg",
+      "credit": "ESO",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "observationBandKo": "가시광",
+      "sourceAvm": {
+        "referenceDimension": [
+          19058.0,
+          15983.0
+        ],
+        "referencePixel": [
+          9529.0,
+          7991.5
+        ],
+        "referenceValue": [
+          23.4671516274,
+          30.6739356771
+        ],
+        "scaleDegPerPixel": [
+          -5.94772254824e-05,
+          5.94772254824e-05
+        ],
+        "rotationDeg": 90.0000000000002,
+        "frame": "ICRS",
+        "equinox": "J2000",
+        "quality": "Full"
+      },
+      "blackPedestalRemoved8bit": [
+        11.010000228881836,
+        11.930000305175781,
+        12.979999542236328
+      ],
+      "bytes": 111516,
+      "sha256": "e6839c06bd91eebf3d76ffa6d0a152518cb50635efd10d1225e1912027f8a067"
+    },
+    {
+      "id": "lmc",
+      "file": "sky-lmc.webp",
+      "raDeg": 80.89375,
+      "decDeg": -69.756111,
+      "widthDeg": 13.6,
+      "heightDeg": 12.7909739,
+      "pixelWidth": 600,
+      "pixelHeight": 564,
+      "northUp": true,
+      "eastLeft": true,
+      "projection": "TAN",
+      "frame": "ICRS",
+      "epoch": "J2000",
+      "centerPixel": [
+        299.5,
+        281.5
+      ],
+      "pixelOrigin": "0-indexed, top-left",
+      "pixelPlaneRad": 0.000397475936,
+      "source": "https://www.eso.org/public/images/magellan-ch17-bardon-cc/",
+      "imageUrl": "https://cdn.eso.org/images/screen/magellan-ch17-bardon-cc.jpg",
+      "credit": "Zdeněk Bardon/ESO",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "observationBandKo": "가시광",
+      "sourceAvm": {
+        "referenceDimension": [
+          2848.0,
+          1881.0
+        ],
+        "referencePixel": [
+          1424.0,
+          940.5
+        ],
+        "referenceValue": [
+          81.3623388504,
+          -69.5673559482
+        ],
+        "scaleDegPerPixel": [
+          -0.00812078114127,
+          0.00812078114127
+        ],
+        "rotationDeg": -64.00000000000009,
+        "frame": "ICRS",
+        "equinox": "J2000",
+        "quality": "Full"
+      },
+      "blackPedestalRemoved8bit": [
+        14.09000015258789,
+        17.18000030517578,
+        16.260000228881836
+      ],
+      "bytes": 329428,
+      "sha256": "a47a29d08ccc7cc1ae022aacb5d5cb7ff8eeb60febb906c6cf490480bbd90ce3"
+    },
+    {
+      "id": "smc",
+      "file": "sky-smc.webp",
+      "raDeg": 13.186667,
+      "decDeg": -72.828611,
+      "widthDeg": 6.75,
+      "heightDeg": 6.6035891,
+      "pixelWidth": 460,
+      "pixelHeight": 450,
+      "northUp": true,
+      "eastLeft": true,
+      "projection": "TAN",
+      "frame": "ICRS",
+      "epoch": "J2000",
+      "centerPixel": [
+        229.5,
+        224.5
+      ],
+      "pixelOrigin": "0-indexed, top-left",
+      "pixelPlaneRad": 0.000256404722,
+      "source": "https://www.eso.org/public/images/eso1714a/",
+      "imageUrl": "https://cdn.eso.org/images/screen/eso1714a.jpg",
+      "credit": "ESO/VISTA VMC",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "observationBandKo": "근적외선",
+      "sourceAvm": {
+        "referenceDimension": [
+          43223.0,
+          38236.0
+        ],
+        "referencePixel": [
+          21611.5,
+          19118.0
+        ],
+        "referenceValue": [
+          13.7631652021,
+          -72.9640481752
+        ],
+        "scaleDegPerPixel": [
+          -0.000136644159443,
+          0.000136644159443
+        ],
+        "rotationDeg": 1.2000000000000006,
+        "frame": "ICRS",
+        "equinox": "J2000",
+        "quality": "Full"
+      },
+      "blackPedestalRemoved8bit": [
+        5.409999847412109,
+        4.269999980926514,
+        3.4600000381469727
+      ],
+      "bytes": 176064,
+      "sha256": "e5dcafcaa6d63299c055c7378df99307e45162a9cb25d0e033f9aedf3009f9d7"
+    }
+  ],
+  "convention": "Angular fields are edge-to-edge on each central great circle. Tangent plane has constant square pixels. Origin is the geometric centre; north is up, east is left.",
+  "display": "Use additive (Canvas lighter or equivalent) on the sky surface. Apply native straight alpha exactly once and no opaque backing rectangle. At tile centre angular pixel scale is pixelPlaneRad.",
+  "provenance": "Reprojected the registered release image from its embedded full-quality AVM TAN WCS; resampled, subtracted the measured constant sky pedestal, and softly apodized the outskirts and straight survey footprint edges. The input colours and stellar coordinates are observational.",
+  "noteKo": "안드로메다의 주변 동반은하 M32와 M110은 같은 관측 영상 안에도 나타납니다. 중앙 사진보다 멀리 떨어진 촬영 경계에는 투명 처리를 적용했습니다."
+}

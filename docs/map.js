@@ -10,6 +10,8 @@
     const ctx=canvas.getContext("2d");
     let glideTime=0,glideOffset=0,scope="wide";
     let w=0,h=0,dpr=1,zoom=1,yaw=0,pitch=0,dirty=true,hits=[],hover=0;
+    const ringPaths=new Map();
+    LabFullLayer.load(invalidate);
     const pointers=new Map();let gesture=null;
     function invalidate(){dirty=true;}
     const sky=createMapSky(stars,invalidate),materials=createMapMaterials(invalidate),solar=createSolarOptics(invalidate);
@@ -51,8 +53,40 @@
       for(let i=0;i<=count;i++)out.push(S.world(s,run,id,start+(end-start)*i/count));
       return out;
     }
+    const trailCache=new WeakMap();
+    function cachedTrails(c,s,run){
+      const bucket=Math.floor(s.day/2)*2,key=[bucket,S.compressed(s),...c.right,...c.up].join('|');
+      let entry=trailCache.get(run);
+      const {dot}=OrbitFrames;
+      if(!entry||entry.key!==key){
+        const snapshot={...s,day:bucket},paths=[];
+        for(const id of run.active){
+          const oldest=id===M.COMPANION?Math.max(0,bucket-365):bucket-365;
+          const start=Math.ceil(oldest/2)*2;
+          let lines=[],path,end,chunk=-1;
+          for(let t=start;t<=bucket;t+=2){
+            const v=S.world(snapshot,run,id,t),xy=[dot(v,c.right),-dot(v,c.up)],section=Math.min(5,Math.floor((t-start)/62));
+            if(section!==chunk){path=new Path2D();lines.push(path);path.moveTo(...(end||xy));chunk=section;}
+            path.lineTo(...xy);end=xy;
+          }
+          if(end)paths.push({id,lines,end});
+        }
+        entry={key,paths};trailCache.set(run,entry);
+      }
+      const lag=(s.day-bucket)*S.speedInAU;
+      const dx=-dot(S.direction,c.right)*lag,dy=dot(S.direction,c.up)*lag;
+      ctx.save();ctx.translate(c.ox+dx*c.px,c.oy+dy*c.px);ctx.scale(c.px,c.px);
+      for(const {id,lines,end} of entry.paths){
+        ctx.lineWidth=(id===s.watch?1.50:id===0?1.3:1.05)/c.px;
+        const alpha=id===s.watch?.82:id===0?.69:.57;
+        lines.forEach((line,j)=>{ctx.strokeStyle="rgba("+trailColors[id]+","+(alpha*(.29+.71*(j+1)/lines.length))+")";ctx.stroke(line);});
+        const tip=S.world(s,run,id,s.day);ctx.beginPath();ctx.moveTo(...end);ctx.lineTo(dot(tip,c.right)-dx,-dot(tip,c.up)-dy);ctx.stroke();
+      }
+      ctx.restore();
+    }
     function galacticTrails(p,c,s,run,testView){
-      for(const id of run.active){
+      if(c.orthographic)cachedTrails(c,s,run);
+      else for(const id of run.active){
         const from=id===M.COMPANION?Math.max(0,s.day-365):s.day-365;
         if(s.day-from<.01)continue;
         const points=timePoints(s,run,id,from,s.day,168);
@@ -68,10 +102,10 @@
         const start=Math.max(0,s.day-365);
         if(s.day>start)curve(c,timePoints(s,s.base,s.watch,start,s.day,90),mint,1.1,[4,4]);
       }
-      if(s.applied&&s.day<M.DAYS)prediction(c,s,run,testView?coral:mint,false);
+      if(s.applied)prediction(c,s,run,testView?coral:mint,false);
     }
     function prediction(c,s,run,color,dashed){
-      const end=Math.min(M.DAYS,s.day+90);
+      const end=s.day+90;
       if(end<=s.day)return;
       const points=timePoints(s,run,s.watch,s.day,end,96);
       ctx.save();ctx.globalAlpha=.69;curve(c,points,color,1.16,dashed?[4,4]:[]);
@@ -80,6 +114,20 @@
       ctx.restore();
     }
     function solarTrails(p,c,s,run){
+      if(s.scope==="wide"){
+        const key=[p.x,p.y,p.w,p.h,zoom,yaw,pitch,s.watch,s.actualSize,s.linearDistances,s.allFit].join('/');
+        let paths=ringPaths.get(key);
+        if(!paths){paths=[];for(let i=1;i<=orbits.length;i++){
+          const projected=orbits[i-1].map(c.project);
+          for(let j=0;j<8;j++){
+            const first=j*30,path=new Path2D();path.moveTo(projected[first].x,projected[first].y);
+            for(let k=first+1;k<=first+30;k++)path.lineTo(projected[k].x,projected[k].y);
+            const alpha=(i===s.watch?.32:.14)*clamp(c.dist/Math.max(c.near,projected[first+15].z),.42,1.32);
+            paths.push([path,"rgba(168,187,201,"+alpha+")",i===s.watch?.91:.70]);
+          }
+        }if(ringPaths.size>=4)ringPaths.delete(ringPaths.keys().next().value);ringPaths.set(key,paths);}
+        for(const [path,stroke,width] of paths){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke(path);}
+      }else{
       for(let i=1;i<=orbits.length;i++){
         const ring=orbits[i-1];
         for(let j=0;j<8;j++){
@@ -88,6 +136,7 @@
           const alpha=(i===s.watch?.32:.14)*fade;
           curve(c,part,"rgba(168,187,201,"+alpha+")",i===s.watch?.91:.70);
         }
+      }
       }
       if(!s.applied)return;
       const representations=p.layer==="both"?[{path:s.test,color:coral,base:false},{path:s.base,color:mint,base:true}]:[{path:run,color:p.layer==="base"?mint:coral,base:p.layer==="base"}];
@@ -105,7 +154,7 @@
       const distanceInRadii=c.dist*M.AU/S.radii[index];
       const lunarSize=Math.min(p.w,p.h)*.115*(S.radii[index]/S.radii[M.EARTH])*zoom;
       const shortSide=Math.min(p.w,p.h);
-      const wideSize=index===0?clamp(shortSide*.077+3,18,60):
+      const wideSize=index===0?(c.orthographic?clamp(shortSide*.061,17,43):clamp(shortSide*.077+3,18,60)):
         isStar?clamp(shortSide*.053,14,46):clamp(shortSide*.039,11,32)*(S.radii[index]/S.radii[5])**.49;
       const radius=s.scope==="wide"&&!s.actualSize?Math.max(physical(S.radii[index]),wideSize*zoom**.37):s.scope==="lunar"&&!s.actualSize?Math.max(physical(S.radii[index]),lunarSize):index===c.closeBody?c.focal/Math.sqrt(distanceInRadii**2-1):
         real?physical(S.radii[index]):Math.max(physical(S.radii[index]),enlarged*(s.displayScale??1.8));
@@ -128,14 +177,14 @@
       for(const q of order){
         if(q.index===c.closeBody)continue;
         const selected=q.index===s.watch,shade=selected?"#e9e9e3":q.ghost?mint:"#b3bbbf",special=selected||q.index===hover||q.ghost;
-        if(!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&(priority(o)>priority(q))&&Math.hypot(q.x-o.x,q.y-o.y)<(compact?33:37)))continue;
+        if(!c.orthographic&&!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&(priority(o)>priority(q))&&Math.hypot(q.x-o.x,q.y-o.y)<(compact?33:37)))continue;
         const name=q.label??names[q.index],size=compact?10:12;
         ctx.font=(selected?"600 ":"460 ")+size+"px "+font;ctx.textBaseline="middle";
         const width=ctx.measureText(name).width+5,height=size+5;
-        const gap=q.reach+(special?16:6);
+        const gap=q.reach+(special?12:5);
         const offsets=[[1,-.4],[-1,-.4],[1,.65],[-1,.65],[0,-1],[0,1]];
         let chosen;
-        for(const extra of (special?[0,15,32,48]:[0,10])){
+        for(const extra of (special||c.orthographic?[0,9,18,28,43,60]:[0,10])){
           for(const [dx,dy] of offsets){
             const x=q.x+dx*(gap+extra)+(dx===-1?-width:dx===0?-width/2:0);
             const y=q.y+dy*(q.radius+extra+8)-height/2;
@@ -147,7 +196,7 @@
           if(chosen)break;
         }
         if(!chosen)continue;
-        if(special){
+        if(special||c.orthographic&&Math.hypot(q.x-(chosen.x+width/2),q.y-(chosen.y+height/2))>q.radius+25){
           const tx=clamp(q.x,chosen.x,chosen.x+width),ty=clamp(q.y,chosen.y,chosen.y+height),angle=Math.atan2(ty-q.y,tx-q.x);
           ctx.lineWidth=.68;ctx.strokeStyle=q.ghost?"#93c8ba96":"#b1c3c48c";ctx.beginPath();
           ctx.moveTo(q.x+Math.cos(angle)*(q.radius+1.7),q.y+Math.sin(angle)*(q.radius+1.7));ctx.lineTo(tx,ty);ctx.stroke();
@@ -166,18 +215,18 @@
     }
     function catalogPoints(p,c,s,testView){
       const catalog=s.catalog;
-      if(!catalog||s.scope!=="wide"||s.reference!=="solar"||s.actualSize||s.applied&&testView)return;
-      const region=catalog.marker?.region;
+      if(!catalog||s.scope!=="wide"||s.actualSize||s.applied&&testView)return;
+      const region=catalog.marker?.region;if(!region)return;
       const points=region?catalog.regionRows(region).map(row=>CatalogOrbits.position(CatalogOrbits.small(row),LabInitial.jd+s.day)):catalog.beltAt(s.day);
       ctx.fillStyle=region?"rgba(213,202,163,.70)":"rgba(191,170,132,.32)";
-      for(const point of points){if(!point)continue;const q=c.project(point);if(q.inFront&&inPanel(p,q))ctx.fillRect(q.x,q.y,region?1.6:1.05,region?1.6:1.05);}
+      for(const point of points){if(!point)continue;const q=c.project(LabFullLayer.galLocation(s,c.run,point));if(q.inFront&&inPanel(p,q))ctx.fillRect(q.x,q.y,region?1.6:1.05,region?1.6:1.05);}
     }
     function catalogMark(p,c,s,run,testView){
-      const chosen=s.catalog?.marker;if(!chosen||s.scope!=="wide"||s.reference!=="solar"||chosen.region||s.applied&&testView)return;
+      const chosen=s.catalog?.marker;if(!chosen||s.scope!=="wide"||chosen.region||s.applied&&testView)return;
       const source=chosen.orbit;let target,radius=5;
       if(source){
         target=CatalogOrbits.position(source,LabInitial.jd+s.day);if(!target)return;
-        if(s.showPaths){const line=CatalogOrbits.curve(source,Math.max(48,Math.hypot(...target)*1.1));curve(c,line,"rgba(242,195,126,.68)",1.1,[3,4]);}
+        if(s.showPaths){const line=CatalogOrbits.curve(source,Math.max(48,Math.hypot(...target)*1.1));curve(c,line.map(v=>LabFullLayer.galLocation(s,run,v)),"rgba(242,195,126,.68)",1.1,[3,4]);}target=LabFullLayer.galLocation(s,run,target);
       }else{const index=bodies.findIndex(b=>b.id===chosen.host);if(index<0)return;target=S.world(s,run,index,s.day);radius=visualBody(index,target,c,p,s).radius+4;}
       const q=c.project(target);if(!q.inFront)return;
       const visible=inPanel(p,q,8),x=clamp(q.x,p.x+9,p.x+p.w-9),y=clamp(q.y,p.y+15,p.y+p.h-15);
@@ -190,13 +239,15 @@
     function drawPanel({pane:p,camera:c,run,testView},s){
       ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();
       const world=(index)=>S.world(s,run,index,s.day);
+      const populations=s.scope==="wide"&&!(s.applied&&testView);
+      if(populations)LabFullLayer.density(ctx,p,c,s,run);
       catalogPoints(p,c,s,testView);
       if(s.showPaths){
         if(s.scope==="lunar")curve(c,timePoints(s,run,M.MOON,s.day-27.32,s.day,144),"rgba(183,197,202,.52)",1.2);
         else if(s.reference==="galaxy")galacticTrails(p,c,s,run,testView);else solarTrails(p,c,s,run);
       }
       const black=s.applied&&testView&&s.kind==="black",vanished=s.applied&&testView&&s.kind==="vanish";
-      const lights={sun:world(0),companion:world(M.COMPANION),primary:!black&&!vanished,secondary:s.applied&&testView&&s.kind==="binary"};
+      const lights={physicalSun:M.read(run,0,s.day),physicalCompanion:M.read(run,M.COMPANION,s.day),primary:!black&&!vanished,secondary:s.applied&&testView&&s.kind==="binary"};
       if(s.scope==="sun"&&s.sunBand==="granules"&&!black&&!vanished){
         solar.granules(ctx,p,zoom,yaw,pitch);
         if(p.layer!=="both"){ctx.fillStyle="#fff";ctx.font="12px sans-serif";ctx.fillText(p.layer==="base"?"원래 태양계":"실험 태양계",p.x+15,p.y+p.h-39);}
@@ -213,6 +264,7 @@
           if(gap<leg){const angle=Math.atan2(dy,dx);moon.x=earth.x+leg*Math.cos(angle);moon.y=earth.y+leg*Math.sin(angle);}
         }
       }
+      if(populations)LabFullLayer.satellites(ctx,p,c,s,run,list,hits);
       list.sort((a,b)=>b.z-a.z);
       for(const q of list){
         if(q.index===0&&black){
@@ -235,7 +287,7 @@
           list.push({...ref,index:-1,diam:6,reach:3,radius:3,label:"원래 "+names[s.watch],ghost:true});
         }
       }
-      labels(p,c,s,list);catalogMark(p,c,s,run,testView);if(!(s.scope==="wide"&&s.reference==="solar"&&!s.linearDistances&&!s.actualSize))scaleBar(p,c);
+      labels(p,c,s,list);catalogMark(p,c,s,run,testView);if(!S.compressed(s))scaleBar(p,c);
       if(p.layer!=="both"){
         ctx.font="550 11px "+font;ctx.textBaseline="top";ctx.fillStyle=p.layer==="base"?mint:coral;
         ctx.fillText(p.layer==="base"?"원래 태양계":"실험 태양계",p.x+14,p.y+((p.x===0&&p.y===0)?43:13));
@@ -249,7 +301,7 @@
       const views=panels(s.split).map(pane=>{
         const testView=pane.layer!=="base",run=s.applied&&testView?s.test:s.base;
         const dark=s.applied&&testView&&(s.kind==="black"||s.kind==="vanish");
-        return {pane,run,testView,camera:S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch),exposure:dark?.78:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:.43};
+        return {pane,run,testView,showSurvey:s.scope==="wide"&&s.allFit,camera:S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch),exposure:dark?.78:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:.43};
       });
       sky(w,h,dpr,views);views.forEach(view=>drawPanel(view,s));
       if(s.split){

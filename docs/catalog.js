@@ -20,7 +20,7 @@ globalThis.createOrbitCatalog = function(options) {
     if(group==='system'){await sample;return;}
     if(group==='moon'){await natural;return;}
     if(group==='small'){manifest=await D.load('small/manifest.json');return;}
-    if(group==='craft'){const [a,b,c]=await Promise.all([D.load('spacecraft.json.gz'),D.load('spacecraft-meta.json'),D.load('deep-missions.json')]);spacecraft=a;spaceMeta=b;deep=c.missions||deepFallback;}
+    if(group==='craft'&&!spacecraft){const [a,b,c,gp]=await Promise.all([D.load('spacecraft.json.gz'),D.load('spacecraft-meta.json'),D.load('deep-missions.json'),D.load('satellite-sky-gp.json.gz')]);for(const r of a)if(!r[16]&&gp[r[0]])r[16]=gp[r[0]];spacecraft=a;spaceMeta=b;deep=c.missions||deepFallback;}
   }
   const filterSets={system:[['all','전체 종류'],['major','태양·행성'],['dwarf','왜행성'],['ring','행성 고리'],['region','천체 분포']],moon:[['all','모든 중심 천체'],['earth','지구'],['mars','화성'],['jupiter','목성'],['saturn','토성'],['uranus','천왕성'],['neptune','해왕성'],['pluto','명왕성'],['dwarf','왜행성 전체'],['minor','소행성·기타'],['candidate','확인 전 후보']],small:[['featured','대표 천체'],['all','전체 목록'],['a','소행성'],['c','혜성']],craft:[['payload','인공위성·탐사선'],['gp','궤도 요소 제공'],['deep','지구 밖 탐사'],['debris','우주 잔해'],['rocket','로켓 몸체'],['other','미분류'],['all','모든 인공 물체']]};
   const hints={system:'이름이나 종류 검색',moon:'예: 유로파, S/2023, 목성',small:'예: 세레스, 99942, 1P',craft:'예: 우리별, ISS, 25544'};
@@ -54,12 +54,12 @@ globalThis.createOrbitCatalog = function(options) {
       if(initial&&next.length&&!matchMedia('(max-width:600px)').matches)choose(next[0],false);
     }catch(err){if(token===generation)errorUI(err,refresh);}finally{if(token===generation)pendingPage=false;}
   }
-  function clearDetail(){chosen=null;selectedModel=null;selection++;chart.set({caption:'천체를 선택하면 궤도와 관측 자료를 볼 수 있습니다.'});el('catalog-name').textContent='천체를 선택하세요';for(const n of ['catalog-kind','catalog-sub','catalog-note','catalog-facts'])el(n).textContent='';el('catalog-source').hidden=el('catalog-show').hidden=true;el('catalog-portrait').hidden=el('catalog-photo-link').hidden=true;}
+  function clearDetail(){chosen=null;selectedModel=null;selection++;chart.set({caption:'천체를 선택하면 궤도와 관측 자료를 볼 수 있습니다.'});el('catalog-name').textContent='천체를 선택하세요';for(const n of ['catalog-kind','catalog-sub','catalog-note','catalog-facts'])el(n).textContent='';el('catalog-family').hidden=el('catalog-source').hidden=el('catalog-show').hidden=true;el('catalog-portrait').hidden=el('catalog-photo-link').hidden=true;}
   async function refresh(){const token=++generation;pendingPage=false;iterator=null;items=[];el('catalog-list').replaceChildren();el('catalog-list').scrollTop=0;el('catalog-more').hidden=true;el('catalog-status').textContent='목록을 불러오는 중…';clearDetail();
     try{await prepare(tab);if(token!==generation)return;el('catalog-count').textContent=summary();iterator=records(tab,el('catalog-filter').value,el('catalog-query').value.trim(),token);await more(token,true);}
     catch(err){if(token===generation)errorUI(err,refresh);}
   }
-  function switchTab(value){tab=value;dialog.dataset.detail='false';el('catalog-query').value='';el('catalog-query').placeholder=hints[value];el('catalog-count').textContent=summary();el('catalog-filter').replaceChildren(...filterSets[value].map(([key,name])=>new Option(name,key)));for(const b of el('catalog-tabs').children)b.setAttribute('aria-pressed',String(b.dataset.tab===value));return refresh();}
+  function switchTab(value){clearTimeout(timer);tab=value;dialog.dataset.detail='false';el('system-list').parentElement.hidden=!['moon','craft'].includes(value);el('system-list').value='';el('catalog-query').value='';el('catalog-query').placeholder=hints[value];el('catalog-count').textContent=summary();el('catalog-filter').replaceChildren(...filterSets[value].map(([key,name])=>new Option(name,key)));for(const b of el('catalog-tabs').children)b.setAttribute('aria-pressed',String(b.dataset.tab===value));return refresh();}
   function overview(){return {center:'sun',name:'태양',centerRadius:.00465,lines:D.majors.slice(1).map(p=>({points:GravityLab.initialEllipse(p.index),color:'#58777e'})),caption:'태양 중심 · 실제 궤도 거리 비율',note:'행성의 현재 실험 시각은 전체 지도에서 볼 수 있습니다.',source:'https://ssd.jpl.nasa.gov/planets/phys_par.html',facts:[],pin:{host:'sun'}};}
   function orbitModel(o,center,epoch=baseJD()){
     const primary=major(center),centerRadius=primary?centers[primary.index]:center==='moon'?1737.4:center==='sun'?.00465:0;
@@ -94,14 +94,36 @@ globalThis.createOrbitCatalog = function(options) {
   async function choose(item,openDetail){const ticket=++selection;chart.stop();el('catalog-show').hidden=true;if(openDetail)dialog.dataset.detail='true';let obj;
     try{obj=await D.resolve(item);if(ticket!==selection)return;const m=modelFor(obj);chosen=obj;selectedModel=m;const isDwarf=obj.dwarf||Object.values(features?.dwarfs||{}).some(r=>r[0]===obj.row?.[0]);el('catalog-kind').textContent=isDwarf?'왜행성':typeText(obj);el('catalog-name').textContent=obj.name;el('catalog-sub').textContent=obj.sub;el('catalog-source').hidden=!m.source;el('catalog-source').href=m.source;el('catalog-note').textContent=m.note||'';el('catalog-facts').replaceChildren(...m.facts.flatMap(([key,v])=>{const k=document.createElement('dt'),d=document.createElement('dd');k.textContent=key;d.textContent=v;return[k,d];}));
       const img=el('catalog-portrait'),portrait=portraits[(obj.kind==='craft'?String(obj.row[0]):D.simplify(obj.raw?.name||obj.id||obj.key))];img.hidden=el('catalog-photo-link').hidden=!portrait;if(portrait){img.src=LabMedia.file('assets/catalog/portraits/'+portrait.file);img.alt=obj.name+' 관측 사진';img.title=portrait.attribution||portrait.credit||'';el('catalog-photo-link').href=portrait.sourceUrl||portrait.source||portrait.url;el('catalog-photo-label').textContent=portrait.imageType==='unresolved'?'점광원 관측 ↗':portrait.imageType==='ground'?'발사 전 사진 ↗':'관측 사진 ↗';}
-      chart.set(m);el('catalog-show').hidden=!m.pin;el('catalog-show').textContent=m.pin?.parentOnly?'전체 지도에서 중심 천체 보기':'전체 지도에 표시';for(const b of el('catalog-list').children)b.setAttribute('aria-pressed',String(b.dataset.key===item.key));
+      chart.set(m);const family=el('catalog-family');family.hidden=obj.kind!=='moon';family.setAttribute('aria-pressed','false');family.textContent='전체 위성계의 거리 보기';el('catalog-show').hidden=!m.pin;el('catalog-show').textContent=m.pin?.parentOnly?'전체 지도에서 중심 천체 보기':'전체 지도에 표시';for(const b of el('catalog-list').children)b.setAttribute('aria-pressed',String(b.dataset.key===item.key));
     }catch(err){if(ticket===selection){el('catalog-note').textContent='자료를 불러오지 못했습니다. 천체 이름을 다시 선택하세요.';el('catalog-name').textContent=item.name;}}}
   async function showOnMap(){if(!selectedModel?.pin||!chosen)return;const ticket=selection,obj=chosen,m={...selectedModel.pin,label:obj.name};try{if(m.host&&!major(m.host)&&m.host!=='moon'&&m.hostInfo){const row=await D.hostRow(m.hostInfo);if(row)m.orbit=O.small(row);else{el('catalog-note').textContent='중심 천체의 태양 기준 위치가 공개 자료에 없습니다.';return;}}if(ticket!==selection)return;
       marker=m;el('catalog-pin').hidden=false;el('catalog-pin').textContent=obj.name+(m.parentOnly?' · 중심 천체':'')+' ×';dialog.close();pin();invalidate();
     }catch{if(ticket===selection)el('catalog-note').textContent='지도 위치를 읽지 못했습니다. 다시 시도해 주세요.';}}
+  el('catalog-family').onclick=()=>{
+    if(chosen?.kind!=='moon')return;const button=el('catalog-family'),active=button.getAttribute('aria-pressed')!=='true';button.setAttribute('aria-pressed',String(active));button.textContent=active?'선택한 위성의 궤도 보기':'전체 위성계의 거리 보기';
+    if(!active){chart.set(selectedModel);return;}
+    const host=chosen.host,all=moonData.moons.filter(r=>r.host===host.key&&r.confirmed),withDistance=all.map(r=>[r,(supplement[r.id]?.orbit||r.orbit)?.aKm]).filter(([,a])=>a>0),logBase=Math.max(1,Math.min(...withDistance.map(pair=>pair[1]))*.35);
+    const lines=withDistance.map(([r,a])=>({points:circle(Math.log1p(a/logBase)),color:r.id===chosen.key?'#f0c98c':'rgba(139,188,198,.30)',width:r.id===chosen.key?1.6:.7}));chart.set({center:major(host.key)?host.key:null,lines,caption:'궤도 거리 비교 · 로그 간격 · '+withDistance.length+' / 확인 '+all.length+'개'});
+  };
+  async function openGroup(key){
+    const group=LabFullLayer.group(key);if(!group)return;
+    if(!dialog.open)dialog.showModal();
+    if(!['moon','craft'].includes(tab)||!iterator)await switchTab(group.totals.artificialPlotted>group.totals.naturalPlotted?'craft':'moon');
+    if(!dialog.open)return;clearDetail();dialog.dataset.detail='true';el('system-list').value=key;
+    const t=group.totals,natural=t.confirmed+t.candidates,artificial=t.payload+t.debris+t.rocket+t.unknown;
+    el('catalog-kind').textContent='위성계 분포';el('catalog-name').textContent=LabFullLayer.name(key)+' 주변';el('catalog-sub').textContent='2026. 11. 16. 00:00 UTC · 중심 천체 기준';
+    const core=major(key)?.index,r=core!=null?centers[core]:500,colors={moon:'#e7d4a2',candidate:'#cdbb99',payload:'#a5cce488',rocket:'#b99e8a77',debris:'#939ba866',unknown:'#9197aa77'};
+    const dots=group.points.map(([kind,id,x,y,z])=>{const len=Math.hypot(x,y,z),k=len?Math.log1p(len/r)/len:0;return [x*k,y*k,z*k,colors[kind]];});
+    chart.set({center:core!=null?key:null,centerRadius:Math.log(2),dots,caption:'거리 로그 눈금 · 금색 자연위성 · 청색 탑재체 · 회색 잔해'});
+    el('catalog-facts').replaceChildren(...[['자연위성·후보',fmt(t.naturalPlotted)+' / '+fmt(natural)+'개 위치'],['궤도상 인공 물체',fmt(t.artificialPlotted)+' / '+fmt(artificial)+'개 위치'],['자료 기준 시각','2026. 11. 16.'],['종료된 인공 물체 기록',fmt(t.retired)+'건']].flatMap(([a,b])=>{const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=a;dd.textContent=b;return [dt,dd];}));
+    el('catalog-note').textContent='관측과 공개 궤도 요소에서 계산한 위치입니다. 위치 자료가 없는 천체도 목록 수에 포함합니다.';
+    el('catalog-source').hidden=false;el('catalog-source').href=t.artificialPlotted?'https://celestrak.org/NORAD/elements/':'https://ssd.jpl.nasa.gov/horizons/';
+  }
+  el('system-list').onchange=e=>{if(e.target.value)openGroup(e.target.value);};
+  el('host-moons').onclick=async()=>{const host=LabInitial.bodies[Number(el('map-target').value)]?.id;if(!host)return;dialog.showModal();await switchTab('moon');el('catalog-filter').value=host;refresh();};
   el('catalog-show').onclick=showOnMap;el('catalog-pin').onclick=()=>{marker=null;el('catalog-pin').hidden=true;invalidate();};
   el('catalog-open').onclick=()=>{dialog.showModal();dialog.dataset.detail='false';switchTab(tab);};el('catalog-back').onclick=()=>{dialog.dataset.detail='false';chart.stop();};el('catalog-close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{generation++;selection++;chart.stop();});dialog.addEventListener('click',e=>{if(e.target===dialog){const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)dialog.close();}});
   const imageIndex=D.load('portraits/index.json').then(v=>{portraits=v.portraits||v;});imageIndex.catch(()=>{});D.load('moon-supplement.json').then(v=>{supplement=v.records||{};for(const raw of Object.values(supplement)){const ref=v.sources?.[raw.source];if(ref)raw.refUrl=ref.url||ref.sourceUrl;}}).catch(()=>{});
-  for(const b of el('catalog-tabs').children)b.onclick=()=>switchTab(b.dataset.tab);let timer=0;el('catalog-query').oninput=()=>{generation++;clearTimeout(timer);timer=setTimeout(refresh,160);};el('catalog-filter').onchange=refresh;
-  return {get open(){return dialog.open;},get marker(){return marker;},beltAt(d){if(!features)return [];const bin=Math.floor(d);if(beltDay!==bin){beltDay=bin;beltCache=features.belt.filter((_,j)=>j%5===0).map(row=>O.position(O.small(row),LabInitial.jd+bin)).filter(Boolean);}return beltCache;},regionRows(key){return (key==='trojans'?features?.trojans:key==='kuiper'?features?.transNeptunian:features?.belt)||[];}};
+  for(const b of el('catalog-tabs').children)b.onclick=()=>switchTab(b.dataset.tab);let timer=0;el('catalog-query').oninput=()=>{generation++;selection++;chart.stop();el('catalog-list').replaceChildren();el('catalog-more').hidden=true;el('catalog-status').textContent='검색 중…';clearTimeout(timer);timer=setTimeout(refresh,90);};el('catalog-filter').onchange=refresh;
+  return {openGroup,get open(){return dialog.open;},get marker(){return marker;},beltAt(d){if(!features)return [];const bin=Math.floor(d);if(beltDay!==bin){beltDay=bin;beltCache=features.belt.filter((_,j)=>j%5===0).map(row=>O.position(O.small(row),LabInitial.jd+bin)).filter(Boolean);}return beltCache;},regionRows(key){return (key==='trojans'?features?.trojans:key==='kuiper'?features?.transNeptunian:features?.belt)||[];}};
 };

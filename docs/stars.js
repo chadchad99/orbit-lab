@@ -1,11 +1,13 @@
+"use strict";
 // Project the ESO full-sky mosaic along the same J2000 sight lines as the orbit camera.
-globalThis.createMapSky = function createMapSky(canvas, invalidate) {
-  "use strict";
+globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=true) {
+
   const context = canvas.getContext("2d", {alpha: false});
   const buffer = document.createElement("canvas");
   const panorama = new Image();
   const gl = buffer.getContext("webgl", {alpha:false, depth:false, antialias:false});
   let program, uniforms, texture, pixels, started = false, loaded = false, lastKey = "";
+  const celestial=withCatalog?CosmicSky.setupBackdrop(()=>{lastKey="";invalidate();}):null;
   const vertex = "attribute vec2 corner; varying vec2 screen; void main(){ screen=corner; gl_Position=vec4(corner,0.,1.); }";
   const fragment = `precision highp float;
     varying vec2 screen; uniform sampler2D stars; uniform mat3 galactic;
@@ -78,7 +80,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate) {
   }
   return function paint(width,height,ratio,views){
     if(!started) load();
-    const key=[width,height,ratio,...views.flatMap(({pane,camera,exposure})=>[pane.x,pane.y,camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
+    const key=[width,height,ratio,...views.flatMap(({pane,camera,exposure,showSurvey})=>[pane.x,pane.y,showSurvey?1:0,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
     if(key===lastKey) return;
     lastKey=key;
     const cw=Math.round(width*ratio),ch=Math.round(height*ratio);
@@ -86,7 +88,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate) {
     context.setTransform(ratio,0,0,ratio,0,0);
     context.fillStyle="#020305";context.fillRect(0,0,width,height);
     if(!loaded) return;
-    for(const {pane,camera,exposure} of views){
+    for(const {pane,camera,exposure,showSurvey} of views){
       const m=[camera.right,camera.up,camera.front].flatMap(OrbitFrames.galactic);
       const focal=camera.skyFocal??camera.focal;
       const aperture=[pane.w/(2*focal),pane.h/(2*focal)];
@@ -100,6 +102,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate) {
         gl.drawArrays(gl.TRIANGLES,0,3);image=buffer;
       }else image=software(pane.w,pane.h,m,aperture,offset,exposure);
       context.drawImage(image,pane.x,pane.y,pane.w,pane.h);
+      if(celestial)celestial(context,pane,camera,showSurvey);
     }
   };
 };

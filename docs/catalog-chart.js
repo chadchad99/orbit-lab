@@ -12,7 +12,8 @@ globalThis.createCatalogChart = function() {
     if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
     const m=model, lines=m.lines||[], paths=lines.map(line=>({...line,pts:line.points.filter(p=>p&&p.every(Number.isFinite)).map(project)}));
     const point=m.point?.(phase), marker=point&&point.every(Number.isFinite)?project(point):null;
-    const raw=paths.flatMap(path=>path.pts);if(marker)raw.push(marker);
+    const dots=(m.dots||[]).map(v=>[...project(v),v[3]]);
+    const raw=paths.flatMap(path=>path.pts).concat(dots);if(marker)raw.push(marker);
     const margin=17,bounds=[0,0,0,0],hostRadius=m.centerRadius||0;
     for(const v of raw){bounds[0]=Math.min(bounds[0],v[0]);bounds[1]=Math.max(bounds[1],v[0]);bounds[2]=Math.min(bounds[2],v[1]);bounds[3]=Math.max(bounds[3],v[1]);}
     if(hostRadius){bounds[0]=Math.min(-hostRadius,bounds[0]);bounds[1]=Math.max(hostRadius,bounds[1]);bounds[2]=Math.min(-hostRadius,bounds[2]);bounds[3]=Math.max(hostRadius,bounds[3]);}
@@ -32,7 +33,7 @@ globalThis.createCatalogChart = function() {
     if(photo){const factor=m.center==='saturn'?1.95:1;ctx.drawImage(photo,cx-radius*factor,cy-radius*factor,2*radius*factor,2*radius*factor);}
     else{ctx.fillStyle=m.center==='sun'?'#fff1c8':'#6e858c';ctx.beginPath();ctx.arc(cx,cy,raw.length?radius:9,0,tau);ctx.fill();}
     pathsAt(true);
-    if(m.dots){ctx.fillStyle='#ccd8d7a6';for(const p of m.dots){const q=project(p);ctx.fillRect(cx+q[0]*scale,cy+q[1]*scale,1.2,1.2);}}
+    for(const q of dots){ctx.fillStyle=q[3]||'#ccd8d7a6';ctx.fillRect(cx+q[0]*scale,cy+q[1]*scale,1.2,1.2);}
     if(marker){const x=cx+marker[0]*scale,y=cy+marker[1]*scale,behind=marker[2]<0&&Math.hypot(x-cx,y-cy)<radius;
       ctx.strokeStyle='#ffe0aa';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,behind?4:5.2,0,tau);ctx.stroke();if(!behind){ctx.fillStyle='#fff3d1';ctx.beginPath();ctx.arc(x,y,2,0,tau);ctx.fill();}}
     if(m.point){const days=phase*(m.duration||0),minutes=days*1440;el('catalog-clock').value=days>=1?'+'+days.toLocaleString('ko-KR',{maximumFractionDigits:1})+'일':'+'+Math.round(minutes).toLocaleString('ko-KR')+'분';}
