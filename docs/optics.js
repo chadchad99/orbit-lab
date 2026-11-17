@@ -6,7 +6,9 @@ const fragment = `precision highp float;
 uniform vec2 size, focus;
 uniform float ringProfile, tanHalfFov, isolated, polarRatio, longitudeShift;
 uniform float dist, tilt, body, air, flux, flux2, sunSize, starSize, skyPower, cloudsDrift;
-uniform vec3 sun, star, airColor;
+uniform vec3 sun, star, airColor, sunTint, secondTint;
+uniform vec4 surfaceParams;
+uniform float emissive;
 uniform vec4 ringSin,ringCos;
 uniform mat3 viewToBody, viewToGal;
 uniform sampler2D surfaceMap, nightMap, cloudMap, oceanMap, skyMap, ringMap;
@@ -55,14 +57,38 @@ void main(){
     vec3 point=o+ray*t;
     vec3 n=normalize(point+(1./(polarRatio*polarRatio)-1.)*dot(point,pole)*pole);
     vec3 g=normalize(viewToBody*n),eye=-ray;
-    vec2 uv=sphereUV(g);uv.x=fract(uv.x+longitudeShift);
+    vec2 uv=sphereUV(g);uv.x=fract(uv.x+longitudeShift+surfaceParams.w*sin(g.y*19.));
     vec3 albedo=texture2D(surfaceMap,uv).rgb;
-    vec3 reflectance=pow(albedo,vec3(2.15));
-    float lit1=irradiance(n,sun,flux,saturn?ringShadow(point,sun,pole):1.);
-    float lit2=irradiance(n,star,flux2,saturn?ringShadow(point,star,pole):1.);
     float nv=max(dot(n,eye),0.);
-    vec3 incoming=vec3(1.,.973,.94)*lit1+vec3(1.,.82,.65)*lit2;
+    if(emissive>.5){
+      float power=pow(albedo.r,1.85)*1.22*(.50+.50*sqrt(nv));
+      gl_FragColor=vec4(clamp(sunTint*vec3(1.,.84+.16*nv,.74+.26*nv)*power,0.,1.),1.);return;
+    }
+    vec3 ns=n;float gloss=0.;
+    if(surfaceParams.x>0.){
+      vec3 material=texture2D(oceanMap,uv).rgb;
+      vec3 east=cross(pole,n);east/=max(.001,length(east));
+      ns=normalize(n+surfaceParams.x*((material.r-.502)*east+(material.g-.502)*cross(n,east)));
+      gloss=material.b*surfaceParams.y;
+    }
+    vec3 reflectance=pow(albedo,vec3(2.15));
+    float lit1=irradiance(ns,sun,flux,saturn?ringShadow(point,sun,pole):1.);
+    float lit2=irradiance(ns,star,flux2,saturn?ringShadow(point,star,pole):1.);
+    vec3 incoming=sunTint*lit1+secondTint*lit2;
     vec3 radiance=reflectance*(incoming+.00018);
+    if(gloss>0.){
+      vec3 h1=normalize(sun+eye),h2=normalize(star+eye);
+      float sparkle1=flux*pow(max(0.,dot(ns,h1)),95.)*smoothstep(0.,.12,dot(n,sun));
+      float sparkle2=flux2*pow(max(0.,dot(ns,h2)),95.)*smoothstep(0.,.12,dot(n,star));
+      radiance+=gloss*(.09+.76*pow(1.-nv,4.))*(sparkle1*sunTint+sparkle2*secondTint);
+    }
+    if(surfaceParams.z>0.){
+      vec2 cuv=vec2(fract(uv.x+cloudsDrift),uv.y);
+      float cover=texture2D(cloudMap,cuv).r*surfaceParams.z;
+      vec2 shift=vec2((viewToBody*sun).x,-(viewToBody*sun).y)*.003;
+      float shadow=texture2D(cloudMap,vec2(fract(cuv.x+shift.x),clamp(cuv.y+shift.y,0.,1.))).r;
+      radiance=mix(radiance*(1.-.24*shadow),vec3(.91,.95,1.)*incoming,cover);
+    }
     float twilight=flux*smoothstep(-.19,.32,dot(n,sun))+flux2*smoothstep(-.19,.32,dot(n,star));
     if(earth){
       float water=texture2D(oceanMap,uv).r;
@@ -116,7 +142,7 @@ function make(canvas,{cutout=false}={}){
   const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const a=gl.getAttribLocation(pg,"point");gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   const aniso=gl.getExtension("EXT_texture_filter_anisotropic")||gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
   const names=["surfaceMap","nightMap","cloudMap","oceanMap","skyMap","ringMap"], textures=new Map(), u={};
-  for(const n of "ringSin ringCos ringProfile tanHalfFov isolated polarRatio longitudeShift size focus dist tilt body air flux flux2 sunSize starSize skyPower cloudsDrift sun star airColor viewToBody viewToGal".split(" "))u[n]=gl.getUniformLocation(pg,n);
+  for(const n of "sunTint secondTint surfaceParams emissive ringSin ringCos ringProfile tanHalfFov isolated polarRatio longitudeShift size focus dist tilt body air flux flux2 sunSize starSize skyPower cloudsDrift sun star airColor viewToBody viewToGal".split(" "))u[n]=gl.getUniformLocation(pg,n);
   const maxSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   function upload(key,image){
     const old=textures.get(key);
@@ -150,8 +176,10 @@ function make(canvas,{cutout=false}={}){
     gl.uniform1f(u.ringProfile,s.ringProfile??0);gl.uniform1f(u.tanHalfFov,s.tanHalfFov??.54);gl.uniform1f(u.isolated,cutout?1:0);
     gl.uniform1f(u.polarRatio,s.polarRatio??1);gl.uniform1f(u.longitudeShift,s.longitudeShift??0);
     if(s.body===6){const phase=s.ringPhase??SaturnRings.frame(0);gl.uniform4fv(u.ringSin,phase.s);gl.uniform4fv(u.ringCos,phase.c);}
+    gl.uniform3fv(u.sunTint,s.sunTint??[1,.973,.94]);gl.uniform3fv(u.secondTint,s.secondTint??[1,.82,.65]);
+    gl.uniform4fv(u.surfaceParams,s.surfaceParams??[0,0,0,0]);gl.uniform1f(u.emissive,s.emissive?1:0);
     const earth=s.body===3;
-    const keys=[s.id,earth?"earth-night":null,earth?"earth-clouds":null,earth?"earth-ocean":null,cutout?null:"sky",s.body===6?"ring":null];
+    const keys=[s.id,earth?"earth-night":null,earth?"earth-clouds":s.cloudKey,earth?"earth-ocean":s.materialKey,cutout?null:"sky",s.body===6?"ring":null];
     for(const [key,v] of textures)if(key!=="empty"&&!keys.includes(key)){gl.deleteTexture(v.texture);textures.delete(key);}
     keys.forEach((key,i)=>{gl.activeTexture(gl.TEXTURE0+i);const im=key&&assets.get(key);gl.bindTexture(gl.TEXTURE_2D,im?upload(key,im):dummy);});
     gl.drawArrays(gl.TRIANGLES,0,3);

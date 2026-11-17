@@ -9,9 +9,10 @@ let img;
 return (s,assets)=>{
 const w=canvas.width,h=canvas.height;if(!img||img.width!==w||img.height!==h)img=ctx.createImageData(w,h);
 for(const key of maps.keys())if(!assets.has(key))maps.delete(key);
-const a=img.data,base=map(s.id,assets),sky=map("sky",assets),cloud=map("earth-clouds",assets),ocean=map("earth-ocean",assets),night=map("earth-night",assets),ring=map("ring",assets);
+const a=img.data,base=map(s.id,assets),sky=map("sky",assets),cloud=map(s.cloudKey??"earth-clouds",assets),ocean=map(s.materialKey??"earth-ocean",assets),night=map("earth-night",assets),ring=map("ring",assets);
 const b=s.viewToBody,g=s.viewToGal,S=s.sun,T=s.star,E=s.body===3,R=s.body===6,d=s.dist,sy=h*(1-s.focus[1]),sx=w*s.focus[0],fac=2*(s.tanHalfFov??.54)/h,ct=Math.cos(s.tilt),st=Math.sin(s.tilt),sg=Array.from({length:256},(_,i)=>255*Math.max(0,(i/255)**1.16*s.skyPower-.003));
 const flatten=1/(s.polarRatio??1)-1,normalFlatten=flatten*(flatten+2),ox=flatten*d*b[7]*b[1],oy=flatten*d*b[7]*b[4],oz=d*(1+flatten*b[7]*b[7]);
+const surf=s.surfaceParams??[0,0,0,0],white=s.sunTint??[1,.973,.94],other=s.secondTint??[1,.82,.65];
 const phase=R?(s.ringPhase??SaturnRings.frame(0)):null;
 function ringShadow(px,py,pz,l){
  const pd=l[0]*b[1]+l[1]*b[4]+l[2]*b[7];
@@ -44,11 +45,34 @@ for(let y=0,pix=0;y<h;y++){const qy=(sy-y-.5)*fac;for(let x=0;x<w;x++,pix+=4){
  let nx=px+shift*b[1],ny=py+shift*b[4],nz=pz+shift*b[7];
  if(flatten){const len=Math.hypot(nx,ny,nz);nx/=len;ny/=len;nz/=len;}
  const gx=b[0]*nx+b[3]*ny+b[6]*nz,gy=b[1]*nx+b[4]*ny+b[7]*nz,gz=b[2]*nx+b[5]*ny+b[8]*nz;
- const u=.5+Math.atan2(gx,gz)/tau+(s.longitudeShift??0),v=Math.acos(Math.max(-1,Math.min(1,gy)))/Math.PI,i=idx(base,u,v),nv=Math.max(0,-rx*nx-ry*ny-rz*nz);
- const ds=nx*S[0]+ny*S[1]+nz*S[2],dt=nx*T[0]+ny*T[1]+nz*T[2];
+ const u=.5+Math.atan2(gx,gz)/tau+(s.longitudeShift??0)+(surf[3]?surf[3]*Math.sin(gy*19):0),v=Math.acos(Math.max(-1,Math.min(1,gy)))/Math.PI,i=idx(base,u,v),nv=Math.max(0,-rx*nx-ry*ny-rz*nz);
+ if(s.emissive){
+   const power=255*(base.d[i]/255)**1.85*1.22*(.50+.50*Math.sqrt(nv));
+   a[pix]=power*white[0];a[pix+1]=power*white[1]*(.84+.16*nv);a[pix+2]=power*white[2]*(.74+.26*nv);a[pix+3]=255;continue;
+ }
+ let mx=nx,my=ny,mz=nz,gloss=0;
+ if(surf[0]>0){
+   const mi=idx(ocean,u,v),eastX=b[4]*nz-b[7]*ny,eastY=b[7]*nx-b[1]*nz,eastZ=b[1]*ny-b[4]*nx;
+   const scale=surf[0]/Math.max(.001,Math.hypot(eastX,eastY,eastZ)),du=(ocean.d[mi]/255-.502)*scale,dv=(ocean.d[mi+1]/255-.502)*scale;
+   mx+=du*eastX+dv*(ny*eastZ-nz*eastY);my+=du*eastY+dv*(nz*eastX-nx*eastZ);mz+=du*eastZ+dv*(nx*eastY-ny*eastX);
+   const len=Math.hypot(mx,my,mz);mx/=len;my/=len;mz/=len;gloss=ocean.d[mi+2]/255*surf[1];
+ }
+ const ds=mx*S[0]+my*S[1]+mz*S[2],dt=mx*T[0]+my*T[1]+mz*T[2];
  const shade=R&&s.flux?ringShadow(px,py,pz,S):1,shade2=R&&s.flux2?ringShadow(px,py,pz,T):1;
  const f1=s.flux*(Math.max(ds,0)*shade+.009*sm(-.12,.48,ds)),f2=s.flux2*(Math.max(dt,0)*shade2+.009*sm(-.12,.48,dt));
- let cr=lin[base.d[i]]*(f1+f2+.00018),cg=lin[base.d[i+1]]*(f1*.973+.82*f2+.00018),cb=lin[base.d[i+2]]*(f1*.94+f2*.65+.00018);
+ const ir=f1*white[0]+f2*other[0],ig=f1*white[1]+f2*other[1],ib=f1*white[2]+f2*other[2];
+ let cr=lin[base.d[i]]*(ir+.00018),cg=lin[base.d[i+1]]*(ig+.00018),cb=lin[base.d[i+2]]*(ib+.00018);
+ if(gloss){
+   const glint=(l,flux,nd)=>flux*Math.max(0,(mx*(l[0]-rx)+my*(l[1]-ry)+mz*(l[2]-rz))/(Math.hypot(l[0]-rx,l[1]-ry,l[2]-rz)||1))**95*sm(0,.12,nd);
+   const f=gloss*(.09+.76*(1-nv)**4),a1=glint(S,s.flux,ds)*f,a2=s.flux2?glint(T,s.flux2,dt)*f:0;
+   cr+=white[0]*a1+other[0]*a2;cg+=white[1]*a1+other[1]*a2;cb+=white[2]*a1+other[2]*a2;
+ }
+ if(surf[2]>0){
+   const cu=u+s.cloudsDrift,cover=cloud.d[idx(cloud,cu,v)]/255*surf[2];
+   const du=(b[0]*S[0]+b[3]*S[1]+b[6]*S[2])*.003,dv=-(b[1]*S[0]+b[4]*S[1]+b[7]*S[2])*.003;
+   const through=(1-.24*cloud.d[idx(cloud,cu+du,v+dv)]/255)*(1-cover);
+   cr=cr*through+.91*ir*cover;cg=cg*through+.95*ig*cover;cb=cb*through+ib*cover;
+ }
  if(E){const c=sm(.022,.95,cloud.d[idx(cloud,u+s.cloudsDrift,v)]/255)*.96,light=f1+f2+.00012;
  const hs=Math.hypot(S[0]-rx,S[1]-ry,S[2]-rz)||1,hn=Math.max(0,(ds+nv)/hs),spec=(ocean.d[idx(ocean,u,v)]/255)*s.flux*(ds>0?Math.pow(hn,145):0)*(.035+.63*(1-nv)**4);
  cr=(cr*(1-.27*c)+spec*1.35)*(1-c)+c*.92*light;cg=(cg*(1-.27*c)+spec*1.23)*(1-c)+c*.96*light;cb=(cb*(1-.27*c)+spec*.99)*(1-c)+c*light;

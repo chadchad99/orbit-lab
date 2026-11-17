@@ -251,3 +251,5 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
  .exo-bar{flex-direction:row;align-items:center;bottom:8px}.exo-bar .map-light{padding:4px 7px;font-size:10px}
  .exo-info{bottom:40px}.exo-info[open]{max-height:57vh;overflow:auto}
 }
+
+#exo-surface{flex-basis:100%;color:#b7c9cb;font-size:11px;text-shadow:0 1px 5px #000}#exo-surface:empty{display:none}
