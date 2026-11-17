@@ -10,7 +10,7 @@ globalThis.createOrbitCatalog = function(options) {
   const ringText={jupiter:'주고리 122,400–129,100 km · 옅은 테베 고리는 약 270,000 km까지',saturn:'C 74,491–91,975 km · B 91,975–117,570 km · A 122,050–136,770 km · F 약 140,200 km',uranus:'6번 고리 41,838 km · 엡실론 51,149 km · 뮤 약 97,700 km',neptune:'갈레 42,000 km · 르베리에 53,200 km · 라셀 55,200 km · 아라고 57,200 km · 애덤스 62,933 km'};
   const topMoons=['moon','phobos','deimos','io','europa','ganymede','callisto','titan','enceladus','titania','triton','charon'];
   const deepFallback={};
-  let tab='system',generation=0,selection=0,iterator=null,pendingPage=false,items=[],chosen=null,selectedModel=null,moonData,hosts,spacecraft,spaceMeta,features,manifest,deep={},portraits={},supplement={},marker=null,beltCache=[],beltDay=null;
+  let tab='system',generation=0,selection=0,iterator=null,pendingPage=false,items=[],chosen=null,selectedModel=null,moonData,hosts,spacecraft,spaceMeta,features,manifest,deep={},portraits={},supplement={},marker=null;
   const baseJD=()=>LabInitial.jd+day();
   const natural=D.load('moons.json').then(v=>{moonData=v;hosts=new Map(v.hosts.map(h=>[h.key,h]));return v;});natural.catch(()=>{});
   const sample=D.load('small/featured.json').then(v=>{features=v;invalidate();return v;});sample.catch(()=>{});
@@ -125,5 +125,38 @@ globalThis.createOrbitCatalog = function(options) {
   el('catalog-open').onclick=()=>{dialog.showModal();dialog.dataset.detail='false';switchTab(tab);};el('catalog-back').onclick=()=>{dialog.dataset.detail='false';chart.stop();};el('catalog-close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{generation++;selection++;chart.stop();});dialog.addEventListener('click',e=>{if(e.target===dialog){const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)dialog.close();}});
   const imageIndex=D.load('portraits/index.json').then(v=>{portraits=v.portraits||v;});imageIndex.catch(()=>{});D.load('moon-supplement.json').then(v=>{supplement=v.records||{};for(const raw of Object.values(supplement)){const ref=v.sources?.[raw.source];if(ref)raw.refUrl=ref.url||ref.sourceUrl;}}).catch(()=>{});
   for(const b of el('catalog-tabs').children)b.onclick=()=>switchTab(b.dataset.tab);let timer=0;el('catalog-query').oninput=()=>{generation++;selection++;chart.stop();el('catalog-list').replaceChildren();el('catalog-more').hidden=true;el('catalog-status').textContent='검색 중…';clearTimeout(timer);timer=setTimeout(refresh,90);};el('catalog-filter').onchange=refresh;
-  return {openGroup,get open(){return dialog.open;},get marker(){return marker;},beltAt(d){if(!features)return [];const bin=Math.floor(d);if(beltDay!==bin){beltDay=bin;beltCache=features.belt.filter((_,j)=>j%5===0).map(row=>O.position(O.small(row),LabInitial.jd+bin)).filter(Boolean);}return beltCache;},regionRows(key){return (key==='trojans'?features?.trojans:key==='kuiper'?features?.transNeptunian:features?.belt)||[];}};
+  const clouds=new Map();
+  function smallBodies(key,day){
+    if(!features)return [];
+    let cloud=clouds.get(key);
+    if(!cloud){
+      const named=key==='named',ids=named?['ceres','vesta','pallas']:[];
+      const rows=named?ids.map(id=>features.dwarfs[id]||features.objects[id]):features[{belt:'belt',trojans:'trojans',kuiper:'transNeptunian'}[key]];
+      if(!rows)return [];
+      const samples=rows.map((row,i)=>({orbit:O.small(row),id:ids[i],label:ids[i]&&D.ko[ids[i]],position:[0,0,0]}));
+      cloud={samples};clouds.set(key,cloud);
+    }
+    if(cloud.day===day)return cloud.samples;
+    // Interpolate the two bounding Kepler positions. This keeps accelerated
+    // playback continuous and avoids solving a thousand orbits every frame.
+    const start=Math.floor(day),phase=day-start;
+    if(cloud.start!==start){
+      for(const body of cloud.samples){
+        body.from=cloud.start===start-1?body.to:O.position(body.orbit,LabInitial.jd+start);
+        body.to=O.position(body.orbit,LabInitial.jd+start+1);
+      }
+      cloud.start=start;
+    }
+    for(const body of cloud.samples){
+      if(!body.from||!body.to)continue;
+      for(let i=0;i<3;i++)body.position[i]=body.from[i]+(body.to[i]-body.from[i])*phase;
+    }
+    cloud.day=day;return cloud.samples;
+  }
+  async function openSmall(id){
+    if(!dialog.open)dialog.showModal();
+    await switchTab('small');
+    if(dialog.open&&tab==='small')choose(D.smallItem(features.dwarfs[id]||features.objects[id],id),true);
+  }
+  return {openGroup,openSmall,smallBodies,get open(){return dialog.open;},get marker(){return marker;}};
 };

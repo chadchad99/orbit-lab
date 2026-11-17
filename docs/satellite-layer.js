@@ -24,9 +24,9 @@ globalThis.LabFullLayer=(()=>{
   }
   const orientation=c=>[...c.right,...c.up].map(v=>v.toFixed(3)).join('/');
   function remember(map,key,value,limit){if(map.size>=limit)map.delete(map.keys().next().value);map.set(key,value);return value;}
-  function galLocation(s,run,heliocentric){
+  function galLocation(s,run,heliocentric,origin){
     if(s.reference!=='galaxy')return heliocentric;
-    const sun=S.world(s,run,0,s.day),off=S.compressed(s)?S.radial(heliocentric):heliocentric;
+    const sun=origin??S.world(s,run,0,s.day),off=S.compressed(s)?S.radial(heliocentric):heliocentric;
     return [sun[0]+off[0],sun[1]+off[1],sun[2]+off[2]];
   }
   function density(ctx,p,c,s,run){

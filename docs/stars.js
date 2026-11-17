@@ -6,7 +6,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   const buffer = document.createElement("canvas");
   const panorama = new Image();
   const gl = buffer.getContext("webgl", {alpha:false, depth:false, antialias:false});
-  let program, uniforms, texture, pixels, started = false, loaded = false, lastKey = "";
+  let program, uniforms, texture, pixels, started = false, loaded = false, lastKey = "", annotations=[];
   const celestial=withCatalog?CosmicSky.setupBackdrop(()=>{lastKey="";invalidate();}):null;
   const vertex = "attribute vec2 corner; varying vec2 screen; void main(){ screen=corner; gl_Position=vec4(corner,0.,1.); }";
   const fragment = `precision highp float;
@@ -16,7 +16,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
       vec3 direction = normalize(galactic * vec3((screen-offset)*aperture,-1.));
       vec2 uv = vec2(fract(.5-atan(direction.y,direction.x)/6.28318530718),acos(clamp(direction.z,-1.,1.))/3.14159265359);
       vec3 photo=texture2D(stars,uv).rgb;
-      vec3 light=max(vec3(0.),pow(photo,vec3(1.22))*exposure-.002);
+      vec3 light=max(vec3(0.),(photo*(1.35-.40*photo)-.013)*exposure);
       gl_FragColor=vec4(light,1.);
     }`;
   function initialize(){
@@ -65,7 +65,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
     const scale=Math.min(1,830/width,560/height);
     cpu.width=Math.max(1,Math.round(width*scale));cpu.height=Math.max(1,Math.round(height*scale));
     const result=cpuCtx.createImageData(cpu.width,cpu.height),out=result.data,photo=pixels.data;
-    const tones=Array.from({length:256},(_,v)=>Math.max(0,(v/255)**1.22*exposure-.002)*255);
+    const tones=Array.from({length:256},(_,v)=>Math.max(0,(v/255*(1.35-.40*v/255)-.013)*exposure)*255);
     for(let y=0,k=0;y<cpu.height;y++){
       const sy=(1-2*(y+.5)/cpu.height-offset[1])*aperture[1];
       for(let x=0;x<cpu.width;x++,k+=4){
@@ -81,15 +81,15 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   return function paint(width,height,ratio,views){
     if(!started) load();
     const key=[width,height,ratio,...views.flatMap(({pane,camera,exposure,showSurvey})=>[pane.x,pane.y,showSurvey?1:0,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
-    if(key===lastKey) return;
-    lastKey=key;
+    if(key===lastKey) return annotations;
+    lastKey=key;annotations=[];
     const cw=Math.round(width*ratio),ch=Math.round(height*ratio);
     if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}
     context.setTransform(ratio,0,0,ratio,0,0);
     context.fillStyle="#020305";context.fillRect(0,0,width,height);
-    if(!loaded) return;
+    if(!loaded) return annotations;
     for(const {pane,camera,exposure,showSurvey} of views){
-      const m=[camera.right,camera.up,camera.front].flatMap(OrbitFrames.galactic);
+      const m=[camera.right,camera.up,camera.front].flatMap(OrbitFrames.panorama);
       const focal=camera.skyFocal??camera.focal;
       const aperture=[pane.w/(2*focal),pane.h/(2*focal)];
       const offset=[2*camera.principal[0]-1,1-2*camera.principal[1]];
@@ -102,7 +102,8 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
         gl.drawArrays(gl.TRIANGLES,0,3);image=buffer;
       }else image=software(pane.w,pane.h,m,aperture,offset,exposure);
       context.drawImage(image,pane.x,pane.y,pane.w,pane.h);
-      if(celestial)celestial(context,pane,camera,showSurvey);
+      if(celestial)annotations.push(celestial(context,pane,camera,showSurvey,exposure));
     }
+    return annotations;
   };
 };

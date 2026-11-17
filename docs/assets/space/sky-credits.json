@@ -38,7 +38,9 @@
         0.49714719171596
       ]
     ],
-    "matrix_convention": "Multiply rows by a column unit vector in J2000 ecliptic coordinates. The transformation accounts for mean obliquity and the standard equatorial-to-Galactic rotation; orientation of the original photo is approximate.",
+    "matrix_convention": "First transform a J2000 ecliptic direction to Galactic coordinates, then multiply by the fitted Galactic-to-photo rows before sampling the mosaic.",
+    "galactic_to_photo_rows": [[0.9980242,0.0554925,-0.0294673],[-0.0549656,0.9983187,0.0184006],[0.0304388,-0.0167445,0.9993964]],
+    "registration": "Cross-correlated 126-pixel patches of the 4096-pixel-wide mosaic with a magnitude-weighted Hipparcos sky, then robustly fit a rigid rotation to directions at the patch centres. Median final patch residual about 0.10 degree; this estimates the photographic orientation, not a per-pixel astrometric solution.",
     "equatorial_rotation_source": "https://gea.esac.esa.int/archive/documentation/GDR3/Data_processing/chap_cu3ast/sec_cu3ast_intro/ssec_cu3ast_intro_tansforms.html",
     "obliquity_arcsec": 84381.448,
     "obliquity_source": "https://ssd.jpl.nasa.gov/astro_par.html"

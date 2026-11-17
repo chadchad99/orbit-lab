@@ -16,7 +16,7 @@ globalThis.LabCatalog = (() => {
       const packed=document.getElementById('catalog-data-'+path)?.textContent;
       if(packed)return decode(Uint8Array.from(atob(packed),c=>c.charCodeAt(0)));
       const external=location.protocol==='file:' || (globalThis.LabCatalogRemoteShards && large(path));
-      const url=(external?publicRoot:'')+root+path;
+      const url=(external?publicRoot:'')+root+path+(path==='cosmos/galaxies.json'?'?v=ac53ab20a2':'');
       const response=await fetch(url);if(!response.ok)throw new Error('목록을 불러올 수 없습니다 ('+response.status+')');
       return decode(new Uint8Array(await response.arrayBuffer()));
     })();
