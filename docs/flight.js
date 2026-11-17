@@ -6,7 +6,7 @@ const D=Math.PI/180,TAU=2*Math.PI,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),
  cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
  comb=(a,b,c,d)=>a.map((v,i)=>v*c+b[i]*d),sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],
  mat=(m,v)=>[m[0]*v[0]+m[3]*v[1]+m[6]*v[2],m[1]*v[0]+m[4]*v[1]+m[7]*v[2],m[2]*v[0]+m[5]*v[1]+m[8]*v[2]];
-const {specs,frames,eclGal}=OrbitFrames;
+const {specs,frames,panorama}=OrbitFrames;
 const assets=new Map(),pending=new Map();let gpu,render,cpu=false,activeCanvas=canvas,needs=true,visible=false,failed=false;
 try{gpu=OrbitOptics.make(canvas)}catch(err){console.warn("Optical renderer:",err.message)}
 function useCPU(){cpu=true;canvas.hidden=true;cpuCanvas.hidden=false;activeCanvas=cpuCanvas;render=OrbitSoftware.make(cpuCanvas);cpuCanvas.parentElement.dataset.renderer="canvas";needs=true;}
@@ -44,7 +44,7 @@ function scene(s,w,h){
    const rr=[Math.cos(lon),0,-Math.sin(lon)],uu=cross(face,rr);roll=Math.atan2(-dot(l,rr),dot(l,uu))+.045;
  }
  const front=[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)],r0=[Math.cos(lon),0,-Math.sin(lon)],u0=cross(front,r0),right=comb(r0,u0,Math.cos(roll),Math.sin(roll)),up=comb(u0,r0,Math.cos(roll),-Math.sin(roll));
- const vb=[...right,...up,...front],worldCamera=[mat(f,right),mat(f,up),mat(f,front)],vg=worldCamera.flatMap(v=>eclGal.map(row=>dot(row,v)));
+ const vb=[...right,...up,...front],worldCamera=[mat(f,right),mat(f,up),mat(f,front)],vg=worldCamera.flatMap(panorama);
  const run=s.applied?s.test:s.base,p=GravityLab.read(run,index,s.day),sst=GravityLab.read(run,0,s.day),ls=sub(sst,p),r1=Math.max(.012,Math.hypot(...ls)),d0=Math.hypot(...LabInitial.bodies[index].p);
  const camLight=v=>{const n=norm(v);return worldCamera.map(axis=>dot(n,axis))};
  const starOn=s.applied&&s.kind==="binary",hasSun=!(s.applied&&(s.kind==="vanish"||s.kind==="black")),ls2=starOn?sub(GravityLab.read(run,GravityLab.COMPANION,s.day),p):[0,0,1],r2=Math.max(.012,Math.hypot(...ls2));

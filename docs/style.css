@@ -196,3 +196,5 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
   #galaxy-inset{top:56px;gap:0;padding:2px 5px 4px;font-size:9px}
   .galaxy-image{width:44px}
 }
+
+.cosmos-info img[data-band="radio"]{width:clamp(94px,15vw,175px);height:auto;aspect-ratio:1;flex:none}

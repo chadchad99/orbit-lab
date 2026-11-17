@@ -35,7 +35,12 @@
     mapRate.value=labRate.value=String(rate);
   }
   setPlaybackRate(runningRate);
-  const map=createLabMap(el("sky"),el("star-field"),i=>{if(typeof i==="string"){state.catalog.openGroup(i);return;}setScope(i===0?"sun":"near");selectPlanet(i);},zoom=>{
+  const map=createLabMap(el("sky"),el("star-field"),i=>{
+    if(i?.domain==="sky"){cosmos.openSky(i.id);return;}
+    if(i?.domain==="small"){state.catalog.openSmall(i.id);return;}
+    if(typeof i==="string"){state.catalog.openGroup(i);return;}
+    setScope(i===0?"sun":"near");selectPlanet(i);
+  },zoom=>{
     el("plus").disabled=zoom>=11.999;el("minus").disabled=zoom<=.45001;
   });
   const flight=createOrbitFlight(el("flight-gl"),el("flight-cpu"),cameraControls);
@@ -335,7 +340,7 @@
   document.fonts?.ready.then(mark);
   el("credits").innerHTML="<ul>"+LabMedia.credits.map(([name,credit,url])=>'<li>'+credit+' · <a href="'+url+'" target="_blank" rel="noreferrer">'+name+' 원본</a></li>').join("")+"</ul>";
 
-  createCosmosViewer();el("cosmos-view").addEventListener("close",()=>mark());
+  const cosmos=createCosmosViewer();el("cosmos-view").addEventListener("close",()=>mark());
   state.catalog=createOrbitCatalog({day:()=>state.day,invalidate:mark,pin:()=>{
     if(state.applied)state.split=true;
     state.mode="map";flight.setVisible(false);showView("wide");

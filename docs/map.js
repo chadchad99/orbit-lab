@@ -168,17 +168,17 @@
       const compact=p.w<550;
       const boxes=[{x:p.x,y:p.y,w:116,h:p.layer==="both"?39:65},{x:p.x,y:p.y+p.h-31,w:116,h:31},{x:p.x+p.w-247,y:p.y+p.h-45,w:247,h:45}];
       const bodiesInView=disks.filter(q=>q.inFront&&inPanel(p,q));
-      const blocked=bodiesInView.map(q=>{
+      const blocked=bodiesInView.filter(q=>!q.note).map(q=>{
         const halfHeight=q.index===0?q.reach:q.radius;
         return {x:q.x-q.reach-3,y:q.y-halfHeight-3,w:q.reach*2+6,h:halfHeight*2+6};
       });
-      const priority=q=>q.index===s.watch?100:q.index===hover?99:q.ghost?90:q.index===0?60:q.radius;
+      const priority=q=>q.note?(q.note==='small'?-1:-2):q.index===s.watch?100:q.index===hover?99:q.ghost?90:q.index===0?60:q.radius;
       const order=bodiesInView.toSorted?bodiesInView.toSorted((a,b)=>priority(b)-priority(a)):bodiesInView.slice().sort((a,b)=>priority(b)-priority(a));
       for(const q of order){
         if(q.index===c.closeBody)continue;
-        const selected=q.index===s.watch,shade=selected?"#e9e9e3":q.ghost?mint:"#b3bbbf",special=selected||q.index===hover||q.ghost;
-        if(!c.orthographic&&!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&(priority(o)>priority(q))&&Math.hypot(q.x-o.x,q.y-o.y)<(compact?33:37)))continue;
-        const name=q.label??names[q.index],size=compact?10:12;
+        const selected=q.index===s.watch,shade=q.note==='small'?'#c7bba4':q.note==='sky'?'#a1b5c8':selected?"#e9e9e3":q.ghost?mint:"#b3bbbf",special=selected||q.index===hover||q.ghost;
+        if((!c.orthographic||q.note)&&!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&priority(o)>priority(q)&&Math.hypot(q.x-o.x,q.y-o.y)<(q.note?o.reach+6:compact?33:37)))continue;
+        const name=q.label??names[q.index],size=q.note?(compact?9:10):compact?10:12;
         ctx.font=(selected?"600 ":"460 ")+size+"px "+font;ctx.textBaseline="middle";
         const width=ctx.measureText(name).width+5,height=size+5;
         const gap=q.reach+(special?12:5);
@@ -202,7 +202,9 @@
           ctx.moveTo(q.x+Math.cos(angle)*(q.radius+1.7),q.y+Math.sin(angle)*(q.radius+1.7));ctx.lineTo(tx,ty);ctx.stroke();
         }
         ctx.shadowColor="#010204";ctx.shadowBlur=3;ctx.fillStyle=shade;ctx.fillText(name,chosen.x+2,chosen.y+height*.5);ctx.shadowBlur=0;
-        boxes.push(chosen);if(q.index>0&&q.index<M.COMPANION)hits.push({index:q.index,panel:p,box:chosen});
+        boxes.push(chosen);
+        if(q.target)hits.push({index:q.target,panel:p,box:chosen});
+        else if(q.index>0&&q.index<M.COMPANION)hits.push({index:q.index,panel:p,box:chosen});
       }
     }
     function scaleBar(p,c){
@@ -215,11 +217,33 @@
     }
     function catalogPoints(p,c,s,testView){
       const catalog=s.catalog;
-      if(!catalog||s.scope!=="wide"||s.actualSize||s.applied&&testView)return;
-      const region=catalog.marker?.region;if(!region)return;
-      const points=region?catalog.regionRows(region).map(row=>CatalogOrbits.position(CatalogOrbits.small(row),LabInitial.jd+s.day)):catalog.beltAt(s.day);
-      ctx.fillStyle=region?"rgba(213,202,163,.70)":"rgba(191,170,132,.32)";
-      for(const point of points){if(!point)continue;const q=c.project(LabFullLayer.galLocation(s,c.run,point));if(q.inFront&&inPanel(p,q))ctx.fillRect(q.x,q.y,region?1.6:1.05,region?1.6:1.05);}
+      const notes=[];
+      if(!catalog||s.scope!=="wide"||s.actualSize||s.applied&&testView)return notes;
+      const region=catalog.marker?.region,origin=S.world(s,c.run,0,s.day),sun=c.project(origin);
+      const screen=v=>c.project(LabFullLayer.galLocation(s,c.run,v,origin));
+      const scale=Math.max(.58,Math.min(1.35,(c.overviewScale??1)*zoom**.28));
+      ctx.save();ctx.fillStyle=region?'#e7d7b7':'#d8cbb8';
+      for(const b of catalog.smallBodies(region||'belt',s.day)){
+        if(!b.from||!b.to)continue;
+        const v=b.position,q=screen(v);if(!q.inFront||!inPanel(p,q))continue;
+        const r=Math.hypot(...v),phase=(1-OrbitFrames.dot(v,c.front)/r)*.5;
+        const light=clamp(phase*(2.7/r)**2,.07,1);
+        const width=(region?1.55:1.02+.64*light)*scale;
+        ctx.globalAlpha=(region?.62:.22)+light*(region?.34:.50);
+        ctx.fillRect(q.x-width/2,q.y-width/2,width,width);
+      }
+      ctx.globalAlpha=1;
+      for(const b of catalog.smallBodies('named',s.day)){
+        if(!b.from||!b.to)continue;
+        const q=screen(b.position);if(!q.inFront||!inPanel(p,q,3))continue;
+        const radius=(b.id==='ceres'?3.4:2.6)*scale,angle=Math.atan2(sun.y-q.y,sun.x-q.x);
+        const dx=Math.cos(angle)*radius,dy=Math.sin(angle)*radius;
+        const shade=ctx.createLinearGradient(q.x+dx,q.y+dy,q.x-dx,q.y-dy);
+        shade.addColorStop(0,'#efe2c7');shade.addColorStop(.52,'#ad9d89');shade.addColorStop(.76,'#655e57');shade.addColorStop(1,'#25262b');
+        ctx.fillStyle=shade;ctx.beginPath();ctx.ellipse(q.x,q.y,radius,radius*(b.id==='ceres'?.94:.79),angle,0,tau);ctx.fill();
+        notes.push({...q,radius,reach:radius,index:-4,label:b.label,note:'small',target:{domain:'small',id:b.id}});
+      }
+      ctx.restore();return notes;
     }
     function catalogMark(p,c,s,run,testView){
       const chosen=s.catalog?.marker;if(!chosen||s.scope!=="wide"||chosen.region||s.applied&&testView)return;
@@ -236,12 +260,12 @@
       const width=ctx.measureText(label).width,tx=clamp(x+Math.min(radius,45)+8,p.x+4,p.x+p.w-width-5),ty=clamp(y-13,p.y+17,p.y+p.h-19);
       ctx.fillStyle="#0c1119e6";ctx.fillRect(tx-3,ty-8,width+6,16);ctx.fillStyle="#ffdc9f";ctx.fillText(label,tx,ty);ctx.restore();
     }
-    function drawPanel({pane:p,camera:c,run,testView},s){
+    function drawPanel({pane:p,camera:c,run,testView},s,skyNotes){
       ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();
       const world=(index)=>S.world(s,run,index,s.day);
       const populations=s.scope==="wide"&&!(s.applied&&testView);
       if(populations)LabFullLayer.density(ctx,p,c,s,run);
-      catalogPoints(p,c,s,testView);
+      const smallNotes=catalogPoints(p,c,s,testView);
       if(s.showPaths){
         if(s.scope==="lunar")curve(c,timePoints(s,run,M.MOON,s.day-27.32,s.day,144),"rgba(183,197,202,.52)",1.2);
         else if(s.reference==="galaxy")galacticTrails(p,c,s,run,testView);else solarTrails(p,c,s,run);
@@ -288,7 +312,8 @@
           list.push({...ref,index:-1,diam:6,reach:3,radius:3,label:"원래 "+names[s.watch],ghost:true});
         }
       }
-      labels(p,c,s,list);catalogMark(p,c,s,run,testView);if(!S.compressed(s))scaleBar(p,c);
+      const notes=s.scope==="wide"?[...smallNotes,...skyNotes]:[];
+      labels(p,c,s,list.concat(notes));catalogMark(p,c,s,run,testView);if(!S.compressed(s))scaleBar(p,c);
       if(p.layer!=="both"){
         ctx.font="550 11px "+font;ctx.textBaseline="top";ctx.fillStyle=p.layer==="base"?mint:coral;
         ctx.fillText(p.layer==="base"?"원래 태양계":"실험 태양계",p.x+14,p.y+((p.x===0&&p.y===0)?43:13));
@@ -302,9 +327,9 @@
       const views=panels(s.split).map(pane=>{
         const testView=pane.layer!=="base",run=s.applied&&testView?s.test:s.base;
         const dark=s.applied&&testView&&(s.kind==="black"||s.kind==="vanish");
-        return {pane,run,testView,showSurvey:s.scope==="wide"&&s.allFit,camera:S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch),exposure:dark?.78:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:.43};
+        return {pane,run,testView,showSurvey:s.scope==="wide"&&s.allFit,camera:S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch),exposure:dark?1.05:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:s.scope==="wide"?.90:.52};
       });
-      sky(w,h,dpr,views);views.forEach(view=>drawPanel(view,s));
+      const notes=sky(w,h,dpr,views);views.forEach((view,i)=>drawPanel(view,s,notes[i]||[]));
       if(s.split){
         const q=views[1].pane;ctx.strokeStyle="#61707380";ctx.lineWidth=1;ctx.beginPath();
         if(q.x){ctx.moveTo(q.x,0);ctx.lineTo(q.x,h);}else{ctx.moveTo(0,q.y);ctx.lineTo(w,q.y);}ctx.stroke();

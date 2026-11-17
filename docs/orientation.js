@@ -17,6 +17,13 @@ const eclGal=[[-.05487556041622,-.99382137906165,-.09647662612783],[.49410942787
 function eclPole(ra,dec){const d=dec*D,a=ra*D,e=23.439291*D,x=Math.cos(d)*Math.cos(a),y=Math.cos(d)*Math.sin(a),z=Math.sin(d);return norm([x,Math.cos(e)*y+Math.sin(e)*z,-Math.sin(e)*y+Math.cos(e)*z]);}
 const frames=specs.map((sp,i)=>{if(!i)return null;const pole=eclPole(sp[2],sp[3]),at=LabInitial.bodies[i].p,sun=norm(at.map(x=>-x)),eq=norm(comb(sun,pole,1,-dot(sun,pole))),east=cross(pole,eq),lon=(sp[4]-60)*D,prime=comb(eq,east,Math.cos(lon),-Math.sin(lon));return [...cross(pole,prime),...pole,...prime];});
   const galactic = direction => eclGal.map(row => dot(row, direction));
+  // The ESO photographic mosaic has its own pole and central meridian. These
+  // rows register its image axes to Hipparcos without rotating the catalogue.
+  const photoAxes=[[.9980242,.0554925,-.0294673],[-.0549656,.9983187,.0184006],[.0304388,-.0167445,.9993964]];
+  function panorama(direction){
+    const v=galactic(direction);
+    return photoAxes.map(row=>dot(row,v));
+  }
   function bodyFrame(i,run,day){
     if(i!==GravityLab.MOON)return frames[i];
     const e=GravityLab.read(run,GravityLab.EARTH,day),m=GravityLab.read(run,i,day);
@@ -24,5 +31,5 @@ const frames=specs.map((sp,i)=>{if(!i)return null;const pole=eclPole(sp[2],sp[3]
     const prime=norm(comb(face,pole,1,-dot(face,pole)));
     return [...cross(pole,prime),...pole,...prime];
   }
-  return {specs, frames,bodyFrame, eclGal, galactic, dot, norm, cross, comb};
+  return {specs, frames,bodyFrame, eclGal, galactic, panorama, dot, norm, cross, comb};
 })();
