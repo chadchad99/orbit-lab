@@ -357,3 +357,7 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
   .map-box.cruising .map-hud { bottom:29px; }
   .cruising .scene-note { bottom:8px; }
 }
+
+.scene-note .galaxy-source { margin-inline-start: .45em; white-space: nowrap; }
+.map-box.clean-view .scene-note:has(.galaxy-source:not([hidden])) { display:block; }
+.map-box.clean-view #scene-note { display:none; }

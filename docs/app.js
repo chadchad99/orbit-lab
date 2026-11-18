@@ -9,7 +9,7 @@
   const base=M.solve();
   const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
   const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false,
-    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,cleanView:false,trailBody:M.EARTH};
+    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,galaxyEmphasis:true,cleanView:false,trailBody:M.EARTH};
   const guides={near:{showPaths:false,showNames:false},far:{showPaths:true,showNames:true}};
   function setScope(scope){
     const group=v=>v==="near"||v==="sun"?"near":"far";
@@ -141,7 +141,7 @@
     el("galactic-views").hidden=!galacticWide;
     el("camera-cruise").setAttribute("aria-pressed",String(cruise));
     el("camera-overview").setAttribute("aria-pressed",String(!cruise));
-    el("clean-view").hidden=el("star-exposure").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!galacticWide;
+    el("clean-view").hidden=el("star-exposure").hidden=el("galaxy-emphasis").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!galacticWide;
     el("cruise-settings").hidden=!cameraSettings;
     el("camera-home").hidden=!galacticWide;
     el("trail-body-control").hidden=!galacticWide||cruise||state.fixedCamera||state.allFit||!state.showPaths;
@@ -150,6 +150,8 @@
     if(noSun&&state.trailBody===0){state.trailBody=M.EARTH;el("trail-body").value=String(M.EARTH);}
     el("cruise-settings").setAttribute("aria-expanded",String(state.cruiseSettings));
     el("overview-options").hidden=cameraSettings&&!state.cruiseSettings;
+    el("galaxy-emphasis").disabled=state.actualSize;
+    el("galaxy-emphasis").setAttribute("aria-pressed",String(state.galaxyEmphasis&&!state.actualSize));
     el("star-exposure").setAttribute("aria-pressed",String(state.starExposure));
     el("cruise-paths").setAttribute("aria-pressed",String(state.showPaths));
     el("cruise-scale").setAttribute("aria-pressed",String(state.actualSize));
@@ -324,6 +326,7 @@
   el("camera-cruise").onclick=()=>selectGalacticCamera(true);
   el("camera-overview").onclick=()=>selectGalacticCamera(false);
   el("cruise-settings").onclick=()=>{state.cruiseSettings=!state.cruiseSettings;updateControls();};
+  el("galaxy-emphasis").onclick=()=>{state.galaxyEmphasis=!state.galaxyEmphasis;updateControls();mark();};
   el("star-exposure").onclick=()=>{state.starExposure=!state.starExposure;updateControls();mark();};
   el("cruise-paths").onclick=()=>{state.showPaths=!state.showPaths;updateControls();mark();};
   el("cruise-scale").onclick=()=>{state.actualSize=!state.actualSize;updateControls();mark();};

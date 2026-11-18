@@ -1,0 +1,339 @@
+{
+  "title": "Rotating archival photosphere and observed coronal layers for the two orbital cameras",
+  "surface": {
+    "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams. Accessed via Helioviewer.",
+    "channels": {
+      "18": "SDO/HMI continuum at 617.3 nm",
+      "16": "SDO/AIA ultraviolet at 170.0 nm (1700 Angstrom)"
+    },
+    "instrumentGuide": "https://sdo.gsfc.nasa.gov/data/channels.php",
+    "sourceCatalog": "https://api.helioviewer.org/docs/v2/appendix/data_sources.html",
+    "timeRangeUTC": [
+      "2024-04-28",
+      "2024-05-24"
+    ],
+    "observations": [
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-04-28T08:44:49.000",
+        "helioviewerId": 156201415,
+        "centralMeridianDeg": 107.386,
+        "observerLatitudeDeg": -4.397,
+        "jp2Sha256": "4c1b668164e910721f8e759a3228d7d00bcf880bfee732cad380052b39896d2b",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156201415"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-04-30T08:44:49.300",
+        "helioviewerId": 156290133,
+        "centralMeridianDeg": 80.956,
+        "observerLatitudeDeg": -4.2,
+        "jp2Sha256": "6a4ea773d4d2ddeb3dab815b8cfd4c09fa2bc6164de78f6e1e70292359442502",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156290133"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-02T08:44:49.500",
+        "helioviewerId": 156353023,
+        "centralMeridianDeg": 54.523,
+        "observerLatitudeDeg": -3.998,
+        "jp2Sha256": "1a3d88e765e7d2e37e8086380bca34d276e4a692f4a139d99ab3340061236f28",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156353023"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-04T08:44:49.800",
+        "helioviewerId": 156417454,
+        "centralMeridianDeg": 28.087,
+        "observerLatitudeDeg": -3.791,
+        "jp2Sha256": "85ec7cb844ca2714e05e4d900723b02b1e6ec49b16c3f9855dee44719d2e0936",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156417454"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-06T08:44:50.000",
+        "helioviewerId": 156483211,
+        "centralMeridianDeg": 1.649,
+        "observerLatitudeDeg": -3.581,
+        "jp2Sha256": "d0b709410686a012cb4095b45e987ed02b123b5354dec63c7d2d860dba0eadec",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156483211"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-08T08:44:50.300",
+        "helioviewerId": 156544305,
+        "centralMeridianDeg": 335.208,
+        "observerLatitudeDeg": -3.367,
+        "jp2Sha256": "99d5cb9eefa20c59215f9dd49c8e0f3f682643f7338d7df63dcbd9a305039287",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156544305"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-10T08:44:50.500",
+        "helioviewerId": 156610536,
+        "centralMeridianDeg": 308.765,
+        "observerLatitudeDeg": -3.149,
+        "jp2Sha256": "dd441e568da1ca540e492a1acabdefeb527fd6779f5a453f22192215f6aaf3c7",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156610536"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-12T08:44:50.700",
+        "helioviewerId": 156679045,
+        "centralMeridianDeg": 282.319,
+        "observerLatitudeDeg": -2.927,
+        "jp2Sha256": "4954a63d15bd41a8241dd17266c8d38b85f8247e7fb67f1d42242f51454f25d2",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156679045"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-14T08:44:51.000",
+        "helioviewerId": 156744304,
+        "centralMeridianDeg": 255.87,
+        "observerLatitudeDeg": -2.703,
+        "jp2Sha256": "4c173d672e9e9488b1d2a74b52cdd345d907a2691cacd3b5eeea585acb5985b7",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156744304"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-16T08:44:51.200",
+        "helioviewerId": 156810778,
+        "centralMeridianDeg": 229.418,
+        "observerLatitudeDeg": -2.476,
+        "jp2Sha256": "438cfa352f8349e6d0c65da652034836090ae46886c61c8e44e6f6288bf3b06e",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156810778"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-18T08:44:51.400",
+        "helioviewerId": 156872130,
+        "centralMeridianDeg": 202.964,
+        "observerLatitudeDeg": -2.246,
+        "jp2Sha256": "f7d3d403306cd0e93b5dce9ad100891039c0c6b0e8f44ec7741ed0f81485feb1",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156872130"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-20T08:44:51.600",
+        "helioviewerId": 156935879,
+        "centralMeridianDeg": 176.507,
+        "observerLatitudeDeg": -2.014,
+        "jp2Sha256": "cbaad15da5ae5fbc00731075f439ebe7537f1e5e2a676440d682713989c0f67d",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156935879"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-22T08:44:51.800",
+        "helioviewerId": 157003015,
+        "centralMeridianDeg": 150.049,
+        "observerLatitudeDeg": -1.78,
+        "jp2Sha256": "b1d4997a2a8a6bde2b8dc914a55bc5067f7bc4f26aa64e6723d5d4bcb76d45a2",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=157003015"
+      },
+      {
+        "instrument": "HMI continuum",
+        "utc": "2024-05-24T08:44:51.900",
+        "helioviewerId": 157068270,
+        "centralMeridianDeg": 123.588,
+        "observerLatitudeDeg": -1.544,
+        "jp2Sha256": "c31a340b474c85e700a8159fb835dbbca168e76bc599f77bc0a2f7cb50a8d91c",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=157068270"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-04-28T08:44:52.720",
+        "helioviewerId": 156199539,
+        "centralMeridianDeg": 107.389,
+        "observerLatitudeDeg": -4.397,
+        "jp2Sha256": "d2211d9c3ee36b23a5bcb3720d8384e6924f9cb36c486c69146580c76d5f3aac",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156199539"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-04-30T08:44:52.721",
+        "helioviewerId": 156288145,
+        "centralMeridianDeg": 80.959,
+        "observerLatitudeDeg": -4.2,
+        "jp2Sha256": "931b6d5bbeec75ec5e3a25e6835d4c14309f5a08dd41b07dcd6db61ee463b72c",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156288145"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-02T08:44:52.717",
+        "helioviewerId": 156351243,
+        "centralMeridianDeg": 54.526,
+        "observerLatitudeDeg": -3.998,
+        "jp2Sha256": "626a9631f6ebaaa4de895eb06e5a2fbd0c4e613c279fc2c38f1b76071747291a",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156351243"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-04T08:44:52.717",
+        "helioviewerId": 156415314,
+        "centralMeridianDeg": 28.09,
+        "observerLatitudeDeg": -3.791,
+        "jp2Sha256": "dc2beba584df192b1717db1eb81dc6997222532bc20cab67f4f5572d6253f145",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156415314"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-06T08:44:52.741",
+        "helioviewerId": 156481015,
+        "centralMeridianDeg": 1.652,
+        "observerLatitudeDeg": -3.581,
+        "jp2Sha256": "fd446179a42438a031fd8175ffaad6e63fdab7beed9be21553fb9708d6b95e81",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156481015"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-08T08:44:52.717",
+        "helioviewerId": 156542345,
+        "centralMeridianDeg": 335.211,
+        "observerLatitudeDeg": -3.367,
+        "jp2Sha256": "c97da2252c584c0a1764e8d24b2aceac409f053495ed43ddfb12a88ed82ac3f6",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156542345"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-10T08:44:52.717",
+        "helioviewerId": 156608158,
+        "centralMeridianDeg": 308.768,
+        "observerLatitudeDeg": -3.149,
+        "jp2Sha256": "b5ad2af32980cb2eb98f1345bd8a2313578ae39f73b2049a508b516844708a22",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156608158"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-12T08:44:52.718",
+        "helioviewerId": 156677017,
+        "centralMeridianDeg": 282.322,
+        "observerLatitudeDeg": -2.927,
+        "jp2Sha256": "7a0ef92d0948c171362f3c1ff8f4f4b19f0e5ed895146efc87d43d9579fb5323",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156677017"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-14T08:44:52.721",
+        "helioviewerId": 156742355,
+        "centralMeridianDeg": 255.873,
+        "observerLatitudeDeg": -2.703,
+        "jp2Sha256": "a973ed07b67b3f5259753552d59f80d6126ffef71c972ce9fe209321296a1de6",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156742355"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-16T08:44:52.718",
+        "helioviewerId": 156808617,
+        "centralMeridianDeg": 229.421,
+        "observerLatitudeDeg": -2.476,
+        "jp2Sha256": "79488847051def39628ae593e5a12cf213d93323bce4b77bd0a6f14ea13d9d60",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156808617"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-18T08:44:52.718",
+        "helioviewerId": 156869705,
+        "centralMeridianDeg": 202.967,
+        "observerLatitudeDeg": -2.246,
+        "jp2Sha256": "db02a20f1bf1ec6f0f823119820ac25eafa4b2310d7e1a4f84e184dbf68db4ad",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156869705"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-20T08:44:52.721",
+        "helioviewerId": 156933746,
+        "centralMeridianDeg": 176.511,
+        "observerLatitudeDeg": -2.014,
+        "jp2Sha256": "0adb879a098e752adab4e61e4715c45599157d763f5d429206bba4076f6214cf",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=156933746"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-22T08:44:52.710",
+        "helioviewerId": 157000622,
+        "centralMeridianDeg": 150.052,
+        "observerLatitudeDeg": -1.78,
+        "jp2Sha256": "8aeebe6b98b34fb7bb3435c719d2ed19d463e09d637fe8b2eb38a95e90ba501c",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=157000622"
+      },
+      {
+        "instrument": "AIA 1700 Å",
+        "utc": "2024-05-24T08:44:52.717",
+        "helioviewerId": 157066101,
+        "centralMeridianDeg": 123.591,
+        "observerLatitudeDeg": -1.544,
+        "jp2Sha256": "909cb1318706570e4b31f8c108fa2267dbb22a5c3e9f8b68f075bef5da978a50",
+        "image": "https://api.helioviewer.org/v2/getJP2Image/?id=157066101"
+      }
+    ],
+    "projection": "Equirectangular Carrington longitude increasing right, north up, longitude 0 at the left seam. Fourteen near-simultaneous pairs sampled every two days. Inverse perspective uses each north-up FITS WCS disk center, radius, observer latitude, Carrington longitude and observer distance. Measured center-to-limb quiet intensity is removed for each date. Narrow central-meridian strips are feathered; grazing and polar regions taper to quiet mean intensity.",
+    "channelsInDerivedImage": {
+      "R": "Local HMI continuum intensity contrast",
+      "G": "Log intensity contrast of the AIA 170 nm bright network",
+      "B": "HMI sunspot groups. Small footprints are enlarged locally to remain legible on the map."
+    },
+    "rendering": "Sphere sampled for the current observer and simulation day using the IAU north pole and a rigid sidereal rotation of 14.1844 degrees/day. The artwork combines different dates. Simulated warm-white exposure and limb darkening do not reproduce a single acquisition or activity at the simulated date.",
+    "rotationReference": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc"
+  },
+  "innerCorona": {
+    "credit": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
+    "sources": "corona-sequence-credits.json",
+    "observationUTC": [
+      "2024-05-10T08:46:10Z",
+      "2024-05-11T07:47:10Z"
+    ],
+    "processing": "24 actual north-up AIA 17.1 nm frames. Reprojected from the registered optical-corona sequence, reducing the previously enlarged height by a factor of 0.68 (about 1.60 times observed height). Pearl-gold color represents EUV intensity. Four frames/second independent of the simulation clock.",
+    "layout": "6 by 4 tiles, each 256 px square, disk radius 0.32 of a tile width."
+  },
+  "outerCorona": {
+    "credit": "NASA/Keegan Barber",
+    "date": "2024-04-08",
+    "place": "Dallas, Texas",
+    "article": "https://science.nasa.gov/image-article/centers-and-facilities/goddard/2024-total-solar-eclipse-prediction-vs-reality/",
+    "source": "https://science.nasa.gov/wp-content/uploads/2024/04/2024-actual-keegan-barber-v2.png",
+    "sha256": "5fc624d97070b7494843fe0be6d010e70de06efa3d1de0565013947495b75aee",
+    "processing": "Only the actual eclipse photograph is used. A circle fit locates the lunar limb. The surrounding white-light field was resampled out to 2.48 disk radii, background-subtracted, tapered and mapped to translucent warm-white exposure. This archival projection does not reconstruct the near and far sides of the corona."
+  },
+  "derivedFiles": {
+    "sun-carrington-lite.webp": {
+      "size": [
+        512,
+        256
+      ],
+      "bytes": 133428,
+      "sha256": "413e06ad846c9b6f70455ff08f105ec2df6afee709fd6f2dbaf2f4f32a0dd622"
+    },
+    "sun-carrington.webp": {
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 2575364,
+      "sha256": "080617bcc1845eca0ecfe0b51dfeb4d4bbf510eb2e062c711fd33ef47aa6195e"
+    },
+    "sun-map-corona.webp": {
+      "size": [
+        1536,
+        1024
+      ],
+      "bytes": 317108,
+      "sha256": "beabf6716ee204b338823ffff905c38791ccd16041ee5f3634d03565cf3833fa"
+    },
+    "sun-map-corona-still.webp": {
+      "size": [
+        256,
+        256
+      ],
+      "bytes": 13892,
+      "sha256": "519a4068f704f272608f0d905e8747c4d0cc1c52e6600067bace363a710d77b2"
+    },
+    "sun-eclipse-corona.webp": {
+      "size": [
+        640,
+        640
+      ],
+      "bytes": 97828,
+      "sha256": "ab7c31e766865df01cf0f97f5e259e4896e3fb3df22d44c8df32f2dc7a940172"
+    }
+  }
+}
