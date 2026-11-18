@@ -10,7 +10,8 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   let dir="",generation=0;
   function skyFile(name){
     const path=dir+name+".webp";
-    return globalThis.LabPacked?.[path]||path+"?v=diffuse-sky-1";
+    const version=dir.endsWith("photographic/")?"optical-clouds-2":"diffuse-sky-1";
+    return globalThis.LabPacked?.[path]||path+"?v="+version;
   }
   function initialize(){
     const vertex="attribute vec2 corner; varying vec2 screen; void main(){screen=corner; gl_Position=vec4(corner,0.,1.);}";
