@@ -39,7 +39,23 @@
       ]
     ],
     "matrix_convention": "First transform a J2000 ecliptic direction to Galactic coordinates, then multiply by the fitted Galactic-to-photo rows before sampling the mosaic.",
-    "galactic_to_photo_rows": [[0.9980242,0.0554925,-0.0294673],[-0.0549656,0.9983187,0.0184006],[0.0304388,-0.0167445,0.9993964]],
+    "galactic_to_photo_rows": [
+      [
+        0.9980242,
+        0.0554925,
+        -0.0294673
+      ],
+      [
+        -0.0549656,
+        0.9983187,
+        0.0184006
+      ],
+      [
+        0.0304388,
+        -0.0167445,
+        0.9993964
+      ]
+    ],
     "registration": "Cross-correlated 126-pixel patches of the 4096-pixel-wide mosaic with a magnitude-weighted Hipparcos sky, then robustly fit a rigid rotation to directions at the patch centres. Median final patch residual about 0.10 degree; this estimates the photographic orientation, not a per-pixel astrometric solution.",
     "equatorial_rotation_source": "https://gea.esac.esa.int/archive/documentation/GDR3/Data_processing/chap_cu3ast/sec_cu3ast_intro/ssec_cu3ast_intro_tansforms.html",
     "obliquity_arcsec": 84381.448,
@@ -76,13 +92,14 @@
     "previewFacePixels": 256,
     "processing": "Applied the fitted Galactic-to-photo registration, reprojected to six gnomonic faces using Lanczos resampling, and applied the contrast curve of the original orbital-map photograph. Original color ratios are retained except for the channel-wise photographic contrast curve.",
     "sha256": {
-      "nx.webp": "e79bb213cc6ac3921a164e1c3c44411d44e704a4179a2b642e682392db542bf1",
-      "ny.webp": "2c987b8ad0d7de2a20cf5f70abde6bf6747a3de3af6fb1660476aaff7903bdfe",
-      "nz.webp": "e515b6c46e469651f63a5698523d25ae3b7df4b4e6970f1ada14bc0e0113c35a",
-      "preview.webp": "9b00f8b5bdfd32c14ec830e4168703e3cb0d8041b13a22acb5f6050468807ee8",
-      "px.webp": "9044bad16d9eb1f516efbc78f45308479830b420529fb8e90e6c395becbf96b1",
-      "py.webp": "34dfa45e8e3ec24064c81925fa7e6abebc0ed03a721e0426f1b3d75ae81d795a",
-      "pz.webp": "5c14f62b9ef416f77fb7e0b24f2d5df9468e1589ab2a650ee43ce0fbab00a6bf"
-    }
+      "nx.webp": "d191ba3beebcee465b13e28e49d2a3bfb49ac3dc456d18c9e65605ac38444c46",
+      "ny.webp": "686c5150b3cbf1f789a6a31a97d229eb9a8f098a0df92289382ec7d3f83287a2",
+      "nz.webp": "247bbda28800aa0f51bb81c1d07608122141d212e88a6b63ab57edc49863f460",
+      "preview.webp": "b5d8782ecf46317321e0f4b140b1ad4d33dac2cd76f14a1fd6ec00de741f3130",
+      "px.webp": "3cccda34d257c905e22ccc419dcf61b3fbbd4c58c7a95910afe7d1fa7ddd97f5",
+      "py.webp": "35c3f1b944d5c0c6320e0ef6ec4066cfa5b76074c59eeedf5652f85223d30152",
+      "pz.webp": "3ddab064e37436f008456e1e0543b5777d85993bae372c39f95712f4f962ecad"
+    },
+    "orbitalComposite": "Native angular light from the 16 registered survey fields in assets/catalog/cosmos/orbit-galaxies.json is integrated on the Galactic sphere. The inverse alpha channel stores a separately switchable low-intensity reading aid sampled at 3.6 times the angular size. A local luminance filter on the optical sky compresses sharp stellar peaks while retaining its diffuse Milky Way colour."
   }
 }

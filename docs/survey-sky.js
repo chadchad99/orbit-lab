@@ -6,8 +6,12 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   const faces=names.map(name=>({name,low:null,high:null,pixels:null,texture:null,uploaded:null,retry:0,delay:0,loading:false,lastVisible:0}));
   const canvas=document.createElement("canvas"),cpu=document.createElement("canvas");
   const ctx=cpu.getContext("2d",{alpha:false});
-  let gl,program,orientation,aperture,offset,gain,positiveSides,negativeSides,frame,wanted=[],inFlight=0,retryTimer;
+  let gl,program,orientation,aperture,offset,gain,galaxyLight,positiveSides,negativeSides,frame,wanted=[],inFlight=0,retryTimer;
   let dir="",generation=0;
+  function skyFile(name){
+    const path=dir+name+".webp";
+    return globalThis.LabPacked?.[path]||path+"?v=diffuse-sky-1";
+  }
   function initialize(){
     const vertex="attribute vec2 corner; varying vec2 screen; void main(){screen=corner; gl_Position=vec4(corner,0.,1.);}";
     const derivatives=gl.getExtension("OES_standard_derivatives");
@@ -16,14 +20,15 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     // footprint from the continuous sky ray before selecting a face.
     const extensions=textureLod?"#extension GL_EXT_shader_texture_lod : enable\n#extension GL_OES_standard_derivatives : enable\n#define EXPLICIT_LOD\n":"";
     const fragment=extensions+`precision highp float;
-      varying vec2 screen; uniform vec2 aperture,offset; uniform mat3 orientation; uniform float gain;
+      varying vec2 screen; uniform vec2 aperture,offset; uniform mat3 orientation; uniform float gain,galaxyLight;
       uniform sampler2D px,nx,py,ny,pz,nz;
       vec3 sampleFace(sampler2D face,vec2 uv,float lod){
         #ifdef EXPLICIT_LOD
-          return texture2DLodEXT(face,uv,lod).rgb;
+          vec4 pixel=texture2DLodEXT(face,uv,lod);
         #else
-          return texture2D(face,uv).rgb;
+          vec4 pixel=texture2D(face,uv);
         #endif
+        return pixel.rgb+vec3((1.-pixel.a)*galaxyLight);
       }
       uniform vec3 positiveSides,negativeSides;
       void main(){
@@ -57,7 +62,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
     const corner=gl.getAttribLocation(program,"corner");
     gl.enableVertexAttribArray(corner);gl.vertexAttribPointer(corner,2,gl.FLOAT,false,0,0);
-    [orientation,aperture,offset,gain,positiveSides,negativeSides]=["orientation","aperture","offset","gain","positiveSides","negativeSides"].map(k=>gl.getUniformLocation(program,k));
+    [orientation,aperture,offset,gain,galaxyLight,positiveSides,negativeSides]=["orientation","aperture","offset","gain","galaxyLight","positiveSides","negativeSides"].map(k=>gl.getUniformLocation(program,k));
     for(const [i,face] of faces.entries()){
       face.uploaded=null;
       face.pixels=null;
@@ -95,7 +100,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
       }
       invalidate();
     };
-    preview.src=LabMedia.file(dir+"preview.webp");
+    preview.src=skyFile("preview");
   }
   function requestFaces(){
     clearTimeout(retryTimer);
@@ -125,7 +130,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
         face.delay=Math.min(60000,face.delay?face.delay*2:2000);
         face.retry=performance.now()+face.delay;finish();
       };
-      im.src=LabMedia.file(dir+face.name+".webp");
+      im.src=skyFile(face.name);
     }
     if(Number.isFinite(nextRetry))retryTimer=setTimeout(requestFaces,Math.max(1,Math.ceil(nextRetry-performance.now())));
   }
@@ -134,7 +139,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     requestFaces();
   });
   document.addEventListener("visibilitychange",requestFaces);
-  const empty={width:1,data:new Uint8Array(4)};
+  const empty={width:1,data:new Uint8Array([0,0,0,255])};
   function raster(face){
     const source=face.high||face.low;if(!source)return empty;
     if(face.pixels?.source===source)return face.pixels;
@@ -143,7 +148,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     face.pixels={source,width:tile.width,data:read.getImageData(0,0,tile.width,tile.height).data};
     return face.pixels;
   }
-  function software(w,h,m,ax,ay,ox,oy,light){
+  function software(w,h,m,ax,ay,ox,oy,light,enhance){
     if(cpu.width!==w||cpu.height!==h||!frame){cpu.width=w;cpu.height=h;frame=ctx.createImageData(w,h);}
     const tiles=faces.map(raster),dst=frame.data;
     const tone=Uint8ClampedArray.from({length:256},(_,i)=>Math.max(0,i-.765)*light);
@@ -162,33 +167,38 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
         v=Math.max(0,Math.min(n-1,(.5+.5*v/major)*n-.5));
         const ix=Math.floor(u),iy=Math.floor(v),fx=u-ix,fy=v-iy;
         const tl=4*(iy*n+ix),tr=ix<n-1?tl+4:tl,bl=iy<n-1?tl+4*n:tl,br=bl+(tr-tl);
+        let extra=0;
+        if(enhance){
+          const top=a[tl+3]+fx*(a[tr+3]-a[tl+3]),bottom=a[bl+3]+fx*(a[br+3]-a[bl+3]);
+          extra=255-(top+fy*(bottom-top));
+        }
         for(let j=0;j<3;j++){
           const top=a[tl+j]+fx*(a[tr+j]-a[tl+j]),bottom=a[bl+j]+fx*(a[br+j]-a[bl+j]);
-          dst[k+j]=tone[Math.round(top+fy*(bottom-top))];
+          dst[k+j]=tone[Math.min(255,Math.round(top+fy*(bottom-top)+extra))];
         }
         dst[k+3]=255;
       }
     }
     ctx.putImageData(frame,0,0);return cpu;
   }
-  function render({p,c,exposure:light,m,ax,ay,ox,oy},ratio){
+  function render({p,c,exposure:light,enhance,m,ax,ay,ox,oy},ratio){
     const moving=c.cruising||c.flyby;
     const scale=gl?Math.min(ratio,moving?1.5:2,(moving?2450:4096)/p.w,2500/p.h):
       Math.min(ratio,moving?1:1.75,(c.flyby?800:moving?1150:2250)/p.w,(c.flyby?580:moving?820:1550)/p.h);
     const w=Math.max(1,Math.round(p.w*scale)),h=Math.max(1,Math.round(p.h*scale));
-    if(!gl)return software(w,h,m,ax,ay,ox,oy,light);
+    if(!gl)return software(w,h,m,ax,ay,ox,oy,light,enhance);
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     for(const [i,face] of faces.entries()){
       const source=face.high||face.low;if(!source||face.uploaded===source)continue;
       gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,face.texture);
-      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,source);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
       gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
       face.uploaded=source;
     }
     gl.viewport(0,0,w,h);gl.uniformMatrix3fv(orientation,false,m);gl.uniform2f(aperture,ax,ay);
     gl.uniform3f(positiveSides,faces[0].uploaded?.width||1,faces[2].uploaded?.width||1,faces[4].uploaded?.width||1);
     gl.uniform3f(negativeSides,faces[1].uploaded?.width||1,faces[3].uploaded?.width||1,faces[5].uploaded?.width||1);
-    gl.uniform2f(offset,ox,oy);gl.uniform1f(gain,light);gl.drawArrays(gl.TRIANGLES,0,3);return canvas;
+    gl.uniform2f(offset,ox,oy);gl.uniform1f(gain,light);gl.uniform1f(galaxyLight,enhance?1:0);gl.drawArrays(gl.TRIANGLES,0,3);return canvas;
   }
   const screen=[[-1,-1],[1,-1],[1,1],[-1,1]];
   function clip(polygon,a,b,c){
@@ -225,13 +235,13 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   return function paint(context,views,ratio){
     const areas=faces.map(()=>0),now=performance.now();
     const frames=[];
-    for(const {pane:p,camera:c,exposure} of views){
+    for(const {pane:p,camera:c,exposure,galaxyEmphasis:enhance} of views){
       if(!c.surveySky)continue;
       const m=[c.right,c.up,c.front].flatMap(OrbitFrames.galactic);
       const ax=p.w/(2*c.skyFocal),ay=p.h/(2*c.skyFocal),ox=2*c.principal[0]-1,oy=1-2*c.principal[1];
       const axes=[0,1,2].map(k=>[m[k]*ax,m[k+3]*ay,-m[k+6]-ox*m[k]*ax-oy*m[k+3]*ay]);
       for(let i=0;i<faces.length;i++)areas[i]+=visibleArea(i,axes)*p.w*p.h/4;
-      frames.push({p,c,exposure,m,ax,ay,ox,oy});
+      frames.push({p,c,exposure,enhance,m,ax,ay,ox,oy});
     }
     if(frames.length)selectSource(!!frames[0].c.photographic);
     wanted=faces.map((_,i)=>i).filter(i=>areas[i]>0).sort((a,b)=>areas[b]-areas[a]);

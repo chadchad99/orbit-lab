@@ -9,7 +9,7 @@
   const base=M.solve();
   const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
   const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false,
-    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,photographicSky:true,galaxyEmphasis:true,cleanView:false,trailBody:M.EARTH};
+    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,photographicSky:true,galaxyEmphasis:false,cleanView:false,trailBody:M.EARTH};
   const guides={near:{showPaths:false,showNames:false},far:{showPaths:true,showNames:true}};
   function setScope(scope){
     const group=v=>v==="near"||v==="sun"?"near":"far";
@@ -42,6 +42,7 @@
   setPlaybackRate(runningRate);
   const map=createLabMap(el("sky"),el("star-field"),i=>{
     if(i===null){toggleCleanView();return;}
+    if(i?.domain==="external-galaxy"){galaxyViewer.open(i.id);return;}
     if(i?.domain==="sky"){cosmos.openSky(i.id);return;}
     if(i?.domain==="small"){state.catalog.openSmall(i.id);return;}
     if(typeof i==="string"){state.catalog.openGroup(i);return;}
@@ -428,7 +429,7 @@
   });
   el("flyby-open").onclick=()=>flyby.open(state.day);
   document.addEventListener("keydown",e=>{
-    if(e.key!=="Escape"||flyby.active||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||el("guide").open)return;
+    if(e.key!=="Escape"||flyby.active||document.querySelector("dialog[open]"))return;
     if(state.cleanView){toggleCleanView();el("clean-view").focus();}
     else if(state.cruiseSettings){state.cruiseSettings=false;updateControls();el("cruise-settings").focus();}
     else if(screen)closeScreen();
@@ -443,7 +444,7 @@
   el("close-guide").addEventListener("click",()=>guide.close());guide.addEventListener("close",()=>mark());
   guide.addEventListener("click",e=>{if(e.target===guide){const r=guide.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)guide.close()}});
   document.addEventListener("keydown",e=>{
-    if(flyby.active||guide.open||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||e.repeat||e.code!=="Space"||e.target.closest("button,input,select,a,summary"))return;
+    if(flyby.active||document.querySelector("dialog[open]")||e.repeat||e.code!=="Space"||e.target.closest("button,input,select,a,summary"))return;
     e.preventDefault();togglePlay();
   });
   document.addEventListener("visibilitychange",()=>mark());
@@ -452,7 +453,11 @@
   el("credits").innerHTML="<ul>"+LabMedia.credits.map(([name,credit,url])=>'<li>'+credit+' · <a href="'+url+'" target="_blank" rel="noreferrer">'+name+' 원본</a></li>').join("")+"</ul>";
 
   const exoplanets=createExoViewer(mark);
-  const cosmos=createCosmosViewer();el("cosmos-view").addEventListener("close",()=>mark());
+  const galaxyViewer=createGalaxyViewer(direct=>{
+    if(direct){history.replaceState(history.state,"","#map/galaxy/earth/wide");openMapLink();}
+    mark();
+  });
+  const cosmos=createCosmosViewer(galaxyViewer.open);el("cosmos-view").addEventListener("close",()=>mark());
   state.catalog=createOrbitCatalog({day:()=>state.day,invalidate:mark,pin:()=>{
     if(state.applied)state.split=true;
     state.mode="map";flight.setVisible(false);showView("wide");
@@ -460,6 +465,9 @@
   el("object-explorer").addEventListener("close",()=>mark());
   flight.setVisible(false);choose("vanish",true);selectPlanet(state.watch);
   function openMapLink(){
+    const structure=location.hash.match(/^#galaxy\/([a-z0-9-]+)$/);
+    if(structure){galaxyViewer.open(structure[1]);return;}
+    if(el("galaxy-view").open)el("galaxy-view").close();
     if(location.hash==="#flyby"){flyby.open(state.day);return;}
     if(flyby.active)flyby.close();
     const match=location.hash.match(/^#map(?:\/(solar|galaxy))?(?:\/([a-z]+))?(?:\/(near|trails|wide|cruise|lunar|sun|euv))?(\/play)?$/);
@@ -484,7 +492,7 @@
       if(!document.hidden)flyby.render(now,state);
       previous=null;requestAnimationFrame(animate);return;
     }
-    const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open;
+    const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open&&!el("galaxy-view").open;
     if(previous===null)pendingDays=0;
     const elapsed=previous===null?0:Math.max(0,(now-previous)/1000);
     if(state.running){

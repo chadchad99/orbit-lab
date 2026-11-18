@@ -1,0 +1,545 @@
+{
+  "galaxies": [
+    {
+      "id": "m31",
+      "name": "안드로메다은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.3513,
+      "roll": -0.91114,
+      "density": "m31-density.webp",
+      "observation": "m31-observation.webp",
+      "credit": "ESA/Hubble & Digitized Sky Survey 2. Acknowledgment: Davide De Martin (ESA/Hubble).",
+      "source": "https://esahubble.org/images/heic1112f/",
+      "band": "가시광",
+      "angle": 177.83,
+      "distance": 2555200,
+      "input": {
+        "url": "https://cdn.esahubble.org/archives/images/screen/heic1112f.jpg",
+        "size": [
+          1280,
+          828
+        ],
+        "sha256": "1e63b3eae70a86c53a3911e4497dcb8c20af207e3a240828b82ea43630e01896"
+      },
+      "hash": {
+        "m31-density.webp": "d99a2455e46b0e41d48b10fd974abe8fe120b7331996e0b19c8cba63692a6a38",
+        "m31-observation.webp": "6778de8a8f319e3ec63cdbcd1cfae37c0a7d227fcf4d718c1a0b355d1f246154"
+      }
+    },
+    {
+      "id": "m33",
+      "name": "삼각형자리은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.6806,
+      "roll": -1.12549,
+      "density": "m33-density.webp",
+      "observation": "m33-observation.webp",
+      "credit": "ESO",
+      "source": "https://www.eso.org/public/images/eso1424a/",
+      "band": "가시광",
+      "angle": 62.09,
+      "distance": 2638900,
+      "input": {
+        "url": "https://cdn.eso.org/images/screen/eso1424a.jpg",
+        "size": [
+          1280,
+          1074
+        ],
+        "sha256": "ef20d3d1e617751b44254c00e5b04ab17ac7704e5e8b17971d5b53d91be03c53"
+      },
+      "hash": {
+        "m33-density.webp": "73ab77878c47ffc6cf4bcaf86e7f2a0ff902c33594a9e3ca5bf54f06a2f69a7a",
+        "m33-observation.webp": "6f050c888d7330a4596650608e8cc3aba891894d0bc7522ba451c6ba414271f9"
+      }
+    },
+    {
+      "id": "lmc",
+      "name": "대마젤란은하",
+      "kind": "불규칙은하",
+      "irregular": true,
+      "ratio": 0.9069,
+      "roll": 0.51413,
+      "density": "lmc-density.webp",
+      "observation": "lmc-observation.webp",
+      "credit": "Zdeněk Bardon/ESO",
+      "source": "https://www.eso.org/public/images/magellan-ch17-bardon-cc/",
+      "band": "가시광",
+      "angle": null,
+      "distance": 165000,
+      "input": {
+        "url": "https://cdn.eso.org/images/large/magellan-ch17-bardon-cc.jpg",
+        "size": [
+          2848,
+          1881
+        ],
+        "sha256": "00f3d456669d20bc73c2eeb555ad9706b7409d06e3783c2c6af395c6ff6c09c5"
+      },
+      "hash": {
+        "lmc-density.webp": "45c46dbb618c21f248ed034f937adc4d5e8054ba9d20253aeafa5cb346ebc9c8",
+        "lmc-observation.webp": "8228602dbae3c57e905118b010c6e6b5182adbe99d4f001154976e33b5ebe1b9"
+      }
+    },
+    {
+      "id": "smc",
+      "name": "소마젤란은하",
+      "kind": "불규칙은하",
+      "irregular": true,
+      "ratio": 0.7544,
+      "roll": -0.32847,
+      "density": "smc-density.webp",
+      "observation": "smc-observation.webp",
+      "credit": "ESO/VISTA VMC",
+      "source": "https://www.eso.org/public/images/eso1714a/",
+      "band": "근적외선",
+      "angle": null,
+      "distance": 208700,
+      "input": {
+        "url": "https://cdn.eso.org/images/screen/eso1714a.jpg",
+        "size": [
+          1280,
+          1133
+        ],
+        "sha256": "f5a5bcfd666ae94249d144bdb94973866c8d56d4372a54f62843b6dd67c7d2bc"
+      },
+      "hash": {
+        "smc-density.webp": "3cbd9952d6ffdbd694fe3701303389c43c2c7f9559026b27d7ff77060a097389",
+        "smc-observation.webp": "d4d9f50a06649a8c111c567f40e04e1aedcdf21b58018f0648c112885f45dfb8"
+      }
+    },
+    {
+      "id": "ngc1365",
+      "name": "NGC 1365 은하",
+      "kind": "막대나선은하",
+      "irregular": false,
+      "ratio": 0.6959,
+      "roll": -1.06516,
+      "density": "ngc1365-density.webp",
+      "observation": "ngc1365-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=53.4015417&dec=-36.1403889&layer=ls-dr10&pixscale=1.091656&size=1024",
+      "band": "가시광",
+      "angle": 12.02,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=53.4015417&dec=-36.1403889&layer=ls-dr10&pixscale=1.091656&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "6019566a3bb981570c6c5434b13c8b91b1b7a93709a22926b3613f161c28427e"
+      },
+      "hash": {
+        "ngc1365-density.webp": "b6d6af65e5ff59efa4bba39a6a0e30b796b668064a8bd023954042806594d382",
+        "ngc1365-observation.webp": "c3e70c8296d369ce237e9cdc4270737ef58102a7de83f0f6eb3fc5b3c17d6ebb"
+      }
+    },
+    {
+      "id": "ngc1097",
+      "name": "NGC 1097 은하",
+      "kind": "막대나선은하",
+      "irregular": false,
+      "ratio": 0.7915,
+      "roll": 0.59615,
+      "density": "ngc1097-density.webp",
+      "observation": "ngc1097-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=41.579375&dec=-30.2748889&layer=ls-dr10&pixscale=0.959969&size=1024",
+      "band": "가시광",
+      "angle": 10.57,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=41.579375&dec=-30.2748889&layer=ls-dr10&pixscale=0.959969&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "300011d1eae4d4434295602c0875c53219ac6b6c3cdd175e1cdd1e6045eb783b"
+      },
+      "hash": {
+        "ngc1097-density.webp": "7e0aab1fa94ff55c487d26e6b5d5b0127b9160526b0c55d058c4e3cfed738868",
+        "ngc1097-observation.webp": "b60cdc82de13a340f5e40e7015e58211a8e473fd6f30cf32a5f75eb8b136844c"
+      }
+    },
+    {
+      "id": "ngc1232",
+      "name": "NGC 1232 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.8596,
+      "roll": 0.04159,
+      "density": "ngc1232-density.webp",
+      "observation": "ngc1232-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=47.439625&dec=-20.5793056&layer=ls-dr10&pixscale=0.616656&size=1024",
+      "band": "가시광",
+      "angle": 6.79,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=47.439625&dec=-20.5793056&layer=ls-dr10&pixscale=0.616656&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "4a81b6166e61ff731d4ccd3fa8f0cb474e68c25475516c0fa5b5245ae05c001d"
+      },
+      "hash": {
+        "ngc1232-density.webp": "89b297d83a6bf597f12860448813c417bda0ac013a42a6a04fc2a9657aa449db",
+        "ngc1232-observation.webp": "09e4213da7b6a5f40d460bcb0d3737a6bb485eabe04eb9d38090c855baa6b2b0"
+      }
+    },
+    {
+      "id": "ngc1532",
+      "name": "NGC 1532 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.4135,
+      "roll": -0.98611,
+      "density": "ngc1532-density.webp",
+      "observation": "ngc1532-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=63.0180417&dec=-32.8742222&layer=ls-dr10&pixscale=1.023531&size=1024",
+      "band": "가시광",
+      "angle": 11.27,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=63.0180417&dec=-32.8742222&layer=ls-dr10&pixscale=1.023531&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "94cb3e5101e1a28705611f879cdbe91023cbb2326a75c4196ab65ce39b40dafb"
+      },
+      "hash": {
+        "ngc1532-density.webp": "5d4fb0fb2d47b6cc8a21c1b0d1bef2ebc1ce9aecb7c558d3c9f8f7d1f11988f1",
+        "ngc1532-observation.webp": "8f3440a34a8940f9c278913d9aef5f70f39615454f03f88091e8388a66efcab9"
+      }
+    },
+    {
+      "id": "ngc1672",
+      "name": "NGC 1672 은하",
+      "kind": "막대나선은하",
+      "irregular": false,
+      "ratio": 0.9321,
+      "roll": 0.94989,
+      "density": "ngc1672-density.webp",
+      "observation": "ngc1672-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=71.4270833&dec=-59.2471944&layer=ls-dr10&pixscale=0.557625&size=1024",
+      "band": "가시광",
+      "angle": 6.14,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=71.4270833&dec=-59.2471944&layer=ls-dr10&pixscale=0.557625&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "473e99cc8d665c42f41ef67f8049394871c7613f6f4a8aeed995f1c18f6fa09f"
+      },
+      "hash": {
+        "ngc1672-density.webp": "eeac391acaaecf6ed5a8b7e3c3123848c07b9f356fd70d5933c66576d8a82800",
+        "ngc1672-observation.webp": "9186f18e582a7a096523590898ca6d5994af845c151986f7133cddf471075d34"
+      }
+    },
+    {
+      "id": "ngc1792",
+      "name": "NGC 1792 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.5913,
+      "roll": 0.80313,
+      "density": "ngc1792-density.webp",
+      "observation": "ngc1792-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=76.3102083&dec=-37.98075&layer=ls-dr10&pixscale=0.501313&size=1024",
+      "band": "가시광",
+      "angle": 5.52,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=76.3102083&dec=-37.98075&layer=ls-dr10&pixscale=0.501313&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "5fd8fd2bc64fa255b4b24621bb10fff32a90259a86be41d06899cbf405fec76a"
+      },
+      "hash": {
+        "ngc1792-density.webp": "917aba92a10fa4c49ef142221fc793f4cee32f0eb56c82cba472b2aa344c67dd",
+        "ngc1792-observation.webp": "9f7f855d41bffef6d937ba5fe8e48d8bf1c17c0aa841a566a56025c8f34da8a4"
+      }
+    },
+    {
+      "id": "ngc1300",
+      "name": "NGC 1300 은하",
+      "kind": "막대나선은하",
+      "irregular": false,
+      "ratio": 0.8311,
+      "roll": 0.16952,
+      "density": "ngc1300-density.webp",
+      "observation": "ngc1300-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=49.9211667&dec=-19.4113611&layer=ls-dr10&pixscale=0.541281&size=1024",
+      "band": "가시광",
+      "angle": 5.96,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=49.9211667&dec=-19.4113611&layer=ls-dr10&pixscale=0.541281&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "56da04e1f6f8db8db3bcbcfebb09725a40f323ba15c335e594686228e31040e0"
+      },
+      "hash": {
+        "ngc1300-density.webp": "64ee4d42b28cb2fdff33c292b9c0fedf8bc7482f1465f76fc7b510fa985c17d0",
+        "ngc1300-observation.webp": "90fbd6f44577b713d2031f783ea5d6e5e5953ff3908685ed35bf3437401c67c1"
+      }
+    },
+    {
+      "id": "ngc4565",
+      "name": "바늘은하 (NGC 4565)",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.1916,
+      "roll": 0.79235,
+      "density": "ngc4565-density.webp",
+      "observation": "ngc4565-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=189.0865833&dec=25.9876667&layer=ls-dr10&pixscale=1.52125&size=1024",
+      "band": "가시광",
+      "angle": 16.75,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=189.0865833&dec=25.9876667&layer=ls-dr10&pixscale=1.52125&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "c592f5acd788cb8323fb62020b15a6eb32013d1368744be17c9cf3bb0c1305b7"
+      },
+      "hash": {
+        "ngc4565-density.webp": "5c5601192fbcaee780338011dd529b56b7dd8e2b8a36fbc9d5d1c346b5c3960c",
+        "ngc4565-observation.webp": "4ec70ceb5d65eb90509276fe224103be25150a578c6b70f6c09ddf28f0cf9725"
+      }
+    },
+    {
+      "id": "ngc3628",
+      "name": "NGC 3628 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.3168,
+      "roll": 0.23704,
+      "density": "ngc3628-density.webp",
+      "observation": "ngc3628-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=170.0707083&dec=13.5896944&layer=ls-dr10&pixscale=1.002656&size=1024",
+      "band": "가시광",
+      "angle": 11.04,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=170.0707083&dec=13.5896944&layer=ls-dr10&pixscale=1.002656&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "ca43287be5d7dd9fb6a1f346419bd8eab2fdd5427a527c3a627fa100439410d3"
+      },
+      "hash": {
+        "ngc3628-density.webp": "c39c29ff573d3f52e6ca427bfc8823a0327cf4c2728a06eb0075bb9ac438ee2e",
+        "ngc3628-observation.webp": "3fd228354848a8fcfe6b6a336427d5e1a7411faf1d1eedb8f9160587aebc9b25"
+      }
+    },
+    {
+      "id": "ngc6962",
+      "name": "NGC 6962 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.8472,
+      "roll": -0.12239,
+      "density": "ngc6962-density.webp",
+      "observation": "ngc6962-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=311.8294167&dec=0.3208056&layer=ls-dr10&pixscale=0.245219&size=1024",
+      "band": "가시광",
+      "angle": 2.7,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=311.8294167&dec=0.3208056&layer=ls-dr10&pixscale=0.245219&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "a12a02cdfcc76d01bbbb46f8ab85ac25511e5d6e4b0ea38fdf685da5daa9b7b7"
+      },
+      "hash": {
+        "ngc6962-density.webp": "7d317761426e0e97636d747c7b423bd38ed6e8b777d12cb3b6de082c344a9cb0",
+        "ngc6962-observation.webp": "48335e090c76b7f7b4ac6dcf7bb7046008e01b33aea752223209998b36dc6c6a"
+      }
+    },
+    {
+      "id": "ngc628",
+      "name": "M74 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.9502,
+      "roll": 0.31842,
+      "density": "ngc628-density.webp",
+      "observation": "ngc628-observation.webp",
+      "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
+      "source": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=24.1739583&dec=15.7836667&layer=ls-dr10&pixscale=0.898219&size=1024",
+      "band": "가시광",
+      "angle": 9.89,
+      "distance": null,
+      "input": {
+        "url": "https://www.legacysurvey.org/viewer/jpeg-cutout?ra=24.1739583&dec=15.7836667&layer=ls-dr10&pixscale=0.898219&size=1024",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "87b4bd51fd083139f4880487781c816ce5beab5b92d21d779dcfa5a753503e33"
+      },
+      "hash": {
+        "ngc628-density.webp": "eac193e66939aea12701ef08a98c52f019d836090956e80907b158467692bf2d",
+        "ngc628-observation.webp": "45ced3e180ff2f7427c5b66ba02bf485bea7fc99c2935d93f7715606a08e1237"
+      }
+    },
+    {
+      "id": "ngc6814",
+      "name": "NGC 6814 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.96,
+      "roll": 0.80229,
+      "density": "ngc6814-density.webp",
+      "observation": "ngc6814-observation.webp",
+      "credit": "Pan-STARRS1 / STScI",
+      "source": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=295.6693333&dec=-10.3235&size=1146&output_size=1024&red=%2Frings.v3.skycell%2F1127%2F044%2Frings.v3.skycell.1127.044.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1127%2F044%2Frings.v3.skycell.1127.044.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1127%2F044%2Frings.v3.skycell.1127.044.stk.g.unconv.fits&format=jpg",
+      "band": "가시광",
+      "angle": 3.08,
+      "distance": null,
+      "input": {
+        "url": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=295.6693333&dec=-10.3235&size=1146&output_size=1024&red=%2Frings.v3.skycell%2F1127%2F044%2Frings.v3.skycell.1127.044.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1127%2F044%2Frings.v3.skycell.1127.044.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1127%2F044%2Frings.v3.skycell.1127.044.stk.g.unconv.fits&format=jpg",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "bfa6ed501494086f2900790cda003d02bb1bccc4f4e752e3ec175545f6e6915b"
+      },
+      "hash": {
+        "ngc6814-density.webp": "cbfa18f0092599a6a421d1bd37927d709565a598ed53a5ca7e0c554bfa2f2393",
+        "ngc6814-observation.webp": "91d4a3d64cb609b7516471be09e7e2a40a963ebdedec4068bd8eabea2c0b602e"
+      }
+    },
+    {
+      "id": "ngc7013",
+      "name": "NGC 7013 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.3205,
+      "roll": 1.23698,
+      "density": "ngc7013-density.webp",
+      "observation": "ngc7013-observation.webp",
+      "credit": "Pan-STARRS1 / STScI",
+      "source": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=315.8899167&dec=29.8974722&size=1548&output_size=1024&red=%2Frings.v3.skycell%2F1999%2F041%2Frings.v3.skycell.1999.041.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1999%2F041%2Frings.v3.skycell.1999.041.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1999%2F041%2Frings.v3.skycell.1999.041.stk.g.unconv.fits&format=jpg",
+      "band": "가시광",
+      "angle": 4.16,
+      "distance": null,
+      "input": {
+        "url": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=315.8899167&dec=29.8974722&size=1548&output_size=1024&red=%2Frings.v3.skycell%2F1999%2F041%2Frings.v3.skycell.1999.041.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1999%2F041%2Frings.v3.skycell.1999.041.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1999%2F041%2Frings.v3.skycell.1999.041.stk.g.unconv.fits&format=jpg",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "c5f234fdafe58f204a515777e03feddf77ad32c50a489ef86fe9a0ccc4e7d59f"
+      },
+      "hash": {
+        "ngc7013-density.webp": "fad9bfd23b85801cb80fb5a59e75085dbd6bf68beb1fc7fdf1f42aa239875fce",
+        "ngc7013-observation.webp": "9684b8afbc51938e3e461e07d1d17fdd644c3ce6520bda1cdbaedbbe85e59720"
+      }
+    },
+    {
+      "id": "ngc7217",
+      "name": "NGC 7217 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.8738,
+      "roll": 0.05862,
+      "density": "ngc7217-density.webp",
+      "observation": "ngc7217-observation.webp",
+      "credit": "Pan-STARRS1 / STScI",
+      "source": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=331.9682917&dec=31.3593333&size=1681&output_size=1024&red=%2Frings.v3.skycell%2F2003%2F086%2Frings.v3.skycell.2003.086.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F2003%2F086%2Frings.v3.skycell.2003.086.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F2003%2F086%2Frings.v3.skycell.2003.086.stk.g.unconv.fits&format=jpg",
+      "band": "가시광",
+      "angle": 4.52,
+      "distance": null,
+      "input": {
+        "url": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=331.9682917&dec=31.3593333&size=1681&output_size=1024&red=%2Frings.v3.skycell%2F2003%2F086%2Frings.v3.skycell.2003.086.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F2003%2F086%2Frings.v3.skycell.2003.086.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F2003%2F086%2Frings.v3.skycell.2003.086.stk.g.unconv.fits&format=jpg",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "674e2a11a52861eea43faf8d9594cbed55c27544c0a8e8a465d7b93fc8a50711"
+      },
+      "hash": {
+        "ngc7217-density.webp": "4e14c5fb06037c0f85705ee80afd982681d9f3164a4fbeeb16fbf52e2f1482ed",
+        "ngc7217-observation.webp": "145b9afa6ae0cf4b1e3f82d8fd2c9a266b5dd5af3489866ece588327c14a164e"
+      }
+    },
+    {
+      "id": "ngc6384",
+      "name": "NGC 6384 은하",
+      "kind": "나선은하",
+      "irregular": false,
+      "ratio": 0.7791,
+      "roll": -1.17216,
+      "density": "ngc6384-density.webp",
+      "observation": "ngc6384-observation.webp",
+      "credit": "Pan-STARRS1 / STScI",
+      "source": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=263.10125&dec=7.0602778&size=911&output_size=1024&red=%2Frings.v3.skycell%2F1477%2F074%2Frings.v3.skycell.1477.074.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1477%2F074%2Frings.v3.skycell.1477.074.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1477%2F074%2Frings.v3.skycell.1477.074.stk.g.unconv.fits&format=jpg",
+      "band": "가시광",
+      "angle": 2.45,
+      "distance": null,
+      "input": {
+        "url": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=263.10125&dec=7.0602778&size=911&output_size=1024&red=%2Frings.v3.skycell%2F1477%2F074%2Frings.v3.skycell.1477.074.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1477%2F074%2Frings.v3.skycell.1477.074.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1477%2F074%2Frings.v3.skycell.1477.074.stk.g.unconv.fits&format=jpg",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "c13036eade0e78e3178fb3739c11524e7452605b552d242895cc78ccfb33c505"
+      },
+      "hash": {
+        "ngc6384-density.webp": "c81755698f74134c9164e70db6299001ae74a840af8ec0b7bfb5e2ce959c8050",
+        "ngc6384-observation.webp": "55e311eca407303de6e3f9fe09049b553ba82c9294f013e972fcc5589fbdaf11"
+      }
+    },
+    {
+      "id": "ngc7479",
+      "name": "NGC 7479 은하",
+      "kind": "막대나선은하",
+      "irregular": false,
+      "ratio": 0.6728,
+      "roll": -1.08709,
+      "density": "ngc7479-density.webp",
+      "observation": "ngc7479-observation.webp",
+      "credit": "Pan-STARRS1 / STScI",
+      "source": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=346.2360417&dec=12.3228889&size=1358&output_size=1024&red=%2Frings.v3.skycell%2F1675%2F008%2Frings.v3.skycell.1675.008.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1675%2F008%2Frings.v3.skycell.1675.008.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1675%2F008%2Frings.v3.skycell.1675.008.stk.g.unconv.fits&format=jpg",
+      "band": "가시광",
+      "angle": 3.65,
+      "distance": null,
+      "input": {
+        "url": "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra=346.2360417&dec=12.3228889&size=1358&output_size=1024&red=%2Frings.v3.skycell%2F1675%2F008%2Frings.v3.skycell.1675.008.stk.i.unconv.fits&green=%2Frings.v3.skycell%2F1675%2F008%2Frings.v3.skycell.1675.008.stk.r.unconv.fits&blue=%2Frings.v3.skycell%2F1675%2F008%2Frings.v3.skycell.1675.008.stk.g.unconv.fits&format=jpg",
+        "size": [
+          1024,
+          1024
+        ],
+        "sha256": "e11e85ed2df683ca8c432860fc8c38606fa77b8fa51f6d626938c1ac730343dd"
+      },
+      "hash": {
+        "ngc7479-density.webp": "99edd7ac9bea505567413421d8670a73a6b5661ebc9a0df27a57c2c7d5db33e4",
+        "ngc7479-observation.webp": "e4a95f9a1b9a4fff8dc6f9d03dde24193f160e846ce364408f41e2518b91ec4a"
+      }
+    }
+  ],
+  "processing": "Registered archival observations. Depth is illustrative: disk inclination from light moments; an extended stellar layer, central component or irregular volume, and a dust layer estimated from local deficits. Internal star depths, the far side, and camera travel are not measured. Source colour bands are preserved. See skystamps.json and orbit-galaxies.json for rights and coordinates."
+}
