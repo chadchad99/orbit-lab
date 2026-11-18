@@ -61,24 +61,62 @@ globalThis.CosmicSky = (()=>{
     ctx.globalAlpha=1;
   }
   const galaxyNames={m31:'안드로메다은하',m33:'삼각형자리은하',lmc:'대마젤란은하',smc:'소마젤란은하'};
-  function stamps(ctx,p,cam,list,ready,annotations,light=1){
-    const [cx,cy]=cam.principal;
+  function loadStamps(){
+    return Promise.all(['cosmos/skystamps.json','cosmos/orbit-galaxies.json'].map(path=>
+      LabCatalog.load(path).then(data=>data.stamps||[]).catch(()=>[]))).then(groups=>groups.flat());
+  }
+  const stampAxes=new WeakMap();
+  function axesFor(g){
+    if(!stampAxes.has(g)){
+      const a=g.raDeg*r,d=g.decDeg*r;
+      stampAxes.set(g,{v:ecl(vec(g.raDeg,g.decDeg)),east:ecl([-s(a),c(a),0]),north:ecl([-s(d)*c(a),-s(d)*s(a),c(d)])});
+    }
+    return stampAxes.get(g);
+  }
+  function stamps(ctx,p,cam,list,ready,annotations,light=1,emphasize=false){
+    const focal=cam.skyFocal||cam.focal,[cx,cy]=cam.principal;
     const corner=Math.hypot(p.w*Math.max(cx,1-cx),p.h*Math.max(cy,1-cy));
-    const viewAngle=Math.atan2(corner,cam.skyFocal||cam.focal);
+    const viewAngle=Math.atan2(corner+65,focal),candidates=[];
     for(const g of list){
       if(!g.file)continue;
-      const direction=ecl(vec(g.raDeg,g.decDeg));
+      const {v,east,north}=axesFor(g),depth=-dot(v,cam.front);
       const radius=Math.hypot(g.widthDeg,g.heightDeg)*r/2;
-      // At grazing incidence an off-screen galaxy's tangent plane can project across the entire sky.
-      if(-dot(direction,cam.front)<Math.cos(Math.min(Math.PI,viewAngle+radius)))continue;
-      const center=screen(p,cam,direction);if(!center)continue;
+      if(depth<=.005||depth<Math.cos(Math.min(Math.PI,viewAngle+radius)))continue;
+      const scale=focal/depth,tx=dot(v,cam.right)/depth,ty=dot(v,cam.up)/depth;
+      const x=p.x+p.w*cx+focal*tx,y=p.y+p.h*cy-focal*ty;
+      const major=g.majorArcmin??Math.max(g.widthDeg,g.heightDeg)*38;
+      const apparentMajor=scale*major*r/60;
+      // Survey centers and camera roll stay fixed. Only small angular footprints
+      // are magnified for the guided map. Zoom converges to the true footprint.
+      const minMajor=(p.w<550?23:36)*Math.max(.74,Math.min(1.5,(major/10)**.32));
+      const boost=emphasize?Math.min(36,Math.max(1,minMajor/apparentMajor)):1;
+      const width=2*Math.tan(g.widthDeg*r/2)*scale*boost,height=2*Math.tan(g.heightDeg*r/2)*scale*boost;
+      const ax=-(dot(east,cam.right)+tx*dot(east,cam.front))*width;
+      const ay=(dot(east,cam.up)+ty*dot(east,cam.front))*width;
+      const bx=-(dot(north,cam.right)+tx*dot(north,cam.front))*height;
+      const by=(dot(north,cam.up)+ty*dot(north,cam.front))*height;
+      const ex=(Math.abs(ax)+Math.abs(bx))*.5,ey=(Math.abs(ay)+Math.abs(by))*.5;
+      if(x+ex<p.x||y+ey<p.y||x-ex>p.x+p.w||y-ey>p.y+p.h)continue;
       const im=getImage(g.file,ready);if(!im)continue;
-      const east=screen(p,cam,ecl(vec(g.raDeg+.01/Math.max(.06,c(g.decDeg*r)),g.decDeg))),north=screen(p,cam,ecl(vec(g.raDeg,g.decDeg+.01)));if(!east||!north)continue;
-      const unit=.01*r,wx=2*Math.tan(g.widthDeg*r/2)/unit,hy=2*Math.tan(g.heightDeg*r/2)/unit;
-      const ax=(center[0]-east[0])*wx,ay=(center[1]-east[1])*wx,bx=(center[0]-north[0])*hy,by=(center[1]-north[1])*hy;
-      if(center[0]+Math.abs(ax)+Math.abs(bx)<p.x||center[1]+Math.abs(ay)+Math.abs(by)<p.y||center[0]-Math.abs(ax)-Math.abs(bx)>p.x+p.w||center[1]-Math.abs(ay)-Math.abs(by)>p.y+p.h)continue;
-      ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=.92*light;ctx.transform(ax,ay,bx,by,center[0],center[1]);ctx.drawImage(im,-.5,-.5,1,1);ctx.restore();
-      if(annotations&&galaxyNames[g.id])annotations.push(note(center,g.id,galaxyNames[g.id],Math.max(4,Math.hypot(ax,ay)*.30)));
+      ctx.save();ctx.globalCompositeOperation='screen';
+      const brightness=g.survey?Math.max(.64,Math.min(1,1.06-.096*(g.magnitude-9))):1;
+      ctx.globalAlpha=emphasize?(.74+.25*light)*brightness:.92*light;
+      ctx.transform(ax,ay,bx,by,x,y);ctx.drawImage(im,-.5,-.5,1,1);ctx.restore();
+      if(!annotations)continue;
+      const name=g.nameKo||galaxyNames[g.id];if(!name)continue;
+      const reach=Math.max(4,apparentMajor*boost*.40);
+      const item=note([x,y],g.id,name,reach);
+      Object.assign(item,{galaxy:true,source:g.survey,pickRadius:Math.min(32,reach+3),hideLabel:true});
+      annotations.push(item);
+      if(x>=p.x&&x<=p.x+p.w&&y>=p.y&&y<=p.y+p.h&&(emphasize||!g.survey))
+        candidates.push({item,mag:g.magnitude??3});
+    }
+    // Reserve enough space between galaxy names for the nearby planet labels.
+    const shown=[];
+    for(const {item} of candidates.sort((a,b)=>a.mag-b.mag)){
+      if(shown.length>=(p.w<550?2:4))break;
+      if(shown.some(o=>Math.hypot(o.x-item.x,o.y-item.y)<Math.min(110,p.w*.17)))continue;
+      item.hideLabel=false;shown.push(item);
     }
   }
   function observerKey(cam){
@@ -105,8 +143,8 @@ globalThis.CosmicSky = (()=>{
       });
     }).catch(()=>{});
     LabCatalog.load('cosmos/galaxies.json').then(d=>{const g=d.galaxies.find(x=>x.kindCode==='galactic-center');if(g)centre=ecl(vec(g.raDeg,g.decDeg));bump();}).catch(()=>{});
-    LabCatalog.load('cosmos/skystamps.json').then(d=>{galaxies=d.stamps||d.galaxies||d;bump();}).catch(()=>{});
-    return(ctx,p,cam,showSurvey,exposure)=>{
+    loadStamps().then(data=>{galaxies=data;bump();}).catch(()=>{});
+    return(ctx,p,cam,showSurvey,exposure,emphasize)=>{
       const annotations=[],light=Math.min(1,exposure*1.15);
       const day=cam.day??0,target=cam.closeBody??0;
       // Catalogue proper motions already include the Sun's motion. Apply only
@@ -123,13 +161,13 @@ globalThis.CosmicSky = (()=>{
       ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();dotStars(ctx,p,cam,stars,light,annotations);
       if(showSurvey&&!reading){reading=true;LabCatalog.load('cosmos/redshift.json.gz').then(d=>{survey=d.rows.map(row=>ecl(vec(row[1],row[2])));bump();}).catch(()=>{reading=false;});}
       if(showSurvey&&survey){ctx.fillStyle='rgba(162,183,190,.47)';for(const v of survey){const point=screen(p,cam,v);if(point&&point[0]>=p.x&&point[0]<=p.x+p.w&&point[1]>=p.y&&point[1]<=p.y+p.h)ctx.fillRect(point[0],point[1],.9,.9);}}
-      stamps(ctx,p,cam,galaxies,bump,annotations,light);ctx.restore();
+      stamps(ctx,p,cam,cam.surveySky?galaxies:galaxies.filter(g=>!g.survey),bump,annotations,light,emphasize);ctx.restore();
       const gc=centre&&screen(p,cam,centre);
       if(gc)annotations.push(note(gc,'milky-way','궁수자리 A* 방향',4));
       return annotations;
     };
   }
-  return {vec,ecl,camera,screen,color,stellarMotion,dotStars,stamps,getImage,observerKey,setupBackdrop,src};
+  return {vec,ecl,camera,screen,color,stellarMotion,dotStars,stamps,loadStamps,getImage,observerKey,setupBackdrop,src};
 })();
 
 globalThis.createCosmosViewer=function(){
@@ -147,14 +185,22 @@ globalThis.createCosmosViewer=function(){
     details.textContent=(obj.id==='sun'?'태양계의 기준점':obj.dist!=null?'태양에서 '+f(obj.dist)+'광년':'거리 미확정')+(obj.mag!=null?' · 겉보기등급 '+f(obj.mag):'')+extra;
     if(obj.skyNote)details.textContent+=' · '+obj.skyNote;
     if(obj.radio){link.textContent='EHT Collaboration · 전파 관측 원본 ↗';im.dataset.band='radio';}
+    if(obj.angular){
+      details.textContent='하늘에서 긴 쪽 지름 '+f(obj.angular)+'각분 · '+(obj.band||'V')+'등급 '+f(obj.mag);
+      link.textContent=obj.credit+' ↗';
+    }
     link.href=obj.source||(mode==='near'?'https://doi.org/10.26093/cds/vizier.36500201':'https://heasarc.gsfc.nasa.gov/W3Browse/star-catalog/hipparcos.html');if(obj.photo){im.hidden=false;im.src=LabMedia.file(S.src+obj.photo);im.alt=obj.alt||obj.name+' 관측 사진';im.title=obj.credit||'';}
   }
   function useTarget(value,aim){selection=value;select.value=value;const obj=selected();if(aim&&obj&&['sky','survey'].includes(mode)&&obj.ra!=null){ra=obj.ra;dec=obj.dec;}info();redraw();}
   async function change(value,target){const token=++rev;mode=value;zoom=1;pan=[0,0];selection='';hits=[];points=[];select.replaceChildren();id('cosmos-title').textContent=names[mode];id('cosmos-object').textContent='관측 자료를 여는 중…';id('cosmos-detail').textContent='';id('cosmos-photo').hidden=true;
     for(const b of id('cosmos-scales').children)b.setAttribute('aria-pressed',String(b.dataset.scale===mode));id('cosmos-tracks').hidden=!['milky','galaxies','survey'].includes(mode);id('cosmos-tracks').textContent=mode==='survey'?'시선속도 색':'궤적 표시';id('cosmos-tracks').setAttribute('aria-pressed',String(tracks));sky.hidden=mode!=='sky';redraw();
     try{if(value==='sky'||value==='survey'){
-        const [a,g,st]=await Promise.all([D.load('cosmos/stars.json'),D.load('cosmos/galaxies.json'),D.load('cosmos/skystamps.json')]);if(token!==rev)return;stars=a;galaxies=g;stampList=st.stamps||st.galaxies||st;
-        if(!skyStars.length)skyStars=stars.rows.map(r=>({v:S.ecl(S.vec(r[1],r[2])),mag:r[3],color:S.color(r[4])}));points=stars.rows.filter(r=>r[6]).map(r=>({id:'hip'+r[0],name:stars.meta.koreanNamesByHip[r[0]]||r[6],ra:r[1],dec:r[2],dist:r[5],mag:r[3]}));const external=g.galaxies.filter(x=>x.photo).map(x=>({id:x.id,name:x.skyNameKo||x.nameKo,ra:x.raDeg,dec:x.decDeg,dist:x.distanceLy,photo:x.photo,source:x.imageSource,credit:x.credit,radio:x.kindCode==='galactic-center',alt:x.photoAltKo,skyNote:x.skyNoteKo}));points.unshift(...external);if(value==='survey'){survey=await D.load('cosmos/redshift.json.gz');if(token!==rev)return;}ra=value==='survey'?180:32;dec=value==='survey'?0:32;
+        const [a,g,st]=await Promise.all([D.load('cosmos/stars.json'),D.load('cosmos/galaxies.json'),S.loadStamps()]);if(token!==rev)return;stars=a;galaxies=g;stampList=st;
+        if(!skyStars.length)skyStars=stars.rows.map(r=>({v:S.ecl(S.vec(r[1],r[2])),mag:r[3],color:S.color(r[4])}));points=stars.rows.filter(r=>r[6]).map(r=>({id:'hip'+r[0],name:stars.meta.koreanNamesByHip[r[0]]||r[6],ra:r[1],dec:r[2],dist:r[5],mag:r[3]}));const external=g.galaxies.filter(x=>x.photo).map(x=>({id:x.id,name:x.skyNameKo||x.nameKo,ra:x.raDeg,dec:x.decDeg,dist:x.distanceLy,photo:x.photo,source:x.imageSource,credit:x.credit,radio:x.kindCode==='galactic-center',alt:x.photoAltKo,skyNote:x.skyNoteKo}));for(const image of stampList.filter(x=>x.survey)){
+          external.push({id:image.id,name:image.nameKo,ra:image.raDeg,dec:image.decDeg,mag:image.magnitude,
+            photo:image.file,source:image.source,credit:image.credit,angular:image.majorArcmin,band:image.magnitudeBand});
+        }
+        points.unshift(...external);if(value==='survey'){survey=await D.load('cosmos/redshift.json.gz');if(token!==rev)return;}ra=value==='survey'?180:32;dec=value==='survey'?0:32;
       }else if(value==='near'){const n=await D.load('cosmos/nearby.json');if(token!==rev)return;nearby=n;points=n.rows.map(r=>({id:r[0],name:n.meta.koreanNamesById[r[0]]||r[1],dist:r[4],v:r.slice(5,8),mag:r[8]}));}
       else if(value==='milky'){milky=await D.load('cosmos/milkyway.json');if(token!==rev)return;points=[{id:'sun',name:'태양계 위치'},{id:'gc',name:'은하 중심'}];}
       else{const [g,m]=await Promise.all([D.load('cosmos/galaxies.json'),D.load('cosmos/motion.json')]);if(token!==rev)return;galaxies=g;motions=m.objects||{};points=g.galaxies.map(x=>({id:x.id,name:x.nameKo,dist:x.distanceLy,v:S.vec(x.raDeg,x.decDeg).map(v=>v*x.distanceLy),ra:x.raDeg,dec:x.decDeg,photo:x.photo,credit:x.credit,source:x.imageSource||x.source,radio:x.kindCode==='galactic-center',alt:x.photoAltKo}));}
@@ -183,7 +229,7 @@ globalThis.createCosmosViewer=function(){
   function draw(){if(!dialog.open)return;const w=dialog.clientWidth,h=dialog.clientHeight;if(!w||!h)return;const dpr=Math.min(window.devicePixelRatio||1,1.6);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);hits=[];const pane={x:0,y:0,w,h};
     if(mode==='survey'){drawSurvey(w,h);return;}
     if(mode==='sky'){if(!stars)return;const focal=Math.min(w,h)*.78*zoom,cam=S.camera(ra,dec,focal);skyPaint??=createMapSky(sky,redraw,false);skyPaint(w,h,dpr,[{pane,camera:cam,exposure:mode==='sky'?.82:.25}]);
-      if(mode==='sky'){S.dotStars(ctx,pane,cam,skyStars,.93);S.stamps(ctx,pane,cam,stampList,redraw);}
+      if(mode==='sky'){S.dotStars(ctx,pane,cam,skyStars,.93);S.stamps(ctx,pane,cam,stampList.filter(g=>!g.survey||g.id===selection),redraw);}
       for(const p of points){const xy=S.screen(pane,cam,S.ecl(S.vec(p.ra,p.dec)));if(!xy||xy[0]<0||xy[1]<0||xy[0]>w||xy[1]>h)continue;hits.push([xy[0],xy[1],p.id]);if(p.radio&&p.id===selection){
           ctx.save();ctx.translate(...xy);ctx.strokeStyle='#bbd5e6';ctx.lineWidth=1;ctx.beginPath();
           for(let i=0;i<4;i++){ctx.moveTo(5,0);ctx.lineTo(12,0);ctx.rotate(Math.PI/2);}ctx.stroke();ctx.restore();

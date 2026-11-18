@@ -262,7 +262,7 @@
       const boxes=[{x:p.x,y:p.y,w:116,h:p.layer==="both"?39:65},{x:p.x,y:p.y+p.h-31,w:116,h:31},{x:p.x+p.w-247,y:p.y+p.h-45,w:247,h:45}];
       const inset=document.getElementById("galaxy-inset");
       if(overview&&inset.offsetWidth)boxes.push({x:inset.offsetLeft-3,y:inset.offsetTop-3,w:inset.offsetWidth+6,h:inset.offsetHeight+6});
-      const bodiesInView=disks.filter(q=>q.inFront&&inPanel(p,q));
+      const bodiesInView=disks.filter(q=>!q.hideLabel&&q.inFront&&inPanel(p,q));
       const blocked=bodiesInView.filter(q=>!q.note).map(q=>{
         const halfHeight=q.index===0?q.reach:q.radius;
         return {x:q.x-q.reach-3,y:q.y-halfHeight-3,w:q.reach*2+6,h:halfHeight*2+6};
@@ -414,6 +414,7 @@
           list.push({...ref,index:-1,diam:6,reach:3,radius:3,label:"원래 "+names[s.watch],ghost:true});
         }
       }
+      if(!s.cleanView)for(const q of skyNotes)if(q.galaxy&&inPanel(p,q))hits.push({index:q.target,panel:p,backdrop:true,circle:{x:q.x,y:q.y,diam:2*q.pickRadius}});
       const notes=s.scope==="wide"?[...ageNotes,...smallNotes,...skyNotes]:[];
       labels(p,c,s,list.concat(notes));if(!s.cleanView){catalogMark(p,c,s,run,testView);if(!S.compressed(s))scaleBar(p,c);}
       if(p.layer!=="both"){
@@ -446,9 +447,14 @@
         const camera=S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch,cruiseTime);
         let exposure=camera.surveySky?galacticExposure(camera,s,run,testView):dark?1.05:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:s.scope==="wide"?.90:.52;
         if(s.flyby&&!dark)exposure*=.43;
-        return {pane,run,testView,showSurvey:s.scope==="wide"&&s.allFit,camera,exposure};
+        return {pane,run,testView,galaxyEmphasis:camera.surveySky&&s.galaxyEmphasis&&!s.actualSize,showSurvey:s.scope==="wide"&&s.allFit,camera,exposure};
       });
-      const notes=sky(w,h,dpr,views);views.forEach((view,i)=>drawPanel(view,s,notes[i]||[]));
+      const notes=sky(w,h,dpr,views);
+      for(const [source,id] of [["legacy","legacy-credit"],["ps1","ps1-credit"]]){
+        const visible=notes.some(group=>group.some(q=>q.galaxy&&q.source===source));
+        const credit=document.getElementById(id);if(credit.hidden===visible)credit.hidden=!visible;
+      }
+      views.forEach((view,i)=>drawPanel(view,s,notes[i]||[]));
       if(s.split){
         const q=views[1].pane;ctx.strokeStyle="#61707380";ctx.lineWidth=1;ctx.beginPath();
         if(q.x){ctx.moveTo(q.x,0);ctx.lineTo(q.x,h);}else{ctx.moveTo(0,q.y);ctx.lineTo(w,q.y);}ctx.stroke();
@@ -470,10 +476,13 @@
     canvas.addEventListener("pointerleave",()=>{if(hover){hover=0;dirty=true;}});
     function hit(p,touch){
       const matches=hits.filter(h=>inPanel(h.panel,p));
-      const disks=matches.filter(h=>h.circle).map(h=>({id:h.index,d:Math.hypot(p.x-h.circle.x,p.y-h.circle.y),r:h.circle.diam/2}));
+      const disks=matches.filter(h=>h.circle&&!h.backdrop).map(h=>({id:h.index,d:Math.hypot(p.x-h.circle.x,p.y-h.circle.y),r:h.circle.diam/2}));
       const nearest=disks.filter(v=>v.d<Math.max(touch?12:7,v.r+(touch?5:2))).sort((a,b)=>a.d-b.d)[0];
       if(nearest)return nearest.id;
-      const label=matches.find(h=>h.box&&p.x>=h.box.x&&p.x<=h.box.x+h.box.w&&p.y>=h.box.y&&p.y<=h.box.y+h.box.h);return label?.index??null;
+      const label=matches.find(h=>h.box&&p.x>=h.box.x&&p.x<=h.box.x+h.box.w&&p.y>=h.box.y&&p.y<=h.box.y+h.box.h);if(label)return label.index;
+      let best=null,distance=Infinity;
+      for(const h of matches)if(h.backdrop){const q=h.circle,d=Math.hypot(p.x-q.x,p.y-q.y);if(d<Math.max(touch?12:6,q.diam/2)&&d<distance){best=h.index;distance=d;}}
+      return best;
     }
     const gap=()=>{const [a,b]=pointers.values();return Math.hypot(a.x-b.x,a.y-b.y)};
     canvas.addEventListener("pointerdown",e=>{
