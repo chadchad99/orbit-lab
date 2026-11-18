@@ -61,14 +61,26 @@ globalThis.CosmicSky = (()=>{
     ctx.globalAlpha=1;
   }
   const galaxyNames={m31:'안드로메다은하',m33:'삼각형자리은하',lmc:'대마젤란은하',smc:'소마젤란은하'};
-  function stamps(ctx,p,cam,list,ready,annotations,light=1){for(const g of list){if(!g.file)continue;const center=screen(p,cam,ecl(vec(g.raDeg,g.decDeg)));if(!center)continue;const im=getImage(g.file,ready);if(!im)continue;
+  function stamps(ctx,p,cam,list,ready,annotations,light=1){
+    const [cx,cy]=cam.principal;
+    const corner=Math.hypot(p.w*Math.max(cx,1-cx),p.h*Math.max(cy,1-cy));
+    const viewAngle=Math.atan2(corner,cam.skyFocal||cam.focal);
+    for(const g of list){
+      if(!g.file)continue;
+      const direction=ecl(vec(g.raDeg,g.decDeg));
+      const radius=Math.hypot(g.widthDeg,g.heightDeg)*r/2;
+      // At grazing incidence an off-screen galaxy's tangent plane can project across the entire sky.
+      if(-dot(direction,cam.front)<Math.cos(Math.min(Math.PI,viewAngle+radius)))continue;
+      const center=screen(p,cam,direction);if(!center)continue;
+      const im=getImage(g.file,ready);if(!im)continue;
       const east=screen(p,cam,ecl(vec(g.raDeg+.01/Math.max(.06,c(g.decDeg*r)),g.decDeg))),north=screen(p,cam,ecl(vec(g.raDeg,g.decDeg+.01)));if(!east||!north)continue;
       const unit=.01*r,wx=2*Math.tan(g.widthDeg*r/2)/unit,hy=2*Math.tan(g.heightDeg*r/2)/unit;
       const ax=(center[0]-east[0])*wx,ay=(center[1]-east[1])*wx,bx=(center[0]-north[0])*hy,by=(center[1]-north[1])*hy;
       if(center[0]+Math.abs(ax)+Math.abs(bx)<p.x||center[1]+Math.abs(ay)+Math.abs(by)<p.y||center[0]-Math.abs(ax)-Math.abs(bx)>p.x+p.w||center[1]-Math.abs(ay)-Math.abs(by)>p.y+p.h)continue;
       ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=.92*light;ctx.transform(ax,ay,bx,by,center[0],center[1]);ctx.drawImage(im,-.5,-.5,1,1);ctx.restore();
       if(annotations&&galaxyNames[g.id])annotations.push(note(center,g.id,galaxyNames[g.id],Math.max(4,Math.hypot(ax,ay)*.30)));
-    }}
+    }
+  }
   function observerKey(cam){
     const eye=cam.cruising?cam.eye.map(v=>Math.round(v*2)):[];
     return [Math.floor((cam.day??0)/32),cam.closeBody??0,cam.run?.kind,...eye].join('/');

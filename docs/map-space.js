@@ -207,7 +207,10 @@ globalThis.OrbitMapSpace = (() => {
     let focal=Math.min(p.h*.96,p.w*(close?.80:1.36));
     const pole=[0,0,1],az0=Math.atan2(LabInitial.bodies[s.watch].p[1],LabInitial.bodies[s.watch].p[0]);
     let right,up,front,eye,center,principal=[.50,.50],distanceToCenter;
-    if(s.scope==="sun"){
+    if(s.flyby){
+      ({center,front,right,up,focal,principal,dist:distanceToCenter}=OrbitFlyby.pose(p,s,run));
+      eye=along(center,front,distanceToCenter);
+    }else if(s.scope==="sun"){
       center=world(s,run,0,s.day);
       front=norm(subtract(world(s,run,M.EARTH,s.day),center));right=norm(cross(pole,front));up=norm(cross(front,right));
       const imageRadius=Math.min(p.w,p.h)*(s.sunBand==="euv"?.376:.43)*zoom;
@@ -277,7 +280,7 @@ globalThis.OrbitMapSpace = (() => {
       const scale=focal/Math.max(near,z);
       return {x:cx+dot(v,right)*scale,y:cy-dot(v,up)*scale,z,scale,inFront:z>near};
     }
-    return {run,day:s.day,surveySky:s.scope==="wide"&&galaxy,skyFocal:s.scope==="wide"&&!galaxy?Math.min(p.h*.87,p.w*.95):focal,pane:p,closeBody:s.scope==="sun"?0:close?s.watch:null,project,projectDisplay,focal,eye,front,up,right,center,principal,near,dist:distanceToCenter,px:focal/distanceToCenter};
+    return {run,day:s.day,flyby:!!s.flyby,surveySky:!!s.flyby||s.scope==="wide"&&galaxy,skyFocal:s.scope==="wide"&&!galaxy?Math.min(p.h*.87,p.w*.95):focal,pane:p,closeBody:s.scope==="sun"?0:close?s.watch:null,project,projectDisplay,focal,eye,front,up,right,center,principal,near,dist:distanceToCenter,px:focal/distanceToCenter};
   }
   return {camera,cruising,world,systemFrame,radii,polarRatio,subtract,distance,clamp,speedInAU,direction,radial,galacticOffset,compressed,scaleRadius};
 })();

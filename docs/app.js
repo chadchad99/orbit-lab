@@ -41,6 +41,7 @@
   }
   setPlaybackRate(runningRate);
   const map=createLabMap(el("sky"),el("star-field"),i=>{
+    if(i===null){toggleCleanView();return;}
     if(i?.domain==="sky"){cosmos.openSky(i.id);return;}
     if(i?.domain==="small"){state.catalog.openSmall(i.id);return;}
     if(typeof i==="string"){state.catalog.openGroup(i);return;}
@@ -405,8 +406,20 @@
   for(const button of [immersive,el("map-full")])button.addEventListener("click",()=>{if(screen){closeScreen();return;}fullFlag(true);if(box.requestFullscreen){try{const req=box.requestFullscreen();if(req?.catch)req.catch(()=>{});}catch{} }else if(box.webkitRequestFullscreen){try{box.webkitRequestFullscreen();}catch{}}});
   for(const evt of ["fullscreenchange","webkitfullscreenchange"])document.addEventListener(evt,()=>fullFlag(!!(document.fullscreenElement||document.webkitFullscreenElement)));
   for(const evt of ["pointermove","pointerdown","keydown","focusin"])box.addEventListener(evt,wake);
+  let wasFull=false;
+  const flyby=OrbitFlyby.create(map,()=>{
+    wasFull=screen;if(!screen)fullFlag(true);
+    box.classList.add("flyby-active");
+  },()=>{
+    map.fadePreviousView(500);box.classList.remove("flyby-active");
+    if(!wasFull)fullFlag(false);
+    if(location.hash==="#flyby")history.replaceState(history.state,"","#map/galaxy/earth/cruise"+(state.running?"/play":""));
+    if(el("flyby-open").getClientRects().length&&!document.querySelector("dialog[open]"))el("flyby-open").focus({preventScroll:true});
+    previous=null;mark();
+  });
+  el("flyby-open").onclick=()=>flyby.open(state.day);
   document.addEventListener("keydown",e=>{
-    if(e.key!=="Escape"||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||el("guide").open)return;
+    if(e.key!=="Escape"||flyby.active||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||el("guide").open)return;
     if(state.cleanView){toggleCleanView();el("clean-view").focus();}
     else if(state.cruiseSettings){state.cruiseSettings=false;updateControls();el("cruise-settings").focus();}
     else if(screen)closeScreen();
@@ -421,7 +434,7 @@
   el("close-guide").addEventListener("click",()=>guide.close());guide.addEventListener("close",()=>mark());
   guide.addEventListener("click",e=>{if(e.target===guide){const r=guide.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)guide.close()}});
   document.addEventListener("keydown",e=>{
-    if(guide.open||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||e.repeat||e.code!=="Space"||e.target.closest("button,input,select,a,summary"))return;
+    if(flyby.active||guide.open||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||e.repeat||e.code!=="Space"||e.target.closest("button,input,select,a,summary"))return;
     e.preventDefault();togglePlay();
   });
   document.addEventListener("visibilitychange",()=>mark());
@@ -438,6 +451,8 @@
   el("object-explorer").addEventListener("close",()=>mark());
   flight.setVisible(false);choose("vanish",true);selectPlanet(state.watch);
   function openMapLink(){
+    if(location.hash==="#flyby"){flyby.open(state.day);return;}
+    if(flyby.active)flyby.close();
     const match=location.hash.match(/^#map(?:\/(solar|galaxy))?(?:\/([a-z]+))?(?:\/(near|trails|wide|cruise|lunar|sun|euv))?(\/play)?$/);
     if(!match)return;
     state.mode="map";state.reference=match[1]||"galaxy";flight.setVisible(false);
@@ -452,10 +467,14 @@
     }
     map.reset();updateControls();mark();
   }
-  openMapLink();
-  if(!location.hash||location.hash.startsWith("#system/")){state.observing=true;state.running=!motionPreference.matches;updateControls();}
-  fullFlag(true);exoplanets.route();window.addEventListener("hashchange",openMapLink);
+  fullFlag(true);openMapLink();
+  if(!location.hash||location.hash==="#flyby"||location.hash.startsWith("#system/")){state.observing=true;state.running=!motionPreference.matches;updateControls();}
+  exoplanets.route();window.addEventListener("hashchange",openMapLink);
   function animate(now){
+    if(flyby.active){
+      if(!document.hidden)flyby.render(now,state);
+      previous=null;requestAnimationFrame(animate);return;
+    }
     const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open;
     if(previous===null)pendingDays=0;
     const elapsed=previous===null?0:Math.max(0,(now-previous)/1000);

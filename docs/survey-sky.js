@@ -159,8 +159,9 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     ctx.putImageData(frame,0,0);return cpu;
   }
   function render({p,c,exposure:light,m,ax,ay,ox,oy},ratio){
-    const scale=gl?Math.min(ratio,c.cruising?1.5:2,(c.cruising?2450:4096)/p.w,2500/p.h):
-      Math.min(ratio,c.cruising?1:1.75,(c.cruising?1150:2250)/p.w,(c.cruising?820:1550)/p.h);
+    const moving=c.cruising||c.flyby;
+    const scale=gl?Math.min(ratio,moving?1.5:2,(moving?2450:4096)/p.w,2500/p.h):
+      Math.min(ratio,moving?1:1.75,(c.flyby?800:moving?1150:2250)/p.w,(c.flyby?580:moving?820:1550)/p.h);
     const w=Math.max(1,Math.round(p.w*scale)),h=Math.max(1,Math.round(p.h*scale));
     if(!gl)return software(w,h,m,ax,ay,ox,oy,light);
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
