@@ -7,7 +7,7 @@
   const orbits=bodies.slice(1,9).map((_,i)=>M.initialEllipse(i+1));
   const trailColors=["221,198,157","149,157,168","208,188,159","148,187,213","210,165,141","206,195,180","208,197,171","155,195,197","150,177,210","192,191,187","224,190,151"];
   function createMap(canvas,stars,onPick,onChange){
-    const ctx=canvas.getContext("2d");
+    let ctx=canvas.getContext("2d"),lastViews=[],lastNotes=[];
     let glideTime=0,glideOffset=0,cruiseTime=0,scope="wide";
     let w=0,h=0,dpr=1,zoom=1,yaw=0,pitch=0,dirty=true,hits=[],hover=0,galacticWide=false;
     const galacticPoses=new Map();
@@ -50,7 +50,7 @@
       hover=0;lastGlide=null;change();
     }
     function resize(){
-      const r=canvas.getBoundingClientRect(),ratio=Math.min(devicePixelRatio||1,2);
+      const r=canvas.getBoundingClientRect(),ratio=Math.min(devicePixelRatio||1,3,Math.sqrt(18000000/Math.max(1,r.width*r.height)));
       if(r.width<1||r.height<1||(r.width===w&&r.height===h&&ratio===dpr))return;
       w=r.width;h=r.height;dpr=ratio;
       canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);dirty=true;
@@ -356,7 +356,7 @@
       const width=ctx.measureText(label).width,tx=clamp(x+Math.min(radius,45)+8,p.x+4,p.x+p.w-width-5),ty=clamp(y-13,p.y+17,p.y+p.h-19);
       ctx.fillStyle="#0c1119e6";ctx.fillRect(tx-3,ty-8,width+6,16);ctx.fillStyle="#ffdc9f";ctx.fillText(label,tx,ty);ctx.restore();
     }
-    function drawPanel({pane:p,camera:c,run,testView},s,skyNotes){
+    function drawPanel({pane:p,camera:c,run,testView},s,skyNotes,surface=materials){
       ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();
       const world=(index)=>S.world(s,run,index,s.day);
       const populations=s.scope==="wide"&&!s.cleanView&&!(s.applied&&testView);
@@ -401,7 +401,7 @@
           if(light)transitLight=light;
           if(q.index===0)hits.push({index:0,panel:p,circle:q});
         }
-        else{materials.planet(ctx,q,c,lights,dpr);hits.push({index:q.index,panel:p,circle:q});}
+        else{surface.planet(ctx,q,c,lights,dpr);hits.push({index:q.index,panel:p,circle:q});}
       }
       if(transitLight)transitLight();
       if(vanished&&s.showNames){
@@ -451,7 +451,7 @@
         if(s.flyby&&!dark)exposure*=.43;
         return {pane,run,testView,galaxyEmphasis:camera.surveySky&&s.galaxyEmphasis&&!s.actualSize,showSurvey:s.scope==="wide"&&s.allFit,camera,exposure};
       });
-      const notes=sky(w,h,dpr,views);
+      const notes=sky(w,h,dpr,views);lastViews=views;lastNotes=notes;
       for(const [source,id] of [["legacy","legacy-credit"],["ps1","ps1-credit"]]){
         const visible=notes.some(group=>group.some(q=>q.galaxy&&q.source===source));
         const credit=document.getElementById(id);if(credit.hidden===visible)credit.hidden=!visible;
@@ -528,7 +528,24 @@
       const radius=Math.min(w,h)*.43*zoom;
       yaw=-(uv[0]-.5)*radius/.386595/(w*.2);pitch=-(uv[1]-.5)*radius/.386595/(h*.2);change();
     }
-    return {draw,invalidate,advanceCamera,advanceSun:solar.advance,focusSunspot,needsRender:()=>dirty,reset,zoomBy,switchGalacticCamera,fadePreviousView,prepare:materials.prepare};
+    function capture(s){
+      const view=lastViews[0];
+      if(lastViews.length!==1||!view?.camera.surveySky)throw Error("은하 궤도의 전경 또는 동행 비행을 선택해 주세요.");
+      const width=w,height=h,notes=lastNotes[0]||[],snapshot={...s,day:view.camera.day??s.day};
+      const printMaterials=createMapMaterials(()=>{},true);
+      return {width,height,
+        prepare:()=>Promise.all([sky.preparePrint(),printMaterials.preparePrint(view.run.active),solar.preparePrint()]),
+        tile(output,rect,scale){
+          const old={ctx,dpr,hits,w,h};
+          try{
+            ctx=output;dpr=scale;hits=[];w=width;h=height;snapshot.printRatio=scale;
+            ctx.save();ctx.setTransform(scale,0,0,scale,-rect.x,-rect.y);
+            sky.printRegion(ctx,view,rect,scale);drawPanel(view,snapshot,notes,printMaterials);
+          }finally{ctx.restore();ctx=old.ctx;dpr=old.dpr;hits=old.hits;w=old.w;h=old.h;}
+        }
+      };
+    }
+    return {capture,draw,invalidate,advanceCamera,advanceSun:solar.advance,focusSunspot,needsRender:()=>dirty,reset,zoomBy,switchGalacticCamera,fadePreviousView,prepare:materials.prepare};
   }
   globalThis.createLabMap=createMap;
 })();

@@ -1,11 +1,11 @@
 // Small planet images are rendered from a sphere for the current camera and lights.
 // The same surface, cloud, city-light and ring materials are used in the flight window.
-globalThis.createMapMaterials = function createMapMaterials(invalidate) {
+globalThis.createMapMaterials = function createMapMaterials(invalidate,print) {
   "use strict";
   const {dot,norm,cross,specs,frames}=OrbitFrames;
   const {subtract,distance,radii,clamp}=OrbitMapSpace;
   const assets=new Map(),pending=new Set(),retryAt=new Map(),stamps=new Map();
-  const work=document.createElement("canvas"),paint=OrbitSoftware.make(work,{cutout:true,maxMapWidth:1024});
+  const work=document.createElement("canvas"),paint=OrbitSoftware.make(work,{cutout:true,maxMapWidth:print?4096:1024});
   const tau=2*Math.PI, identity=[1,0,0,0,1,0,0,0,1];
   // The close camera draws directly into a viewport-sized buffer, independently of map symbols.
   const opticCanvas=document.createElement("canvas"),fallbackCanvas=document.createElement("canvas");
@@ -20,6 +20,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
   opticCanvas.addEventListener("webglcontextlost",e=>{e.preventDefault();software();invalidate();});
   function filename(key){
     if(key==="ring")return "saturn-ring-close.png";
+    if(print)return key+".webp";
     if(key==="moon")return "moon-lite.webp";
     if(key==="jupiter")return "jupiter-preview.webp";
     return (["earth","earth-night","earth-clouds"].includes(key)?"lite-":"")+key+".webp";
@@ -107,11 +108,11 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     const lighting={id,body:index,tilt:0,air:sp[6],airColor:sp[7],sun,star:second,flux,flux2,viewToBody,viewToGal:identity,
       cloudsDrift:0,skyPower:0,sunSize:Math.min(.09,radii[0]/GravityLab.AU/solarRange),starSize:Math.min(.09,radii[10]/GravityLab.AU/companionRange),longitudeShift:OrbitFrames.surfaceShift(index,camera.day),
       polarRatio:OrbitMapSpace.polarRatio(index),ringPhase:saturn?SaturnRings.frame(camera.day):null};
-    if(camera.closeBody===index&&encounter(ctx,camera,q,files,lighting,ratio))return;
+    if(!print&&camera.closeBody===index&&encounter(ctx,camera,q,files,lighting,ratio))return;
     if(!assets.has(id)){unresolved(ctx,{...q,radius:.9},flux+flux2);return;}
     const physicalDistance=distance(camera.eye,q.position)*GravityLab.AU/radii[index];
     const d=clamp(physicalDistance,2.5,1800),extent=saturn?2.41:1.055;
-    const size=Math.max(6,Math.min(640,Math.ceil(2*q.radius*extent*clamp(ratio*1.25,1.45,2.3)/2)*2));
+    const size=Math.max(6,Math.min(print?2560:960,Math.ceil(2*q.radius*extent*(print?ratio:clamp(ratio*1.25,1.45,3))/2)*2));
     const rotationBins=Math.min(100,Math.max(6,Math.ceil(q.radius*1.6)));
     const key=[index,size,Math.round(lighting.longitudeShift*rotationBins),...(saturn?lighting.ringPhase.s.concat(lighting.ringPhase.c).map(v=>Math.round(v*40)):[]),Math.round(d*10),...sun.map(v=>Math.round(v*180)),...second.map(v=>Math.round(v*140)),...viewToBody.map(v=>Math.round(v*135)),Math.round(flux*130),Math.round(flux2*130)].join("/");
     let stamp=stamps.get(key);
@@ -124,5 +125,13 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     }
     const half=q.radius*extent;ctx.drawImage(stamp,q.x-half,q.y-half,2*half,2*half);
   }
-  return {planet,prepare};
+  async function preparePrint(indices){
+    const files=new Set(indices.filter(i=>i>0&&i<=9).flatMap(filesFor));
+    await Promise.all([...files].map(async key=>{
+      if(assets.has(key))return;
+      const image=new Image();image.src=LabMedia.file("assets/space/"+filename(key));
+      await image.decode();assets.set(key,image);
+    }));
+  }
+  return {planet,prepare,preparePrint};
 };
