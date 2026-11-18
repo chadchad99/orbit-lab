@@ -26,7 +26,7 @@ globalThis.LabFullLayer=(()=>{
   function remember(map,key,value,limit){if(map.size>=limit)map.delete(map.keys().next().value);map.set(key,value);return value;}
   function galLocation(s,run,heliocentric,origin){
     if(s.reference!=='galaxy')return heliocentric;
-    const sun=origin??S.world(s,run,0,s.day),off=S.compressed(s)?S.radial(heliocentric):heliocentric;
+    const sun=origin??S.world(s,run,0,s.day),off=S.compressed(s)?S.galacticOffset(heliocentric):heliocentric;
     return [sun[0]+off[0],sun[1]+off[1],sun[2]+off[2]];
   }
   function density(ctx,p,c,s,run){
@@ -34,14 +34,17 @@ globalThis.LabFullLayer=(()=>{
     // The precompressed grid is stored in J2000 ecliptic coordinates. Rasterize
     // every occupied voxel for the view, then transform the result as the camera follows.
     const ortho=!!c.orthographic,linear=!S.compressed(s),extent=linear?volume.bounds.maxDistanceAU:volume.bounds.fitRadius;
-    const key=[orientation(c),linear,ortho,ortho?'':[p.w,p.h,c.px,c.dist,p.x,p.y].join('/')].join('|');
+    const trackScale=s.reference==="galaxy"&&!linear;
+    const key=[orientation(c),linear,trackScale,ortho,ortho?'':[p.w,p.h,c.px,c.dist,p.x,p.y].join('/')].join('|');
     let rec=rasters.get(key);
     if(!rec){
       const w=ortho?840:Math.ceil(p.w),h=ortho?840:Math.ceil(p.h),factor=(w-2)/(2*extent);
       const surface=document.createElement('canvas');surface.width=w;surface.height=h;
       const dst=surface.getContext('2d'),img=dst.createImageData(w,h),ast=new Float32Array(w*h),comet=new Float32Array(w*h);
       for(const cell of volume.cells){
-        let v=[cell[0]*volume.step,cell[1]*volume.step,cell[2]*volume.step];if(linear)v=S.radial(v,true);
+        let v=[cell[0]*volume.step,cell[1]*volume.step,cell[2]*volume.step];
+        if(linear)v=S.radial(v,true);
+        else if(trackScale)v=S.galacticOffset(S.radial(v,true));
         let x,y;if(ortho){x=w*.5+dot(v,c.right)*factor;y=h*.5-dot(v,c.up)*factor;}
         else{const q=c.projectDisplay(v);x=q.x-p.x;y=q.y-p.y;}
         x=Math.floor(x);y=Math.floor(y);if(x>=0&&x<w&&y>=0&&y<h){ast[y*w+x]+=cell[3];comet[y*w+x]+=cell[4];}

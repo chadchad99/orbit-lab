@@ -268,6 +268,10 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
 .map-box:not([data-scope=wide]) .overview-toolbar,
 .map-box[data-mode=flight] .overview-toolbar { display:none; }
 .overview-toolbar .overview-options { position:static; max-width:100%; pointer-events:auto; }
+.camera-changeover { pointer-events:none; }
+.trail-choice { display:inline-flex; align-items:center; gap:4px; padding:3px 7px 3px 9px; border:1px solid #69778685; border-radius:20px; background:#0a121ad9; color:#acbac5; font:530 11px var(--sans); }
+.trail-choice select { max-width:80px; color:#daedf1; background:#121b22; border:0; border-radius:6px; font:inherit; }
+.trail-choice select:focus-visible { outline:2px solid #b9f0e2; }
 .galactic-views { display:flex; align-items:center; flex-wrap:wrap; gap:7px; pointer-events:auto; }
 .galactic-views .map-light { font-size:11px; padding:7px 11px; background:#080e15c9; }
 .camera-switch {
