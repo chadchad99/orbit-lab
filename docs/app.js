@@ -133,21 +133,23 @@
     const cruise=!fly&&OrbitMapSpace.cruising(state);
     el("satellite-layer").setAttribute("aria-pressed",String(cruise?state.cruiseSatellites:state.showSatellites));
     if(!galacticWide)state.cleanView=false;
-    if(!cruise)state.cruiseSettings=false;
+    const cameraSettings=galacticWide&&!state.fixedCamera;
+    if(!cameraSettings)state.cruiseSettings=false;
+    box.classList.toggle("galactic-camera",cameraSettings);
     box.classList.toggle("cruising",cruise);
     box.classList.toggle("clean-view",state.cleanView);
     el("galactic-views").hidden=!galacticWide;
     el("camera-cruise").setAttribute("aria-pressed",String(cruise));
     el("camera-overview").setAttribute("aria-pressed",String(!cruise));
     el("clean-view").hidden=el("star-exposure").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!galacticWide;
-    el("cruise-settings").hidden=!cruise;
+    el("cruise-settings").hidden=!cameraSettings;
     el("camera-home").hidden=!galacticWide;
     el("trail-body-control").hidden=!galacticWide||cruise||state.fixedCamera||state.allFit||!state.showPaths;
     const noSun=active&&state.kind==="vanish"&&!state.split;
     el("trail-body").options[0].disabled=noSun;
     if(noSun&&state.trailBody===0){state.trailBody=M.EARTH;el("trail-body").value=String(M.EARTH);}
     el("cruise-settings").setAttribute("aria-expanded",String(state.cruiseSettings));
-    el("overview-options").hidden=cruise&&!state.cruiseSettings;
+    el("overview-options").hidden=cameraSettings&&!state.cruiseSettings;
     el("star-exposure").setAttribute("aria-pressed",String(state.starExposure));
     el("cruise-paths").setAttribute("aria-pressed",String(state.showPaths));
     el("cruise-scale").setAttribute("aria-pressed",String(state.actualSize));
@@ -316,7 +318,7 @@
     const previousView=state.allFit||state.fixedCamera?null:state.cruise;
     if(previousView===cruise)return;
     map.switchGalacticCamera(previousView,cruise);
-    state.cruise=cruise;state.allFit=state.fixedCamera=false;
+    state.cruise=cruise;state.cruiseSettings=false;state.allFit=state.fixedCamera=false;
     updateControls();mark();
   }
   el("camera-cruise").onclick=()=>selectGalacticCamera(true);

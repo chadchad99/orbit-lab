@@ -35,10 +35,19 @@ globalThis.LabFullLayer=(()=>{
     // every occupied voxel for the view, then transform the result as the camera follows.
     const ortho=!!c.orthographic,linear=!S.compressed(s),extent=linear?volume.bounds.maxDistanceAU:volume.bounds.fitRadius;
     const trackScale=s.reference==="galaxy"&&!linear;
-    const key=[orientation(c),linear,trackScale,ortho,ortho?'':[p.w,p.h,c.px,c.dist,p.x,p.y].join('/')].join('|');
+    // Cache the perspective density in angular coordinates. Reframing and zooming
+    // then translate and scale the same projection rather than rebuilding 63,000 cells.
+    let tile=null;
+    if(c.overview){
+      const aperture=Math.max(p.w,p.h)/c.focal;
+      const span=2**Math.ceil(Math.log2(aperture*1.45)),grid=span/4;
+      tile={span,x:grid*Math.round((.5-c.principal[0])*p.w/c.focal/grid),
+                 y:grid*Math.round((.5-c.principal[1])*p.h/c.focal/grid)};
+    }
+    const key=[orientation(c),linear,trackScale,ortho,tile?[tile.span,tile.x,tile.y].join('/'):ortho?'':[p.w,p.h,c.px,c.dist,p.x,p.y].join('/')].join('|');
     let rec=rasters.get(key);
     if(!rec){
-      const w=ortho?840:Math.ceil(p.w),h=ortho?840:Math.ceil(p.h),factor=(w-2)/(2*extent);
+      const w=tile?640:ortho?840:Math.ceil(p.w),h=tile?640:ortho?840:Math.ceil(p.h),factor=(w-2)/(2*extent);
       const surface=document.createElement('canvas');surface.width=w;surface.height=h;
       const dst=surface.getContext('2d'),img=dst.createImageData(w,h),ast=new Float32Array(w*h),comet=new Float32Array(w*h);
       for(const cell of volume.cells){
@@ -46,13 +55,20 @@ globalThis.LabFullLayer=(()=>{
         if(linear)v=S.radial(v,true);
         else if(trackScale)v=S.galacticOffset(S.radial(v,true));
         let x,y;if(ortho){x=w*.5+dot(v,c.right)*factor;y=h*.5-dot(v,c.up)*factor;}
-        else{const q=c.projectDisplay(v);x=q.x-p.x;y=q.y-p.y;}
+        else{
+          const q=c.projectDisplay(v);if(!q.inFront)continue;
+          x=q.x-p.x;y=q.y-p.y;
+          if(tile){
+            x=w*(.5+((x-p.w*c.principal[0])/c.focal-tile.x)/tile.span);
+            y=h*(.5+((y-p.h*c.principal[1])/c.focal-tile.y)/tile.span);
+          }
+        }
         x=Math.floor(x);y=Math.floor(y);if(x>=0&&x<w&&y>=0&&y<h){ast[y*w+x]+=cell[3];comet[y*w+x]+=cell[4];}
       }
       // A survey cell is a volume, not a point. Smooth the projected counts at
       // roughly the width of a voxel to remove grid aliasing at grazing angles.
       const smooth=field=>{
-        const window=Math.max(1,Math.min(9,Math.round(ortho?volume.step*factor:volume.step*c.px)));
+        const window=Math.max(1,Math.min(9,Math.round(volume.step*(tile?w/(c.dist*tile.span):ortho?factor:c.px))));
         const tmp=new Float32Array(field.length),out=new Float32Array(field.length),unit=1/(2*window+1);
         for(let y=0;y<h;y++){let sum=0;const row=y*w;for(let x=-window;x<w;x++){
           if(x+window<w)sum+=field[row+x+window];if(x-window-1>=0)sum-=field[row+x-window-1];if(x>=0)tmp[row+x]=sum*unit;
@@ -72,6 +88,10 @@ globalThis.LabFullLayer=(()=>{
     ctx.save();ctx.globalAlpha=s.allFit?.85:.43;
     if(ortho){const center=c.project(S.world(s,run,0,s.day)),side=rec.surface.width/rec.factor*c.px;
       ctx.drawImage(rec.surface,center.x-side/2,center.y-side/2,side,side);
+    }else if(tile){
+      const side=c.focal*tile.span;
+      ctx.drawImage(rec.surface,p.x+p.w*c.principal[0]+c.focal*tile.x-side/2,
+        p.y+p.h*c.principal[1]+c.focal*tile.y-side/2,side,side);
     }else ctx.drawImage(rec.surface,p.x,p.y,p.w,p.h);ctx.restore();
   }
   function drawPoint(ctx,x,y,radius){

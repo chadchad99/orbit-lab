@@ -69,10 +69,10 @@ globalThis.OrbitMapSpace = (() => {
   const skyFocalLength=p=>Math.min(p.h*.98,p.w*(p.h>p.w?.87:1.02));
   // Fit the bodies and their actual one-year paths for this orientation, including a
   // rolling margin at both ends. Smoothly interpolate adjacent fits during playback.
-  function trailEnvelope(s,run,right,up){
+  function trailEnvelope(s,run,right,up,lens){
     const interval=20,t0=Math.floor(s.day/interval)*interval;
     let memo=envelopes.get(run);if(!memo){memo=new Map();envelopes.set(run,memo);}
-    const orient=[...right,...up].map(x=>x.toFixed(5)).join('/');
+    const orient=[...right,...up,lens?.dist??0].map(x=>x.toFixed(5)).join('/');
     function bounds(epoch){
       const k=[epoch,orient,s.allFit,compressed(s)].join('|');if(memo.has(k))return memo.get(k);
       const b=[Infinity,-Infinity,Infinity,-Infinity],view={...s,day:epoch};
@@ -81,41 +81,51 @@ globalThis.OrbitMapSpace = (() => {
         const n=id===1?96:48;
         for(let j=0;j<=n;j++){
           const date=epoch-365+365*j/n;if(id===M.COMPANION&&date<0)continue;
-          const v=world(view,run,id,date);include(dot(v,right),dot(v,up));
+          const v=world(view,run,id,date);
+          if(lens){
+            const scale=lens.dist/(lens.eyeDepth-dot(v,lens.front));
+            include((dot(v,right)-lens.eyeX)*scale,(dot(v,up)-lens.eyeY)*scale);
+          }else include(dot(v,right),dot(v,up));
         }
       }
       if(s.allFit){const r=compressed(s)?53:950;include(-r,-r);include(r,r);}
-      const pad=compressed(s)?1.8:1.15;
+      const pad=lens?2.0:compressed(s)?1.8:1.15;
       const out=[b[0]-pad,b[1]+pad,b[2]-pad,b[3]+pad];if(memo.size>=12)memo.delete(memo.keys().next().value);memo.set(k,out);return out;
     }
     const a=bounds(t0),b=bounds(t0+interval),u=(s.day-t0)/interval;return a.map((v,i)=>v+(b[i]-v)*u);
   }
   function wideGalacticCamera(p,s,run,zoom,yaw,pitch){
-    // Look from the same side of the track as the flight camera. Establish
-    // the roll once, so dragging across the direction of travel cannot flip it.
-    const az=2.10,el=-1.05;
+    // Establish the roll before manual rotation so dragging across the track never flips the image.
+    const overview=!s.allFit&&!s.applied;
+    const portrait=clamp((p.h/p.w-1)/.9,0,1);
+    const az=overview?-2.15-.24*portrait:2.10,el=overview?1.02+.02*portrait:-1.05;
     let front=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)];
     let right=[-Math.sin(az),Math.cos(az),0],up=norm(cross(front,right));
     // Roll the same sky and trajectories together so a tall viewport can use
     // its vertical field without cropping the outer planets.
-    const portrait=clamp((p.h/p.w-1)/.9,0,1),trackAngle=skyBank(p);
+    const trackAngle=overview?.27+1.21*portrait:skyBank(p);
     const roll=Math.atan2(dot(direction,up),dot(direction,right))-trackAngle;
     right=comb(right,up,Math.cos(roll),Math.sin(roll));up=norm(cross(front,right));
     [front,right,up]=turnFrame(front,right,up,yaw,pitch);
-    const b=trailEnvelope(s,run,right,up);
+    // View the present Sun from ahead of the system. The older paths recede into the frame.
+    const range=58,aim=direction.map(v=>-17*v),station=along(aim,front,range);
+    const lens=overview?{dist:range,front,eyeDepth:dot(station,front),eyeX:dot(station,right),eyeY:dot(station,up)}:null;
+    const b=trailEnvelope(s,run,right,up,lens);
     if(run.kind==="control"){
       // Keep a full playback block in frame. Move the framing only while
       // overlapping two blocks, so ordinary orbital motion never pumps the zoom.
-      const block=M.DAYS,t=Math.floor(s.day/block)*block,u=(s.day-t)/block;
+      const block=overview?48:M.DAYS,t=Math.floor(s.day/block)*block,u=(s.day-t)/block;
       let memo=playbackBounds.get(run);
       if(!memo){memo=new Map();playbackBounds.set(run,memo);}
       function blockBounds(start){
-        const key=["playback",start,s.allFit,compressed(s),...right,...up].join("|");
+        const key=["playback",start,block,s.allFit,compressed(s),...right,...up].join("|");
         let bounds=memo.get(key);
         if(!bounds){
           bounds=[Infinity,-Infinity,Infinity,-Infinity];
-          for(let day=Math.max(0,start-block);day<=start+block;day+=block/8){
-            const sample=trailEnvelope({...s,day},run,right,up);
+          const step=overview?20:block/8;
+          const end=start+block+(overview?step:0);
+          for(let day=Math.max(0,Math.floor((start-block)/step)*step);day<=end;day+=step){
+            const sample=trailEnvelope({...s,day},run,right,up,lens);
             bounds[0]=Math.min(bounds[0],sample[0]);bounds[1]=Math.max(bounds[1],sample[1]);
             bounds[2]=Math.min(bounds[2],sample[2]);bounds[3]=Math.max(bounds[3],sample[3]);
           }
@@ -130,10 +140,21 @@ globalThis.OrbitMapSpace = (() => {
         b[i]=i%2?Math.max(b[i],limit):Math.min(b[i],limit);
       }
     }
-    const mx=Math.min(p.w*.10,84),top=Math.min(p.h*(.17+.06*portrait),107+56*portrait),bottom=Math.min(p.h*(.12+.08*portrait),83+26*portrait);
-    const px=Math.min((p.w-2*mx)/Math.max(1,b[1]-b[0]),(p.h-top-bottom)/Math.max(1,b[3]-b[2]))*zoom;
-    const midX=(b[0]+b[1])/2,midY=(b[2]+b[3])/2,center=comb(right,up,midX,midY);
+    const mx=overview?Math.min(p.w*.075,76):Math.min(p.w*.10,84);
+    const top=overview?Math.min(p.h*.20,69+62*portrait):Math.min(p.h*(.17+.06*portrait),107+56*portrait);
+    const bottom=overview?Math.min(p.h*.21,67+56*portrait):Math.min(p.h*(.12+.08*portrait),83+26*portrait);
+    const fit=Math.min((p.w-2*mx)/Math.max(1,b[1]-b[0]),(p.h-top-bottom)/Math.max(1,b[3]-b[2]));
+    const px=fit*zoom,midX=(b[0]+b[1])/2,midY=(b[2]+b[3])/2,center=comb(right,up,midX,midY);
     const ox=p.x+p.w*.5-midX*px,oy=p.y+(p.h+top-bottom)*.5+midY*px;
+    if(lens){
+      const near=.01,focal=px*range,principal=[(ox-p.x)/p.w,(oy-p.y)/p.h];
+      function project(v){
+        const z=lens.eyeDepth-dot(v,front),scale=focal/Math.max(near,z);
+        return {x:ox+(dot(v,right)-lens.eyeX)*scale,y:oy-(dot(v,up)-lens.eyeY)*scale,z,scale,inFront:z>near};
+      }
+      return {overview:true,surveySky:true,run,day:s.day,pane:p,project,projectDisplay:project,
+        near,focal,skyFocal:focal,px,dist:range,principal,eye:station,front,right,up,center:aim,closeBody:null};
+    }
     const dist=Math.max(6000,px*10),eye=along(center,front,dist);
     function project(v){return {x:ox+dot(v,right)*px,y:oy-dot(v,up)*px,z:dist-dot(v,front),scale:px,inFront:true};}
     const skyFocal=skyFocalLength(p)*zoom;
