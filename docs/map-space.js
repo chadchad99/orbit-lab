@@ -98,17 +98,18 @@ globalThis.OrbitMapSpace = (() => {
     // Establish the roll before manual rotation so dragging across the track never flips the image.
     const overview=!s.allFit&&!s.applied;
     const portrait=clamp((p.h/p.w-1)/.9,0,1);
-    const az=overview?-2.15-.24*portrait:2.10,el=overview?1.02+.02*portrait:-1.05;
+    const az=overview?-2.28:2.10,el=overview?-.84:-1.05;
     let front=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)];
     let right=[-Math.sin(az),Math.cos(az),0],up=norm(cross(front,right));
     // Roll the same sky and trajectories together so a tall viewport can use
     // its vertical field without cropping the outer planets.
-    const trackAngle=overview?.27+1.21*portrait:skyBank(p);
+    const trackAngle=skyBank(p)+(overview?.04:0);
     const roll=Math.atan2(dot(direction,up),dot(direction,right))-trackAngle;
     right=comb(right,up,Math.cos(roll),Math.sin(roll));up=norm(cross(front,right));
     [front,right,up]=turnFrame(front,right,up,yaw,pitch);
-    // View the present Sun from ahead of the system. The older paths recede into the frame.
-    const range=58,aim=direction.map(v=>-17*v),station=along(aim,front,range);
+    // Look along the travelling system toward the photographic Milky Way.
+    // Leave enough depth in front of the lens for the full year of past orbits.
+    const range=65,aim=direction.map(v=>-17*v),station=along(aim,front,range);
     const lens=overview?{dist:range,front,eyeDepth:dot(station,front),eyeX:dot(station,right),eyeY:dot(station,up)}:null;
     const b=trailEnvelope(s,run,right,up,lens);
     if(run.kind==="control"){

@@ -1,4 +1,4 @@
-// NASA/SVS Galactic-coordinate sky, with the bright catalogue stars drawn separately.
+// Registered optical and Gaia skies share one Galactic-coordinate projection.
 // Each face has its own texture so a phone need not allocate a full 8K panorama.
 globalThis.createSurveySky = function createSurveySky(invalidate) {
   "use strict";
@@ -7,7 +7,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   const canvas=document.createElement("canvas"),cpu=document.createElement("canvas");
   const ctx=cpu.getContext("2d",{alpha:false});
   let gl,program,orientation,aperture,offset,gain,positiveSides,negativeSides,frame,wanted=[],inFlight=0,retryTimer;
-  const dir="assets/space/galactic/";
+  let dir="",generation=0;
   function initialize(){
     const vertex="attribute vec2 corner; varying vec2 screen; void main(){screen=corner; gl_Position=vec4(corner,0.,1.);}";
     const derivatives=gl.getExtension("OES_standard_derivatives");
@@ -77,16 +77,26 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   startWebGL();
   canvas.addEventListener("webglcontextlost",event=>{event.preventDefault();gl=null;invalidate();});
   canvas.addEventListener("webglcontextrestored",()=>{startWebGL();invalidate();});
-  const preview=new Image();
-  preview.onload=()=>{
-    const side=preview.naturalHeight;
-    for(const [i,face] of faces.entries()){
-      face.low=document.createElement("canvas");face.low.width=face.low.height=side;
-      face.low.getContext("2d").drawImage(preview,i*side,0,side,side,0,0,side,side);
-    }
-    invalidate();
-  };
-  preview.src=LabMedia.file(dir+"preview.webp");
+  function selectSource(photographic){
+    const next="assets/space/"+(photographic?"photographic/":"galactic/");
+    if(dir===next)return;
+    dir=next;
+    const current=++generation;
+    clearTimeout(retryTimer);inFlight=0;
+    // The registered low-resolution faces cover the same directions during a switch.
+    for(const face of faces)Object.assign(face,{high:null,pixels:null,loading:false,retry:0,delay:0});
+    const preview=new Image();
+    preview.onload=()=>{
+      if(current!==generation)return;
+      const side=preview.naturalHeight;
+      for(const [i,face] of faces.entries()){
+        face.low=document.createElement("canvas");face.low.width=face.low.height=side;
+        face.low.getContext("2d").drawImage(preview,i*side,0,side,side,0,0,side,side);
+      }
+      invalidate();
+    };
+    preview.src=LabMedia.file(dir+"preview.webp");
+  }
   function requestFaces(){
     clearTimeout(retryTimer);
     if(document.hidden)return;
@@ -101,14 +111,17 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
         if(face.retry>now){nextRetry=Math.min(nextRetry,face.retry);continue;}
       }
       face.loading=true;inFlight++;
+      const current=generation;
       const im=new Image();im.decoding="async";
       const finish=()=>{face.loading=false;inFlight--;requestFaces();};
       im.onload=()=>{
+        if(current!==generation)return;
         face.retry=face.delay=0;
         if(wanted.includes(i)){face.high=im;invalidate();}
         finish();
       };
       im.onerror=()=>{
+        if(current!==generation)return;
         face.delay=Math.min(60000,face.delay?face.delay*2:2000);
         face.retry=performance.now()+face.delay;finish();
       };
@@ -220,6 +233,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
       for(let i=0;i<faces.length;i++)areas[i]+=visibleArea(i,axes)*p.w*p.h/4;
       frames.push({p,c,exposure,m,ax,ay,ox,oy});
     }
+    if(frames.length)selectSource(!!frames[0].c.photographic);
     wanted=faces.map((_,i)=>i).filter(i=>areas[i]>0).sort((a,b)=>areas[b]-areas[a]);
     for(const i of wanted)faces[i].lastVisible=now;
     // Keep one recently visible neighbour for pans across a face boundary.

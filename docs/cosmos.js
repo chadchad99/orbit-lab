@@ -36,7 +36,8 @@ globalThis.CosmicSky = (()=>{
       const xy=screen(p,cam,star.v);
       if(!xy||xy[0]<p.x||xy[0]>p.x+p.w||xy[1]<p.y||xy[1]>p.y+p.h)continue;
       const flux=Math.min(1.9,10**(-.14*(star.mag-2))),power=Math.min(1,flux);
-      const response=survey?Math.sqrt(light)*Math.min(1,limitingMag+.5-star.mag):light;
+      const catalogGain=cam.photographic ? .53 : 1;
+      const response=survey?Math.sqrt(light)*Math.min(1,limitingMag+.5-star.mag)*catalogGain:light;
       if(survey){
         const power=10**(-.4*(star.mag-2)),core=Math.min(1.8,.51+.32*Math.sqrt(power));
         if(star.mag<2.6){
@@ -63,7 +64,7 @@ globalThis.CosmicSky = (()=>{
   const galaxyNames={m31:'안드로메다은하',m33:'삼각형자리은하',lmc:'대마젤란은하',smc:'소마젤란은하'};
   function loadStamps(){
     return Promise.all(['cosmos/skystamps.json','cosmos/orbit-galaxies.json'].map(path=>
-      LabCatalog.load(path).then(data=>data.stamps||[]).catch(()=>[]))).then(groups=>groups.flat());
+      LabCatalog.load(path).then(data=>(data.stamps||[]).map(g=>data.skyAtlas?{...g,atlas:data.skyAtlas}:g)).catch(()=>[]))).then(groups=>groups.flat());
   }
   const stampAxes=new WeakMap();
   function axesFor(g){
@@ -86,10 +87,9 @@ globalThis.CosmicSky = (()=>{
       const x=p.x+p.w*cx+focal*tx,y=p.y+p.h*cy-focal*ty;
       const major=g.majorArcmin??Math.max(g.widthDeg,g.heightDeg)*38;
       const apparentMajor=scale*major*r/60;
-      // Survey centers and camera roll stay fixed. Only small angular footprints
-      // are magnified for the guided map. Zoom converges to the true footprint.
-      const minMajor=(p.w<550?23:36)*Math.max(.74,Math.min(1.5,(major/10)**.32));
-      const boost=emphasize?Math.min(36,Math.max(1,minMajor/apparentMajor)):1;
+      // Preserve differences between angular sizes, including while zooming.
+      // Nearby extended galaxies already have their true outlines in the optical mosaic.
+      const boost=emphasize&&g.survey ? 1+12/(1+apparentMajor/10) : 1;
       const width=2*Math.tan(g.widthDeg*r/2)*scale*boost,height=2*Math.tan(g.heightDeg*r/2)*scale*boost;
       const ax=-(dot(east,cam.right)+tx*dot(east,cam.front))*width;
       const ay=(dot(east,cam.up)+ty*dot(east,cam.front))*width;
@@ -97,16 +97,29 @@ globalThis.CosmicSky = (()=>{
       const by=(dot(north,cam.up)+ty*dot(north,cam.front))*height;
       const ex=(Math.abs(ax)+Math.abs(bx))*.5,ey=(Math.abs(ay)+Math.abs(by))*.5;
       if(x+ex<p.x||y+ey<p.y||x-ex>p.x+p.w||y-ey>p.y+p.h)continue;
-      const im=getImage(g.file,ready);if(!im)continue;
-      ctx.save();ctx.globalCompositeOperation='screen';
-      const brightness=g.survey?Math.max(.64,Math.min(1,1.06-.096*(g.magnitude-9))):1;
-      ctx.globalAlpha=emphasize?(.74+.25*light)*brightness:.92*light;
-      ctx.transform(ax,ay,bx,by,x,y);ctx.drawImage(im,-.5,-.5,1,1);ctx.restore();
+      // ESO already photographed the four extended Local Group galaxies.
+      // Blend in finer structure only when the mosaic's native pixels are enlarged.
+      const detail=cam.photographic&&!g.survey?Math.max(0,Math.min(1,(scale-1150)/2050)):1;
+      if(detail>0){
+        const atlas=g.atlas,im=getImage(atlas?.file||g.file,ready);
+        if(im){
+          ctx.save();ctx.globalCompositeOperation='screen';
+          const exposure=cam.photographic?light:Math.sqrt(light);
+          const strength=g.survey ? (emphasize ? .81 : .53) : (cam.photographic ? .37 : .59);
+          ctx.globalAlpha=Math.min(1,exposure*detail*strength);
+          ctx.transform(ax,ay,bx,by,x,y);
+          if(atlas){
+            const side=atlas.tilePixels,column=g.skyTile%atlas.columns,row=Math.floor(g.skyTile/atlas.columns);
+            ctx.drawImage(im,column*side,row*side,side,side,-.5,-.5,1,1);
+          }else ctx.drawImage(im,-.5,-.5,1,1);
+          ctx.restore();
+        }
+      }
       if(!annotations)continue;
       const name=g.nameKo||galaxyNames[g.id];if(!name)continue;
       const reach=Math.max(4,apparentMajor*boost*.40);
       const item=note([x,y],g.id,name,reach);
-      Object.assign(item,{galaxy:true,source:g.survey,pickRadius:Math.min(32,reach+3),hideLabel:true});
+      Object.assign(item,{galaxy:true,source:g.survey,pickRadius:Math.max(p.w<550?12:8,Math.min(32,reach+3)),hideLabel:true});
       annotations.push(item);
       if(x>=p.x&&x<=p.x+p.w&&y>=p.y&&y<=p.y+p.h&&(emphasize||!g.survey))
         candidates.push({item,mag:g.magnitude??3});
@@ -158,10 +171,12 @@ globalThis.CosmicSky = (()=>{
         for(const star of stars)for(let i=0;i<3;i++)
           star.v[i]=star.base[i]+(star.drift?.[i]??0)*years-eye[i]*star.perAU;
       }
-      ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();dotStars(ctx,p,cam,stars,light,annotations);
+      ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();
       if(showSurvey&&!reading){reading=true;LabCatalog.load('cosmos/redshift.json.gz').then(d=>{survey=d.rows.map(row=>ecl(vec(row[1],row[2])));bump();}).catch(()=>{reading=false;});}
       if(showSurvey&&survey){ctx.fillStyle='rgba(162,183,190,.47)';for(const v of survey){const point=screen(p,cam,v);if(point&&point[0]>=p.x&&point[0]<=p.x+p.w&&point[1]>=p.y&&point[1]<=p.y+p.h)ctx.fillRect(point[0],point[1],.9,.9);}}
-      stamps(ctx,p,cam,cam.surveySky?galaxies:galaxies.filter(g=>!g.survey),bump,annotations,light,emphasize);ctx.restore();
+      stamps(ctx,p,cam,cam.surveySky?galaxies:galaxies.filter(g=>!g.survey),bump,annotations,light,emphasize);
+      const starNotes=[];dotStars(ctx,p,cam,stars,light,starNotes);annotations.push(...starNotes);
+      ctx.restore();
       const gc=centre&&screen(p,cam,centre);
       if(gc)annotations.push(note(gc,'milky-way','궁수자리 A* 방향',4));
       return annotations;
@@ -229,7 +244,7 @@ globalThis.createCosmosViewer=function(){
   function draw(){if(!dialog.open)return;const w=dialog.clientWidth,h=dialog.clientHeight;if(!w||!h)return;const dpr=Math.min(window.devicePixelRatio||1,1.6);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);hits=[];const pane={x:0,y:0,w,h};
     if(mode==='survey'){drawSurvey(w,h);return;}
     if(mode==='sky'){if(!stars)return;const focal=Math.min(w,h)*.78*zoom,cam=S.camera(ra,dec,focal);skyPaint??=createMapSky(sky,redraw,false);skyPaint(w,h,dpr,[{pane,camera:cam,exposure:mode==='sky'?.82:.25}]);
-      if(mode==='sky'){S.dotStars(ctx,pane,cam,skyStars,.93);S.stamps(ctx,pane,cam,stampList.filter(g=>!g.survey||g.id===selection),redraw);}
+      if(mode==='sky'){S.stamps(ctx,pane,{...cam,photographic:true},stampList.filter(g=>!g.survey||g.id===selection),redraw);S.dotStars(ctx,pane,cam,skyStars,.93);}
       for(const p of points){const xy=S.screen(pane,cam,S.ecl(S.vec(p.ra,p.dec)));if(!xy||xy[0]<0||xy[1]<0||xy[0]>w||xy[1]>h)continue;hits.push([xy[0],xy[1],p.id]);if(p.radio&&p.id===selection){
           ctx.save();ctx.translate(...xy);ctx.strokeStyle='#bbd5e6';ctx.lineWidth=1;ctx.beginPath();
           for(let i=0;i<4;i++){ctx.moveTo(5,0);ctx.lineTo(12,0);ctx.rotate(Math.PI/2);}ctx.stroke();ctx.restore();

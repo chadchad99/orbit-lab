@@ -68,5 +68,21 @@
     "ordinary_adjacent_columns_95pct_abs_rgb_255": 9.79,
     "edge_channel_mean_difference_max_255": 0.213,
     "views": "Six 90-degree perspective views inspected, including galactic centre, anticentre centred on the longitude join, both poles and both quarter turns. No apparent seam or missing caps."
+  },
+  "orbitalCubemap": {
+    "directory": "photographic",
+    "source": "The same 6000 x 3000 ESO/S. Brunier visible-light mosaic cited above.",
+    "facePixels": 2048,
+    "previewFacePixels": 256,
+    "processing": "Applied the fitted Galactic-to-photo registration, reprojected to six gnomonic faces using Lanczos resampling, and applied the contrast curve of the original orbital-map photograph. Original color ratios are retained except for the channel-wise photographic contrast curve.",
+    "sha256": {
+      "nx.webp": "e79bb213cc6ac3921a164e1c3c44411d44e704a4179a2b642e682392db542bf1",
+      "ny.webp": "2c987b8ad0d7de2a20cf5f70abde6bf6747a3de3af6fb1660476aaff7903bdfe",
+      "nz.webp": "e515b6c46e469651f63a5698523d25ae3b7df4b4e6970f1ada14bc0e0113c35a",
+      "preview.webp": "9b00f8b5bdfd32c14ec830e4168703e3cb0d8041b13a22acb5f6050468807ee8",
+      "px.webp": "9044bad16d9eb1f516efbc78f45308479830b420529fb8e90e6c395becbf96b1",
+      "py.webp": "34dfa45e8e3ec24064c81925fa7e6abebc0ed03a721e0426f1b3d75ae81d795a",
+      "pz.webp": "5c14f62b9ef416f77fb7e0b24f2d5df9468e1589ab2a650ee43ce0fbab00a6bf"
+    }
   }
 }

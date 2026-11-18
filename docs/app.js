@@ -9,7 +9,7 @@
   const base=M.solve();
   const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
   const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false,
-    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,galaxyEmphasis:true,cleanView:false,trailBody:M.EARTH};
+    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,photographicSky:true,galaxyEmphasis:true,cleanView:false,trailBody:M.EARTH};
   const guides={near:{showPaths:false,showNames:false},far:{showPaths:true,showNames:true}};
   function setScope(scope){
     const group=v=>v==="near"||v==="sun"?"near":"far";
@@ -153,6 +153,8 @@
     el("galaxy-emphasis").disabled=state.actualSize;
     el("galaxy-emphasis").setAttribute("aria-pressed",String(state.galaxyEmphasis&&!state.actualSize));
     el("star-exposure").setAttribute("aria-pressed",String(state.starExposure));
+    el("gaia-sky").hidden=!galacticWide;
+    el("gaia-sky").setAttribute("aria-pressed",String(!state.photographicSky));
     el("cruise-paths").setAttribute("aria-pressed",String(state.showPaths));
     el("cruise-scale").setAttribute("aria-pressed",String(state.actualSize));
     el("clean-view").setAttribute("aria-pressed",String(state.cleanView));
@@ -175,6 +177,11 @@
     el("distance-toggle").hidden=!wide;el("distance-toggle").setAttribute("aria-pressed",String(state.linearDistances||state.actualSize));el("distance-toggle").disabled=state.actualSize;
     el("solar-controls").hidden=!sun;el("sun-spot").hidden=state.sunBand!=="visible";
     for(const band of ["radiant","visible","euv","granules"])el("sun-"+band).setAttribute("aria-pressed",String(state.sunBand===band));
+    const gaiaSky=state.flyby||(galacticWide&&!state.photographicSky);
+    const skyCredit=el("map-caption").querySelector("a");
+    const skyAuthor=gaiaSky?"NASA/SVS · ESA/Gaia/DPAC":"ESO/S. Brunier";
+    skyCredit.href=gaiaSky?"https://svs.gsfc.nasa.gov/4851/":"https://www.eso.org/public/images/eso0932a/";
+    skyCredit.textContent=(gaiaSky?"별 지도 ":"하늘 사진 ")+skyAuthor;
     const note=el("scene-note");
     if(sun&&active&&(state.kind==="vanish"||state.kind==="black"))note.textContent=state.kind==="black"?"같은 질량의 블랙홀 · 태양광 없음":"태양 소멸 · 태양광 없음";
     else if(sun&&state.sunBand==="granules")note.innerHTML='450.4 nm · 2022.07.08 · 시야 폭 30,720 km · <a href="https://nso.edu/press-release/new-images-released-by-nsfs-inouye-solar-telescope/" target="_blank" rel="noreferrer">NSF/AURA/NSO</a>';
@@ -187,9 +194,8 @@
       note.textContent=frame+distance+" · "+sizes;
       if(!cruise&&solarObservation&&state.showSatellites)note.append(" · 위성 분포 2026.11.16");
       if(galaxy){
-        const credit=document.createElement("a");
-        credit.href="https://svs.gsfc.nasa.gov/4851/";credit.target="_blank";credit.rel="noreferrer";
-        credit.textContent="NASA/SVS · ESA/Gaia/DPAC";note.append(" · ",credit);
+        const credit=skyCredit.cloneNode(false);
+        credit.textContent=skyAuthor;note.append(" · ",credit);
       }
     }
     else if(!lunar)note.textContent="";
@@ -202,9 +208,6 @@
     el("map-light").textContent=active?"실험 전으로":definitions[state.kind].action;
     el("size-toggle").disabled=near||sun;el("camera-anchor").hidden=!galaxy||near||sun||lunar;el("camera-anchor").setAttribute("aria-pressed",String(state.fixedCamera));el("map-travel").hidden=!galaxy||sun||lunar;
     el("map-description").textContent=lunar?"지구 중심 · 달의 지난 27.3일 궤적":sun?"태양 근접 관측":(galaxy?"은하 회전 방향 · 약 230 km/s"+(state.showPaths?" · 지난 365일의 자취":""):"태양을 기준으로 본 위치") + "  ·  " + (state.actualSize||near?"천체 실제 크기":"천체 확대 표시");
-    const skyCredit=el("map-caption").querySelector("a");
-    skyCredit.href=wide&&galaxy?"https://svs.gsfc.nasa.gov/4851/":"https://www.eso.org/public/images/eso0932a/";
-    skyCredit.textContent=wide&&galaxy?"별 지도 NASA/SVS · ESA/Gaia/DPAC":"하늘 사진 ESO/S. Brunier";
     el("sky").tabIndex=fly?-1:0;el("flight-gl").tabIndex=el("flight-cpu").tabIndex=fly?0:-1;
     const moon=state.watch===3,notes=["","햇빛이 비스듬히 스치는 충돌구","두꺼운 구름이 감싼 행성","구름 아래로 낮과 밤이 지나갑니다","붉은 먼지가 덮인 지표","구름 띠 사이로 흐르는 소용돌이","안쪽 고리가 더 빠릅니다 · 입자 무늬 강조","옅은 청록빛 구름층","푸른빛에 잠긴 먼 대기","충돌구와 바다가 이어지는 달 표면"];
     el("flight-note").textContent=!active?notes[state.watch]:state.kind==="vanish"?(moon?"햇빛이 사라지고 도시의 불빛만 남았습니다":"햇빛이 사라진 행성의 밤"):state.kind==="black"?"빛을 내지 않는 블랙홀 주위를 비행 중":state.kind==="binary"?"두 별의 빛이 서로 다른 방향에서 닿습니다":notes[state.watch];
@@ -328,6 +331,7 @@
   el("cruise-settings").onclick=()=>{state.cruiseSettings=!state.cruiseSettings;updateControls();};
   el("galaxy-emphasis").onclick=()=>{state.galaxyEmphasis=!state.galaxyEmphasis;updateControls();mark();};
   el("star-exposure").onclick=()=>{state.starExposure=!state.starExposure;updateControls();mark();};
+  el("gaia-sky").onclick=()=>{state.photographicSky=!state.photographicSky;updateControls();mark();};
   el("cruise-paths").onclick=()=>{state.showPaths=!state.showPaths;updateControls();mark();};
   el("cruise-scale").onclick=()=>{state.actualSize=!state.actualSize;updateControls();mark();};
   function toggleCleanView(){
