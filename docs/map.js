@@ -435,7 +435,7 @@
         const weight=clamp((1.42-edge)/.62,0,1);
         glare+=weight*weight*(3-2*weight);
       }
-      const gain=c.photographic?1.02/(1+.14*glare):.86/(1+1.05*glare);
+      const gain=c.photographic ? .72/(1+.18*glare) : .86/(1+1.05*glare);
       return Math.round(64*gain)/64;
     }
     function draw(s){

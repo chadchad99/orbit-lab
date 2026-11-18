@@ -36,7 +36,7 @@ globalThis.CosmicSky = (()=>{
       const xy=screen(p,cam,star.v);
       if(!xy||xy[0]<p.x||xy[0]>p.x+p.w||xy[1]<p.y||xy[1]>p.y+p.h)continue;
       const flux=Math.min(1.9,10**(-.14*(star.mag-2))),power=Math.min(1,flux);
-      const catalogGain=cam.photographic ? .53 : 1;
+      const catalogGain=cam.photographic ? .34 : 1;
       const response=survey?Math.sqrt(light)*Math.min(1,limitingMag+.5-star.mag)*catalogGain:light;
       if(survey){
         const power=10**(-.4*(star.mag-2)),core=Math.min(1.8,.51+.32*Math.sqrt(power));
@@ -89,7 +89,7 @@ globalThis.CosmicSky = (()=>{
       const apparentMajor=scale*major*r/60;
       // Preserve differences between angular sizes, including while zooming.
       // Nearby extended galaxies already have their true outlines in the optical mosaic.
-      const boost=emphasize&&g.survey ? 1+12/(1+apparentMajor/10) : 1;
+      const boost=emphasize&&g.survey ? 3.6 : 1;
       const width=2*Math.tan(g.widthDeg*r/2)*scale*boost,height=2*Math.tan(g.heightDeg*r/2)*scale*boost;
       const ax=-(dot(east,cam.right)+tx*dot(east,cam.front))*width;
       const ay=(dot(east,cam.up)+ty*dot(east,cam.front))*width;
@@ -100,7 +100,8 @@ globalThis.CosmicSky = (()=>{
       // ESO already photographed the four extended Local Group galaxies.
       // Blend in finer structure only when the mosaic's native pixels are enlarged.
       const detail=cam.photographic&&!g.survey?Math.max(0,Math.min(1,(scale-1150)/2050)):1;
-      if(detail>0){
+      // On the orbit map the survey light is already part of the sky sphere.
+      if(!cam.surveySky&&detail>0){
         const atlas=g.atlas,im=getImage(atlas?.file||g.file,ready);
         if(im){
           ctx.save();ctx.globalCompositeOperation='screen';
@@ -119,9 +120,10 @@ globalThis.CosmicSky = (()=>{
       const name=g.nameKo||galaxyNames[g.id];if(!name)continue;
       const reach=Math.max(4,apparentMajor*boost*.40);
       const item=note([x,y],g.id,name,reach);
+      item.target.domain='external-galaxy';
       Object.assign(item,{galaxy:true,source:g.survey,pickRadius:Math.max(p.w<550?12:8,Math.min(32,reach+3)),hideLabel:true});
       annotations.push(item);
-      if(x>=p.x&&x<=p.x+p.w&&y>=p.y&&y<=p.y+p.h&&(emphasize||!g.survey))
+      if(x>=p.x&&x<=p.x+p.w&&y>=p.y&&y<=p.y+p.h)
         candidates.push({item,mag:g.magnitude??3});
     }
     // Reserve enough space between galaxy names for the nearby planet labels.
@@ -185,7 +187,7 @@ globalThis.CosmicSky = (()=>{
   return {vec,ecl,camera,screen,color,stellarMotion,dotStars,stamps,loadStamps,getImage,observerKey,setupBackdrop,src};
 })();
 
-globalThis.createCosmosViewer=function(){
+globalThis.createCosmosViewer=function(openGalaxy){
   const S=CosmicSky,D=LabCatalog,id=k=>document.getElementById(k),dialog=id('cosmos-view'),canvas=id('cosmos-map'),ctx=canvas.getContext('2d'),sky=id('cosmos-sky'),select=id('cosmos-target'),rad=Math.PI/180;
   const f=v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:v<20?2:0});
   const names={sky:'별하늘',near:'태양 이웃',milky:'우리은하',galaxies:'이웃 은하',survey:'은하 전천 분포'};
@@ -193,6 +195,7 @@ globalThis.createCosmosViewer=function(){
   const selected=()=>points.find(x=>x.id===selection);
   const redraw=()=>{if(dialog.open&&!raf)raf=requestAnimationFrame(()=>{raf=0;draw();});};
   function info(){const obj=selected(),name=id('cosmos-object'),details=id('cosmos-detail'),link=id('cosmos-source'),im=id('cosmos-photo');im.hidden=true;delete im.dataset.band;
+    id('cosmos-galaxy-open').hidden=!obj||!['sky','galaxies'].includes(mode)||!(/^(m31|m33|lmc|smc)$/.test(obj.id)||obj.angular);
     if(mode==='milky'){name.textContent=selection==='gc'?'은하 중심':'우리은하 속 태양계';details.textContent='은하 중심에서 약 26,600광년 · '+(tracks?'태양의 약 2억 2천만 년 공전 궤도 근사':'가이아 관측 기반 정면 재구성');link.textContent='ESA/Gaia/DPAC · Stefan Payne-Wardenaar · CC BY-SA 3.0 IGO ↗';link.href=milky?.source?.url||'https://www.esa.int/media/the-best-milky-way-map-by-gaia';return;}
     link.textContent='관측 자료 ↗';if(mode==='survey'){name.textContent='2MASS 적색편이 조사';details.textContent=(survey?f(survey.count):'')+'개 은하의 전천 분포'+(tracks?' · 청색은 접근, 따뜻한 색은 후퇴, 회색은 속도 미측정':'')+' · 은하면 주변 조사 공백';link.href=survey?.source||'https://heasarc.gsfc.nasa.gov/W3Browse/catalog/twomassrsc.html';return;}
     if(!obj){name.textContent=mode==='sky'?'히파르코스 별하늘':'가까운 천체';details.textContent=mode==='sky'?'실제 별 '+f(stars?.rows.length||0)+'개의 방향과 밝기 · ESO 은하수 전천 관측': '관측 대상을 선택하세요.';link.href='https://heasarc.gsfc.nasa.gov/W3Browse/star-catalog/hipparcos.html';return;}
@@ -268,5 +271,6 @@ globalThis.createCosmosViewer=function(){
   canvas.onpointerdown=e=>{canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,[e.clientX,e.clientY]);gesture={x:e.clientX,y:e.clientY,travel:0,pinch:touches.size>1,start:touches.size>1?gap():0,z:zoom};};canvas.onpointermove=e=>{if(!gesture||!touches.has(e.pointerId))return;touches.set(e.pointerId,[e.clientX,e.clientY]);if(touches.size>1){zoom=Math.max(.32,Math.min(45,gesture.z*gap()/Math.max(1,gesture.start)));redraw();return;}const dx=e.clientX-gesture.x,dy=e.clientY-gesture.y;gesture.travel+=Math.abs(dx)+Math.abs(dy);gesture.x=e.clientX;gesture.y=e.clientY;if(mode==='sky'||mode==='survey'){ra+=dx*.12/zoom;dec=Math.max(-88,Math.min(88,dec+dy*.12/zoom));}else if(mode==='milky'){pan[0]+=dx;pan[1]+=dy;}else{yaw+=dx*.007;pitch+=dy*.007;}redraw();};canvas.onpointerup=e=>{touches.delete(e.pointerId);if(gesture&&!gesture.pinch&&gesture.travel<5){const b=canvas.getBoundingClientRect(),hit=hits.map(a=>[Math.hypot(e.clientX-b.left-a[0],e.clientY-b.top-a[1]),a[2]]).sort((a,b)=>a[0]-b[0])[0];if(hit?.[0]<15)useTarget(hit[1],false);}gesture=null;};canvas.onpointercancel=e=>{touches.delete(e.pointerId);gesture=null;};canvas.addEventListener('wheel',e=>{e.preventDefault();magnify(Math.exp(-e.deltaY*.0016));},{passive:false});canvas.onkeydown=e=>{if(['+','=','-'].includes(e.key)){e.preventDefault();magnify(e.key==='-'?.8:1.25);}else if(e.key.startsWith('Arrow')){e.preventDefault();const x=(e.key==='ArrowRight')-(e.key==='ArrowLeft'),y=(e.key==='ArrowDown')-(e.key==='ArrowUp');ra+=4*x;dec=Math.min(88,Math.max(-88,dec+4*y));yaw+=x*.10;pitch+=y*.10;pan[0]+=x*15;pan[1]+=y*15;redraw();}};
   for(const b of id('cosmos-scales').children)b.onclick=()=>change(b.dataset.scale);id('cosmos-plus').onclick=()=>magnify(1.3);id('cosmos-minus').onclick=()=>magnify(1/1.3);select.onchange=()=>useTarget(select.value,true);id('galaxy-inset-image').src=LabMedia.file(S.src+'milkyway.webp');id('galaxy-inset').onclick=()=>{dialog.showModal();change('milky');};id('cosmos-open').onclick=()=>openSky();id('cosmos-close').onclick=()=>dialog.close();id('cosmos-tracks').onclick=()=>{tracks=!tracks;id('cosmos-tracks').setAttribute('aria-pressed',String(tracks));info();redraw();};dialog.addEventListener('close',()=>{rev++;cancelAnimationFrame(raf);raf=0;touches.clear();gesture=null;});new ResizeObserver(redraw).observe(dialog);
   function openSky(target){if(!dialog.open)dialog.showModal();return change('sky',target);}
+  id('cosmos-galaxy-open').onclick=()=>{if(selection)openGalaxy(selection);};
   return {openSky};
 };
