@@ -9,7 +9,7 @@
   const base=M.solve();
   const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
   const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false,
-    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,photographicSky:true,galaxyEmphasis:false,cleanView:false,trailBody:M.EARTH};
+    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:true,photographicSky:true,galaxyEmphasis:false,cleanView:false,trailBody:M.EARTH};
   const guides={near:{showPaths:false,showNames:false},far:{showPaths:true,showNames:true}};
   function setScope(scope){
     const group=v=>v==="near"||v==="sun"?"near":"far";
