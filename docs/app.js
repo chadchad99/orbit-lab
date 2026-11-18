@@ -9,7 +9,7 @@
   const base=M.solve();
   const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
   const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false,
-    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,galaxyEmphasis:true,cleanView:false,trailBody:M.EARTH};
+    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,photographicSky:true,galaxyEmphasis:true,cleanView:false,trailBody:M.EARTH};
   const guides={near:{showPaths:false,showNames:false},far:{showPaths:true,showNames:true}};
   function setScope(scope){
     const group=v=>v==="near"||v==="sun"?"near":"far";
@@ -153,6 +153,8 @@
     el("galaxy-emphasis").disabled=state.actualSize;
     el("galaxy-emphasis").setAttribute("aria-pressed",String(state.galaxyEmphasis&&!state.actualSize));
     el("star-exposure").setAttribute("aria-pressed",String(state.starExposure));
+    el("gaia-sky").hidden=!galacticWide;
+    el("gaia-sky").setAttribute("aria-pressed",String(!state.photographicSky));
     el("cruise-paths").setAttribute("aria-pressed",String(state.showPaths));
     el("cruise-scale").setAttribute("aria-pressed",String(state.actualSize));
     el("clean-view").setAttribute("aria-pressed",String(state.cleanView));
@@ -188,8 +190,9 @@
       if(!cruise&&solarObservation&&state.showSatellites)note.append(" · 위성 분포 2026.11.16");
       if(galaxy){
         const credit=document.createElement("a");
-        credit.href="https://svs.gsfc.nasa.gov/4851/";credit.target="_blank";credit.rel="noreferrer";
-        credit.textContent="NASA/SVS · ESA/Gaia/DPAC";note.append(" · ",credit);
+        credit.href=state.photographicSky?"https://www.eso.org/public/images/eso0932a/":"https://svs.gsfc.nasa.gov/4851/";
+        credit.target="_blank";credit.rel="noreferrer";
+        credit.textContent=state.photographicSky?"ESO/S. Brunier":"NASA/SVS · ESA/Gaia/DPAC";note.append(" · ",credit);
       }
     }
     else if(!lunar)note.textContent="";
@@ -328,6 +331,7 @@
   el("cruise-settings").onclick=()=>{state.cruiseSettings=!state.cruiseSettings;updateControls();};
   el("galaxy-emphasis").onclick=()=>{state.galaxyEmphasis=!state.galaxyEmphasis;updateControls();mark();};
   el("star-exposure").onclick=()=>{state.starExposure=!state.starExposure;updateControls();mark();};
+  el("gaia-sky").onclick=()=>{state.photographicSky=!state.photographicSky;updateControls();mark();};
   el("cruise-paths").onclick=()=>{state.showPaths=!state.showPaths;updateControls();mark();};
   el("cruise-scale").onclick=()=>{state.actualSize=!state.actualSize;updateControls();mark();};
   function toggleCleanView(){

@@ -2,6 +2,7 @@
 globalThis.LabCatalog = (() => {
   'use strict';
   const root='assets/catalog/', publicRoot='https://chadchad99.github.io/orbit-lab/', cache=new Map();
+  const revisions={'cosmos/galaxies.json':'ac53ab20a2','cosmos/orbit-galaxies.json':'26c8aa372c'};
   const large=path=>path.startsWith('small/search/')||path.startsWith('small/bodies/');
   async function decode(bytes) {
     if(bytes[0]===31&&bytes[1]===139){
@@ -16,7 +17,7 @@ globalThis.LabCatalog = (() => {
       const packed=document.getElementById('catalog-data-'+path)?.textContent;
       if(packed)return decode(Uint8Array.from(atob(packed),c=>c.charCodeAt(0)));
       const external=location.protocol==='file:' || (globalThis.LabCatalogRemoteShards && large(path));
-      const url=(external?publicRoot:'')+root+path+(path==='cosmos/galaxies.json'?'?v=ac53ab20a2':'');
+      const url=(external?publicRoot:'')+root+path+(revisions[path]?'?v='+revisions[path]:'');
       const response=await fetch(url);if(!response.ok)throw new Error('목록을 불러올 수 없습니다 ('+response.status+')');
       return decode(new Uint8Array(await response.arrayBuffer()));
     })();

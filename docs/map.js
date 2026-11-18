@@ -424,7 +424,7 @@
       ctx.restore();
     }
     function galacticExposure(c,s,run,testView){
-      if(s.starExposure)return .98;
+      if(s.starExposure)return c.photographic?1.13:.98;
       const experiment=s.applied&&testView;
       const lights=experiment&&s.kind==="binary"?[0,M.COMPANION]:experiment&&(s.kind==="black"||s.kind==="vanish")?[]:[0];
       let glare=0;
@@ -435,7 +435,8 @@
         const weight=clamp((1.42-edge)/.62,0,1);
         glare+=weight*weight*(3-2*weight);
       }
-      return Math.round(64*(.86/(1+1.05*glare)))/64;
+      const gain=c.photographic?1.02/(1+.14*glare):.86/(1+1.05*glare);
+      return Math.round(64*gain)/64;
     }
     function draw(s){
       resize();if(!w||!h)return;scope=s.scope;galacticWide=scope==="wide"&&s.reference==="galaxy"&&!s.fixedCamera;
@@ -445,6 +446,7 @@
         const testView=pane.layer!=="base",run=s.applied&&testView?s.test:s.base;
         const dark=s.applied&&testView&&(s.kind==="black"||s.kind==="vanish");
         const camera=S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch,cruiseTime);
+        camera.photographic=!camera.surveySky||(!s.flyby&&s.scope==="wide"&&s.reference==="galaxy"&&s.photographicSky);
         let exposure=camera.surveySky?galacticExposure(camera,s,run,testView):dark?1.05:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:s.scope==="wide"?.90:.52;
         if(s.flyby&&!dark)exposure*=.43;
         return {pane,run,testView,galaxyEmphasis:camera.surveySky&&s.galaxyEmphasis&&!s.actualSize,showSurvey:s.scope==="wide"&&s.allFit,camera,exposure};

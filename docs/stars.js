@@ -84,7 +84,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   return function paint(width,height,ratio,views){
     if(!started&&views.some(v=>!v.camera.surveySky))load();
     const geometry=[width,height,ratio,...views.flatMap(({pane,camera,exposure})=>[pane.x,pane.y,pane.w,pane.h,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure,Number(!!camera.cruising)])].map(v=>Math.round(v*10000)).join("/");
-    const key=geometry+"/"+views.map(({skyId,showSurvey,galaxyEmphasis,camera})=>[skyId??"",!!showSurvey,!!galaxyEmphasis,!!camera.surveySky,celestial?CosmicSky.observerKey(camera):""].join("|")).join("/");
+    const key=geometry+"/"+views.map(({skyId,showSurvey,galaxyEmphasis,camera})=>[skyId??"",!!showSurvey,!!galaxyEmphasis,!!camera.surveySky,!!camera.photographic,celestial?CosmicSky.observerKey(camera):""].join("|")).join("/");
     if(key===lastKey) return annotations;
     lastKey=key;annotations=[];
     const cw=Math.round(width*ratio),ch=Math.round(height*ratio);

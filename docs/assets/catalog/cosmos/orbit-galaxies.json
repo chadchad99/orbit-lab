@@ -19,7 +19,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "0b3e2ae14b479b1b81cba225991d2dfaed749d5901fc622b42328e83aa0eac51",
-      "outputSha256": "27c1600ebfad130236df08925a44b837bfaada4fd05985a7519834dcc479fc98"
+      "outputSha256": "27c1600ebfad130236df08925a44b837bfaada4fd05985a7519834dcc479fc98",
+      "skyTile": 0
     },
     {
       "id": "ngc1097",
@@ -39,7 +40,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "f54e1d3be5e805f4d97c75865ccf4b9a59ebb9698d1f3bf2def9ca72fbca2f5b",
-      "outputSha256": "5245ae9bde2f2aef4fed0c8feb942345fc3c1e2c40f90c62b0c052fd99f93886"
+      "outputSha256": "5245ae9bde2f2aef4fed0c8feb942345fc3c1e2c40f90c62b0c052fd99f93886",
+      "skyTile": 1
     },
     {
       "id": "ngc1232",
@@ -59,7 +61,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "d0b66b5d10af175dfb5fcc07eea0300b231db752b1fea368f201eb7360411942",
-      "outputSha256": "2a1fa303d2c9494786ad57cb858a6bfca6b2adf5183c5a5cb2b9781c421beb7d"
+      "outputSha256": "2a1fa303d2c9494786ad57cb858a6bfca6b2adf5183c5a5cb2b9781c421beb7d",
+      "skyTile": 2
     },
     {
       "id": "ngc1532",
@@ -79,7 +82,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "a218a4120c7cb2cdf9bfee1aced519a8ec9b59d9e8df5681fb482da5e6bcbf48",
-      "outputSha256": "71e41081da08eaff5f975e0a08ff7b61b1f4abfb653d21206f1d4c36af4a5510"
+      "outputSha256": "71e41081da08eaff5f975e0a08ff7b61b1f4abfb653d21206f1d4c36af4a5510",
+      "skyTile": 3
     },
     {
       "id": "ngc1672",
@@ -99,7 +103,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "35a6e1e2a3ce261d04b312f8227526b3563a67169e6bdd1ac460efdd661a446c",
-      "outputSha256": "793a46baeb7dbbcb6e6c556fe7202f6a2c5bbb953a01d408fbd4b1e39a3e8562"
+      "outputSha256": "793a46baeb7dbbcb6e6c556fe7202f6a2c5bbb953a01d408fbd4b1e39a3e8562",
+      "skyTile": 4
     },
     {
       "id": "ngc1792",
@@ -119,7 +124,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "222de36493158227e42862e0d559ab9395d8d594ab6b0b7791b5d4d6b002547f",
-      "outputSha256": "174c87d145577fa7df614ada4d2f4bd5f355938c7ad4ac18a3f784b9b116c362"
+      "outputSha256": "174c87d145577fa7df614ada4d2f4bd5f355938c7ad4ac18a3f784b9b116c362",
+      "skyTile": 5
     },
     {
       "id": "ngc1300",
@@ -139,7 +145,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "aed47480a4c25dd42c267535a989fd69b9534bd0a109dd2b0cf502b582f27e9c",
-      "outputSha256": "5a997a64dca2a6dbe1003fed46d847e7502c3b4e45c9c52fa4dc830c5f3f5869"
+      "outputSha256": "5a997a64dca2a6dbe1003fed46d847e7502c3b4e45c9c52fa4dc830c5f3f5869",
+      "skyTile": 6
     },
     {
       "id": "ngc4565",
@@ -159,7 +166,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "f9ba67a247ad89556fd703933cfaf73612e13c3961089f6264ca9380b83dcaab",
-      "outputSha256": "bc184f7ba5212391f48b7520047dc0aacd2d9a6681ebc53625a4c4f4deb813d4"
+      "outputSha256": "bc184f7ba5212391f48b7520047dc0aacd2d9a6681ebc53625a4c4f4deb813d4",
+      "skyTile": 7
     },
     {
       "id": "ngc3628",
@@ -179,7 +187,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "ee611c9a7f145fec6b0029ed75d3d90bed0fd7adf1e8a2cf4b05a99b63a872ba",
-      "outputSha256": "ef043f7ca42bce17f57d1f515339997fe1d3a81d452929cbd4536a0a03c6307e"
+      "outputSha256": "ef043f7ca42bce17f57d1f515339997fe1d3a81d452929cbd4536a0a03c6307e",
+      "skyTile": 8
     },
     {
       "id": "ngc6962",
@@ -199,7 +208,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "519691380d932702fc8d6393be15addb27075936ac419760971b913d9e749b36",
-      "outputSha256": "08aa3a7c899e02740a41a0089be7c56743b1495f447c976612312fd82b85662d"
+      "outputSha256": "08aa3a7c899e02740a41a0089be7c56743b1495f447c976612312fd82b85662d",
+      "skyTile": 9
     },
     {
       "id": "ngc628",
@@ -219,7 +229,8 @@
       "credit": "Legacy Surveys / D. Lang (Perimeter Institute)",
       "layer": "ls-dr10",
       "inputSha256": "b4a5715c5f8bfbde1a9a7bf596348430c3525167f996650c87f35e18cc5470eb",
-      "outputSha256": "adc860a072f672518ffaf67e29904169b7d425de8953dda059ab955c74a68887"
+      "outputSha256": "adc860a072f672518ffaf67e29904169b7d425de8953dda059ab955c74a68887",
+      "skyTile": 10
     },
     {
       "id": "ngc6814",
@@ -239,7 +250,8 @@
       "credit": "Pan-STARRS1 / STScI",
       "layer": "ps1",
       "inputSha256": "26c32aaaf73f57ae643ae063da5f80a3f7c4bc8b75e5b70896219c8c5c79de33",
-      "outputSha256": "235954581efbe2283877f2bdd0861cf56944469086376e75d2b5bfb0e64acfcf"
+      "outputSha256": "235954581efbe2283877f2bdd0861cf56944469086376e75d2b5bfb0e64acfcf",
+      "skyTile": 11
     },
     {
       "id": "ngc7013",
@@ -259,7 +271,8 @@
       "credit": "Pan-STARRS1 / STScI",
       "layer": "ps1",
       "inputSha256": "8b115c858c1f8312eb0d5225a4077c00996e7d45c72272590d7b505f14740bb9",
-      "outputSha256": "dd670a213b88784d50b91a65603a90891ec883a0b705a343e1877ede4e6ed9d6"
+      "outputSha256": "dd670a213b88784d50b91a65603a90891ec883a0b705a343e1877ede4e6ed9d6",
+      "skyTile": 12
     },
     {
       "id": "ngc7217",
@@ -279,7 +292,8 @@
       "credit": "Pan-STARRS1 / STScI",
       "layer": "ps1",
       "inputSha256": "1bca8dc9d3bd6c05418bf99273bf38e6415674c9d4b57a754fdd4c2b85aef3e0",
-      "outputSha256": "2ecfec15889fb55e0c01991ec01b3c05a1e13e19f709005c5c4fcc0db54649a1"
+      "outputSha256": "2ecfec15889fb55e0c01991ec01b3c05a1e13e19f709005c5c4fcc0db54649a1",
+      "skyTile": 13
     },
     {
       "id": "ngc6384",
@@ -299,7 +313,8 @@
       "credit": "Pan-STARRS1 / STScI",
       "layer": "ps1",
       "inputSha256": "6522902a4dd78679aa60c07ffb01002e6b754aa278fe73174270ad1790bd765d",
-      "outputSha256": "2f2e74e99ff506902d86d0a26e1d4328beab85c7c4dc4a16f5526bb4f07bdd1b"
+      "outputSha256": "2f2e74e99ff506902d86d0a26e1d4328beab85c7c4dc4a16f5526bb4f07bdd1b",
+      "skyTile": 14
     },
     {
       "id": "ngc7479",
@@ -319,7 +334,8 @@
       "credit": "Pan-STARRS1 / STScI",
       "layer": "ps1",
       "inputSha256": "b8be77a61f372dc266b0871d9e7e0ce0ac9a4c94d44b21397d3f65f6d599c31f",
-      "outputSha256": "d2ff7d6a7e991f31f8a99661e8371ab55e3d79cd85cf82fbb0f21923d4ef3daa"
+      "outputSha256": "d2ff7d6a7e991f31f8a99661e8371ab55e3d79cd85cf82fbb0f21923d4ef3daa",
+      "skyTile": 15
     }
   ],
   "frame": "ICRS/J2000; north-up, east-left gnomonic tangent plane. Width and height are in degrees.",
@@ -336,5 +352,12 @@
     "acknowledgment": "https://panstarrs.stsci.edu/",
     "service": "https://ps1images.stsci.edu/cgi-bin/ps1cutouts"
   },
-  "processing": "Centered on catalogue coordinates. PS1 gri stack cutouts are aligned to the target tangent plane using the skycell FITS WCS. JPEG sky pedestal subtracted, compact foreground peaks suppressed, soft elliptical perimeter and display stretch applied. M74 uses the recorded optical luminance. Guided orbital views preserve center and orientation while increasing the apparent size and exposure of small galaxies."
+  "processing": "Centered on catalogue coordinates. PS1 gri stack cutouts are aligned to the target tangent plane using the skycell FITS WCS. JPEG sky pedestal subtracted, compact foreground peaks suppressed, soft elliptical perimeter and display stretch applied. M74 uses the recorded optical luminance. Guided orbital views preserve center and orientation while increasing the apparent size and exposure of small galaxies.",
+  "skyAtlas": {
+    "file": "orbital-galaxy-light.webp",
+    "columns": 4,
+    "tilePixels": 256,
+    "sha256": "4fd09e318c3005b7ff1a27309e2fd44b8da300212ae60603537dc80118b637fa",
+    "processing": "Projected from the source cutouts and WCS above. Local sky subtraction, foreground point-source suppression and a noise-dependent taper preserve the measured outlines. A common illustrative exposure uses catalogue magnitude and pixel solid angle. This is a display composite, not calibrated scientific photometry. The full photographs remain available in the object viewer."
+  }
 }
