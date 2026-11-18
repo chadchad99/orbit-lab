@@ -1,0 +1,19 @@
+{
+  "title": "Tycho-2 fine stellar detail",
+  "credit": "E. Høg et al. (2000), The Tycho-2 Catalogue, via CDS/VizieR I/259.",
+  "source": "https://cdsarc.cds.unistra.fr/viz-bin/cat/I/259",
+  "archive": "https://vizier.cfa.harvard.edu/ftp/cats/I/259/",
+  "rowsRead": 2539913,
+  "stars": 2299792,
+  "epoch": 2026.875,
+  "processing": "ICRS mean positions and measured proper motions, projected into Galactic cube faces. Magnitudes VT 6–13; Hipparcos matches are excluded to avoid duplicating the existing foreground. BT−VT sets approximate stellar colour. Positions of this faint layer are fixed at the stated epoch.",
+  "format": "Six little-endian bytes per star, sorted by VT per face: u16 u, u16 v, u8 (VT−6)*32, u8 (BT−VT+0.5)*254/3 or 255 for unknown colour.",
+  "sha256": {
+    "px.bin": "e1721964573d2d9db582bd388f156a26a7232167c18326949b555c4f60cc88e0",
+    "nx.bin": "a4a16df1638fa315815b3be2cbc116cd040b5a3f15e552576e7a0abcd99d39d7",
+    "py.bin": "fba089fb7027e73184106fffb0fe17913f5a491ae96d95eef54211c488197cf0",
+    "ny.bin": "495a1e7a27494a309c3c71ca9a2f1bf6ec5d58b1fd77bb90f7c28a85c7b0c505",
+    "pz.bin": "d2de6826ce13797e200a8f199133b2bbdfec2fd4dd3cdf80d58efe28c38c9786",
+    "nz.bin": "a1b406cf760ed9dfa4a72a009f392ee613f1c7de77b3415ef20cd78d76b57a8d"
+  }
+}

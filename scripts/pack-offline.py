@@ -30,7 +30,7 @@ scripts=re.findall(r'<script defer src="([^"]+)"></script>',html)
 assert scripts and scripts[-1].split('?',1)[0]=='app.js'
 html=re.sub(r'<script defer src="[^"]+"></script>','',html)
 html=re.sub(r'(?:src|href)="(assets/[^"]+)"',lambda m:m[0].split('=')[0]+'="'+data(root/m[1])+'"',html)
-paths=[p for p in (root/'assets').rglob('*') if p.suffix in ('.png','.webp')]
+paths=[p for p in (root/'assets').rglob('*') if p.suffix in ('.png','.webp','.bin')]
 inline='\n<script>globalThis.LabPacked='+json.dumps({p.relative_to(root).as_posix():data(p) for p in sorted(paths)},separators=(',',':'))+';</script>\n'
 catalog=root/'assets/catalog'
 # Scientific data is embedded as inert blocks; the browser decodes only requested pages.
@@ -55,4 +55,4 @@ class Validate(HTMLParser):
                 if field in a:assert a[field].startswith('data:'),a[field][:75]
 Validate().feed(html)
 out=args.output;tmp=out.with_suffix('.partial');tmp.write_text(html,encoding='utf-8');tmp.replace(out)
-print(f'{out.name}: {out.stat().st_size:,} bytes, {len(paths)} embedded images plus poster, {len(scripts)} scripts')
+print(f'{out.name}: {out.stat().st_size:,} bytes, {len(paths)} embedded media files plus poster, {len(scripts)} scripts')

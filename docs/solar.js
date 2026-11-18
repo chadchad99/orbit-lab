@@ -138,5 +138,11 @@ globalThis.createSolarOptics=function(invalidate){
     ctx.fillStyle="#f4f3ec";ctx.shadowColor="#000";ctx.shadowBlur=4;
     ctx.fillRect(barX,barY,length,1);ctx.font="11px sans-serif";ctx.fillText("5,000 km",barX,barY-6);ctx.shadowBlur=0;
   }
-  return {disk,granules,advance};
+  async function preparePrint(){
+    await Promise.all(["sun-carrington","sun-map-corona","sun-map-corona-still","sun-eclipse-corona"].map(async key=>{
+      if(pictures.has(key))return;
+      const image=new Image();image.src=LabMedia.file("assets/space/"+key+".webp");await image.decode();pictures.set(key,image);
+    }));
+  }
+  return {disk,granules,advance,preparePrint};
 };

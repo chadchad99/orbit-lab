@@ -7,7 +7,8 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   const canvas=document.createElement("canvas"),cpu=document.createElement("canvas");
   const ctx=cpu.getContext("2d",{alpha:false});
   let gl,program,orientation,aperture,offset,gain,galaxyLight,positiveSides,negativeSides,frame,wanted=[],inFlight=0,retryTimer;
-  let dir="",generation=0;
+  const fine=createFineStarField(invalidate);
+  let dir="",generation=0,bindQuad;
   function skyFile(name){
     const path=dir+name+".webp";
     const version=dir.endsWith("photographic/")?"optical-clouds-2":"diffuse-sky-1";
@@ -62,7 +63,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
     const corner=gl.getAttribLocation(program,"corner");
-    gl.enableVertexAttribArray(corner);gl.vertexAttribPointer(corner,2,gl.FLOAT,false,0,0);
+    bindQuad=()=>{gl.useProgram(program);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(corner);gl.vertexAttribPointer(corner,2,gl.FLOAT,false,0,0);};bindQuad();
     [orientation,aperture,offset,gain,galaxyLight,positiveSides,negativeSides]=["orientation","aperture","offset","gain","galaxyLight","positiveSides","negativeSides"].map(k=>gl.getUniformLocation(program,k));
     for(const [i,face] of faces.entries()){
       face.uploaded=null;
@@ -82,7 +83,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   }
   startWebGL();
   canvas.addEventListener("webglcontextlost",event=>{event.preventDefault();gl=null;invalidate();});
-  canvas.addEventListener("webglcontextrestored",()=>{startWebGL();invalidate();});
+  canvas.addEventListener("webglcontextrestored",()=>{fine.reset();startWebGL();invalidate();});
   function selectSource(photographic){
     const next="assets/space/"+(photographic?"photographic/":"galactic/");
     if(dir===next)return;
@@ -182,12 +183,20 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     }
     ctx.putImageData(frame,0,0);return cpu;
   }
-  function render({p,c,exposure:light,enhance,m,ax,ay,ox,oy},ratio){
+  function render(view,ratio,tile){
+    const {p,c,exposure:light,enhance,m,ax,ay,ox,oy}=view;
     const moving=c.cruising||c.flyby;
-    const scale=gl?Math.min(ratio,moving?1.5:2,(moving?2450:4096)/p.w,2500/p.h):
+    const scale=gl?Math.min(ratio,moving?2:3,(moving?4096:7680)/p.w,(moving?3000:4700)/p.h):
       Math.min(ratio,moving?1:1.75,(c.flyby?800:moving?1150:2250)/p.w,(c.flyby?580:moving?820:1550)/p.h);
-    const w=Math.max(1,Math.round(p.w*scale)),h=Math.max(1,Math.round(p.h*scale));
-    if(!gl)return software(w,h,m,ax,ay,ox,oy,light,enhance);
+    const w=tile?.w??Math.max(1,Math.round(p.w*scale)),h=tile?.h??Math.max(1,Math.round(p.h*scale));
+    const focal=c.skyFocal*(tile?ratio:scale),ids=wanted.filter(i=>faces[i].high);
+    if(focal>720)fine.request(ids);
+    if(!gl){
+      const img=software(w,h,m,ax,ay,ox,oy,light,enhance);
+      if(focal>720)fine.software(ctx,view,ids,focal,w,h);
+      return img;
+    }
+    bindQuad();
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     for(const [i,face] of faces.entries()){
       const source=face.high||face.low;if(!source||face.uploaded===source)continue;
@@ -199,7 +208,8 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     gl.viewport(0,0,w,h);gl.uniformMatrix3fv(orientation,false,m);gl.uniform2f(aperture,ax,ay);
     gl.uniform3f(positiveSides,faces[0].uploaded?.width||1,faces[2].uploaded?.width||1,faces[4].uploaded?.width||1);
     gl.uniform3f(negativeSides,faces[1].uploaded?.width||1,faces[3].uploaded?.width||1,faces[5].uploaded?.width||1);
-    gl.uniform2f(offset,ox,oy);gl.uniform1f(gain,light);gl.uniform1f(galaxyLight,enhance?1:0);gl.drawArrays(gl.TRIANGLES,0,3);return canvas;
+    gl.uniform2f(offset,ox,oy);gl.uniform1f(gain,light);gl.uniform1f(galaxyLight,enhance?1:0);gl.drawArrays(gl.TRIANGLES,0,3);
+    if(focal>720)fine.draw(gl,view,ids,focal);return canvas;
   }
   const screen=[[-1,-1],[1,-1],[1,1],[-1,1]];
   function clip(polygon,a,b,c){
@@ -233,7 +243,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     for(const p of polygon){twiceArea+=prev[0]*p[1]-prev[1]*p[0];prev=p;}
     return Math.abs(twiceArea)/2;
   }
-  return function paint(context,views,ratio){
+  function paint(context,views,ratio){
     const areas=faces.map(()=>0),now=performance.now();
     const frames=[];
     for(const {pane:p,camera:c,exposure,galaxyEmphasis:enhance} of views){
@@ -255,5 +265,25 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
       const p=view.p;
       context.drawImage(render(view,ratio),p.x,p.y,p.w,p.h);
     }
+  }
+  paint.preparePrint=async function(){
+    const selected=[...wanted],from=generation;
+    if(!selected.length)throw Error('별하늘이 표시된 뒤 다시 열어 주세요.');
+    await Promise.all(selected.map(async i=>{
+      const face=faces[i];if(face.high)return;
+      const im=new Image();im.src=skyFile(face.name);await im.decode();
+      if(from!==generation)throw Error('시점이 바뀌었습니다. 다시 저장해 주세요.');
+      face.high=im;invalidate();
+    }));
+    await fine.prepare(selected);
   };
+  paint.printRegion=function(output,view,rect,ratio){
+    const {camera:c,pane:p,exposure,galaxyEmphasis:enhance}=view;
+    const m=[c.right,c.up,c.front].flatMap(OrbitFrames.galactic);
+    const x=rect.x/ratio,y=rect.y/ratio,w=rect.w/ratio,h=rect.h/ratio;
+    const f={p,c,m,exposure,enhance,ax:w/(2*c.skyFocal),ay:h/(2*c.skyFocal),
+      ox:2*(p.x+p.w*c.principal[0]-x)/w-1,oy:1-2*(p.y+p.h*c.principal[1]-y)/h};
+    output.drawImage(render(f,ratio,rect),0,0);
+  };
+  return paint;
 };

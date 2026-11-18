@@ -8,7 +8,7 @@ globalThis.createSolarEmission=function(request){
   const ra=286.13*rad,dec=63.87*rad;
   const pole=ecliptic([Math.cos(dec)*Math.cos(ra),Math.cos(dec)*Math.sin(ra),Math.sin(dec)]);
   const node=ecliptic([-Math.sin(ra),Math.cos(ra),0]),east=cross(pole,node);
-  const extent=1.14,diameters=[56,80,112,160,224,320,448],geometry=new Map();
+  const extent=1.14,diameters=[56,80,112,160,224,320,448,640,896,1280,1536],geometry=new Map();
   const colorStops=[
     [0,53,28,19],[.16,102,53,28],[.34,176,104,49],[.51,234,159,78],
     [.65,255,196,110],[.78,255,218,145],[.90,255,238,194],
@@ -53,7 +53,7 @@ globalThis.createSolarEmission=function(request){
       if(edge<.5)fringe[k]=Math.exp(-Math.max(0,r-1)/.039)*clamp((extent-r)/.032,0,1);
     }
     const mesh={u,v,limb,networkGain,coverage,fringe};
-    if(geometry.size>=5)geometry.delete(geometry.keys().next().value);
+    if(size>640)geometry.clear();else if(geometry.size>=5)geometry.delete(geometry.keys().next().value);
     geometry.set(key,mesh);return mesh;
   }
   function bake(size,latitude,longitude,image){
@@ -123,7 +123,7 @@ globalThis.createSolarEmission=function(request){
     ctx.drawImage(transit,sun.x-side/2,sun.y-side/2,side,side);ctx.restore();
   }
   function draw(ctx,q,c,s,frame,bodies){
-    const wanted=2*extent*q.radius*Math.min(devicePixelRatio||1,1.5);
+    const wanted=Math.min(s.printRatio?1536:896,2*extent*q.radius*(s.printRatio||Math.min(devicePixelRatio||1,2)));
     const size=diameters.find(n=>n>=wanted)||diameters.at(-1);
     const starterMap=request("sun-carrington-lite");
     const image=size*2.8>512?(request("sun-carrington")||starterMap):starterMap;

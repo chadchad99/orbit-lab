@@ -142,6 +142,7 @@
     el("galactic-views").hidden=!galacticWide;
     el("camera-cruise").setAttribute("aria-pressed",String(cruise));
     el("camera-overview").setAttribute("aria-pressed",String(!cruise));
+    el("export-open").hidden=!galacticWide||state.split;
     el("clean-view").hidden=el("star-exposure").hidden=el("galaxy-emphasis").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!galacticWide;
     el("cruise-settings").hidden=!cameraSettings;
     el("camera-home").hidden=!galacticWide;
@@ -452,6 +453,7 @@
   document.fonts?.ready.then(mark);
   el("credits").innerHTML="<ul>"+LabMedia.credits.map(([name,credit,url])=>'<li>'+credit+' · <a href="'+url+'" target="_blank" rel="noreferrer">'+name+' 원본</a></li>').join("")+"</ul>";
 
+  createOrbitImageExport(()=>map.capture(state));
   const exoplanets=createExoViewer(mark);
   const galaxyViewer=createGalaxyViewer(direct=>{
     if(direct){history.replaceState(history.state,"","#map/galaxy/earth/wide");openMapLink();}
@@ -492,7 +494,7 @@
       if(!document.hidden)flyby.render(now,state);
       previous=null;requestAnimationFrame(animate);return;
     }
-    const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open&&!el("galaxy-view").open;
+    const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open&&!el("galaxy-view").open&&!el("export-view").open;
     if(previous===null)pendingDays=0;
     const elapsed=previous===null?0:Math.max(0,(now-previous)/1000);
     if(state.running){

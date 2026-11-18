@@ -81,7 +81,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
     }
     cpuCtx.putImageData(result,0,0);return cpu;
   }
-  return function paint(width,height,ratio,views){
+  function paint(width,height,ratio,views){
     if(!started&&views.some(v=>!v.camera.surveySky))load();
     const geometry=[width,height,ratio,...views.flatMap(({pane,camera,exposure})=>[pane.x,pane.y,pane.w,pane.h,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure,Number(!!camera.cruising)])].map(v=>Math.round(v*10000)).join("/");
     const key=geometry+"/"+views.map(({skyId,showSurvey,galaxyEmphasis,camera})=>[skyId??"",!!showSurvey,!!galaxyEmphasis,!!camera.surveySky,!!camera.photographic,celestial?CosmicSky.observerKey(camera):""].join("|")).join("/");
@@ -128,5 +128,11 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
       if(celestial)annotations.push(celestial(context,pane,camera,showSurvey,exposure,galaxyEmphasis));
     }
     return annotations;
+  }
+  paint.preparePrint=()=>survey.preparePrint();
+  paint.printRegion=(ctx,view,rect,ratio)=>{
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);survey.printRegion(ctx,view,rect,ratio);ctx.restore();
+    if(celestial)celestial(ctx,view.pane,view.camera,view.showSurvey,view.exposure,view.galaxyEmphasis);
   };
+  return paint;
 };
