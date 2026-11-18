@@ -9,9 +9,9 @@
   <link rel="icon" href="assets/lab.svg" type="image/svg+xml">
   <link rel="preload" as="image" href="assets/space/sun-atlas-visible.webp" fetchpriority="high">
   <link rel="preload" as="image" href="assets/space/corona-optical-poster.webp">
-  <script defer src="survey-sky.js?v=de4161131f"></script>
-  <link rel="stylesheet" href="style.css?v=4c4ffea6d7">
-  <script defer src="initial.js?v=8fbc8dd904"></script><script defer src="media.js?v=a3470a0f5e"></script><script defer src="gravity.js?v=946a34cb27"></script><script defer src="orientation.js?v=ab67e6a648"></script><script defer src="stars.js?v=0ae7395195"></script><script defer src="map-space.js?v=24e38e0255"></script><script defer src="solar.js?v=16c7641d43"></script><script defer src="saturn-rings.js?v=4f814181e8"></script><script defer src="map-materials.js?v=6f7dab6463"></script><script defer src="map.js?v=bbfd5e0472"></script><script defer src="optics.js?v=4a7a374746"></script><script defer src="software.js?v=a676e39286"></script><script defer src="flight.js?v=49c66cbb40"></script><script defer src="assets/vendor/satellite.min.js?v=6fd7487abb"></script><script defer src="catalog-orbits.js?v=ad4aee257c"></script><script defer src="catalog-data.js?v=2a39ad4bb4"></script><script defer src="catalog-chart.js?v=c170c484e7"></script><script defer src="catalog.js?v=40f450b2d1"></script><script defer src="satellite-layer.js?v=703349f88e"></script><script defer src="cosmos.js?v=024bf90eb0"></script><script defer src="exo-model.js?v=2716ee6f92"></script><script defer src="compact-optics.js?v=76324eb82f"></script><script defer src="exo-materials.js?v=11d25b7eb7"></script><script defer src="exo-view.js?v=4f668c7f00"></script><script defer src="app.js?v=1a63106b57"></script>
+  <script defer src="survey-sky.js?v=b518732e39"></script>
+  <link rel="stylesheet" href="style.css?v=774dbaa267">
+  <script defer src="initial.js?v=8fbc8dd904"></script><script defer src="media.js?v=a3470a0f5e"></script><script defer src="gravity.js?v=946a34cb27"></script><script defer src="orientation.js?v=ab67e6a648"></script><script defer src="stars.js?v=0ae7395195"></script><script defer src="map-space.js?v=2c6d121e62"></script><script defer src="flyby.js?v=d7892f0148"></script><script defer src="solar.js?v=16c7641d43"></script><script defer src="saturn-rings.js?v=4f814181e8"></script><script defer src="map-materials.js?v=b04f07c3ce"></script><script defer src="map.js?v=0b613e6f01"></script><script defer src="optics.js?v=4a7a374746"></script><script defer src="software.js?v=a676e39286"></script><script defer src="flight.js?v=49c66cbb40"></script><script defer src="assets/vendor/satellite.min.js?v=6fd7487abb"></script><script defer src="catalog-orbits.js?v=ad4aee257c"></script><script defer src="catalog-data.js?v=2a39ad4bb4"></script><script defer src="catalog-chart.js?v=c170c484e7"></script><script defer src="catalog.js?v=40f450b2d1"></script><script defer src="satellite-layer.js?v=703349f88e"></script><script defer src="cosmos.js?v=670d96e035"></script><script defer src="exo-model.js?v=2716ee6f92"></script><script defer src="compact-optics.js?v=76324eb82f"></script><script defer src="exo-materials.js?v=11d25b7eb7"></script><script defer src="exo-view.js?v=4f668c7f00"></script><script defer src="app.js?v=41a9e8ecc7"></script>
 </head>
 <body>
 <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="expand-camera" viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></symbol><symbol id="camera-view" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M4.7 17.2c5.2-7.6 11.8-9.6 15.9-8.4"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.9.8c0 1.9-2.5 2.1-2.5 4"/><path d="M12 17h.01" stroke-width="2.8"/></symbol><symbol id="i-orbit" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="5.4" transform="rotate(-36 12 12)"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="19.1" cy="5.7" r="1.9" fill="currentColor" stroke="none"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14m-7-7v14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-ext" viewBox="0 0 24 24"><path d="M5 19 18 6M8 6h10v10"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="M5 5v14m13-13-9.5 6 9.5 6z"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M6.5 4.5a.9.9 0 0 1 1.3-.8l12 7.5a1 1 0 0 1 0 1.6l-12 7.5a.9.9 0 0 1-1.3-.8z" fill="currentColor" stroke="none"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4.1" height="15" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="4.5" width="4.1" height="15" rx="1" fill="currentColor" stroke="none"/></symbol><symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol><symbol id="undo" viewBox="0 0 24 24"><path d="M3.5 9h5.8m-5.8 0V3.5m.3 5.2a8 8 0 1 1 1.2 9.5"/></symbol><symbol id="overlay-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="12" height="12" rx="1.5"/><rect x="9" y="9" width="12" height="12" rx="1.5"/></symbol><symbol id="split-icon" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M12 4.5v15"/></symbol><symbol id="forecast" viewBox="0 0 24 24"><path d="M3 17c4 0 5-9 9-9m3.5-.5 2.2-1.2m2.2-1.3 1.4-.7"/><circle cx="3.5" cy="17" r="1" fill="currentColor"/></symbol><symbol id="skip" viewBox="0 0 24 24"><path d="m4.2 6.5 8 5.5-8 5.5zm10 0 8 5.5-8 5.5z"/></symbol><symbol id="sliders" viewBox="0 0 24 24"><path d="M3 7h6m5 0h7M3 17h10m5 0h3"/><circle cx="11.5" cy="7" r="2.5"/><circle cx="15.5" cy="17" r="2.5"/></symbol><symbol id="bolt" viewBox="0 0 24 24"><path d="m14.6 2.9-10 11h6.8l-2 7.2 10.2-12h-7z" fill="currentColor" stroke="none"/></symbol><symbol id="check" viewBox="0 0 24 24"><path d="m4.5 12 4.5 4.5 10-10"/></symbol><symbol id="logo" viewBox="0 0 38 36"><g fill="none" stroke-linecap="round"><path d="M5 25c-4-5 1-14 10-19s17-6 19-1c3 6-4 15-14 19-7 3-13 4-15 1z" stroke="#a2e6dc" stroke-width="1.8"/><path d="M8 3c6-3 15 3 20 11s6 16 2 18c-5 3-14-2-20-10S3 6 8 3z" stroke="#e89d81" stroke-width="1.5"/><circle cx="18" cy="16.8" r="3.3" fill="#b8f3e7" stroke="none"/></g></symbol></defs></svg>
@@ -57,7 +57,7 @@
           </div>
         </div>
         <canvas id="star-field" aria-hidden="true"></canvas>
-        <canvas id="sky" tabindex="0" role="group" aria-label="태양계 궤도 실험 지도. 지도를 드래그하면 회전하며, 왼쪽 위 관측 천체 메뉴에서 달이나 행성을 골라 가까이 볼 수 있습니다."></canvas>
+        <canvas id="sky" tabindex="0" role="group" aria-label="태양계 궤도 실험 지도. 드래그로 회전하고 천체를 눌러 가까이 볼 수 있습니다. 은하 궤적에서 빈 공간을 누르면 조작 표시가 바뀝니다."></canvas>
         <div class="encounter-picker"><label id="target-label" for="map-target">관측 천체</label><div><select id="map-target" aria-label="가까이 볼 천체"></select><svg aria-hidden="true"><use href="#i-down"/></svg></div></div>
         <div class="solar-controls" id="solar-controls" hidden><div class="solar-bands" role="group" aria-label="태양 관측 영상"><button id="sun-radiant" aria-pressed="true">빛과 코로나</button><button id="sun-visible" aria-pressed="false">광구</button><button id="sun-euv" aria-pressed="false">코로나</button><button id="sun-granules" aria-pressed="false">쌀알무늬</button></div><button id="sun-spot">흑점 확대</button></div>
         <div class="scene-note" id="scene-note"></div>
@@ -66,6 +66,7 @@
             <div class="camera-switch" role="group" aria-label="은하 궤적 시점">
               <button type="button" id="camera-cruise" aria-pressed="true">동행 비행</button>
               <button type="button" id="camera-overview" aria-pressed="false">궤도 전경</button>
+              <button type="button" id="flyby-open" aria-haspopup="dialog">탐사 비행</button>
             </div>
             <button type="button" class="map-light" id="cruise-settings" aria-controls="overview-options" aria-expanded="false">보기 설정</button>
             <button type="button" class="map-light" id="clean-view" aria-pressed="false">화면만 보기</button>
@@ -81,6 +82,23 @@
         </div>
         <button type="button" id="galaxy-inset" aria-label="우리은하에서 태양의 공전 궤도 보기"><span class="galaxy-image"><img id="galaxy-inset-image" alt=""><i></i><b></b></span><span>우리은하 공전 ↗</span></button>
         <button hidden type="button" class="map-light deep-sky-open" id="host-moons" aria-haspopup="dialog">위성 보기</button>
+        <dialog id="flyby-view" aria-label="태양계 탐사 비행">
+          <button type="button" id="flyby-window" autofocus aria-label="조작 숨기기"></button>
+          <div id="flyby-controls">
+            <button type="button" id="flyby-exit"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7"/></svg>지도로</button>
+            <p class="flyby-hint">드래그로 둘러보기 · 빈 화면을 눌러 조작 숨기기</p>
+            <div class="flyby-caption">
+              <h2 id="flyby-title" aria-live="polite"></h2>
+              <div class="flyby-alt">고도 <span id="flyby-altitude"></span></div>
+              <span id="flyby-status" role="status"></span>
+            </div>
+            <div class="flyby-player" role="group" aria-label="탐사 비행 조작">
+              <button type="button" id="flyby-prev" aria-label="이전 천체"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
+              <button type="button" id="flyby-play" aria-label="탐사 비행 일시 정지"><svg aria-hidden="true"><use href="#i-pause"/></svg></button>
+              <button type="button" id="flyby-next" aria-label="다음 천체"><svg class="reverse" aria-hidden="true"><use href="#i-back"/></svg></button>
+            </div>
+          </div>
+        </dialog>
         <dialog id="exo-view" aria-label="외계 항성계 궤도 지도">
           <canvas id="exo-sky" aria-hidden="true"></canvas>
           <canvas id="exo-map" tabindex="0" role="group" aria-label="외계 항성계 지도. 드래그나 방향키로 회전, 휠이나 두 손가락으로 확대. 천체를 선택하면 가까이 봅니다."></canvas>
@@ -180,6 +198,7 @@
   <p>실험을 고른 뒤 실행 버튼을 누르세요. 같은 위치와 속도에서 출발한 두 태양계 중 한쪽에만 선택한 변화를 적용합니다. 다른 실험을 선택하면 출발 시점에서 다시 준비합니다.</p>
   <p>지도는 추적할 행성의 경로를 최대 90일 앞까지 보여 줍니다. 경로 끝의 작은 원은 예측 위치, 마름모는 변화 시점의 위치입니다. 시간 막대로 730일 단위의 관측 구간을 탐색할 수 있습니다. 재생하면 다음 구간으로 계속 이어집니다. <b>나란히</b>에서는 두 지도를 같은 축척과 시점으로 봅니다.</p>
   <h3>태양 기준과 은하 기준</h3>
+  <p><b>탐사 비행</b>에서는 토성, 지구, 달, 목성 곁을 약 80초 동안 차례로 지나갑니다. 드래그하면 비행 중에도 시선을 돌릴 수 있습니다. 화면을 누르면 조작판이 나타나고, <b>지도로</b>를 누르면 보던 시각과 배속으로 돌아갑니다.</p>
   <p><b>동행 비행</b>에서는 태양계와 함께 이동하는 카메라로 지난 365일 궤적의 일부를 가까이서 봅니다. 자동 이동 중에는 시선 방향을 유지한 채 관측 위치가 천천히 바뀌어 가까운 행성과 먼 별의 위치 차이가 드러납니다. 선은 각 천체가 지나온 위치를 이은 자취이며, 오래된 구간일수록 흐려집니다. <b>화면만 보기</b>를 누르면 이름과 조작판을 숨길 수 있습니다.</p>
   <p>두 시점은 각자 마지막으로 맞춘 방향과 확대를 기억합니다. <b>기본 구도</b>로 현재 시점만 되돌릴 수 있습니다. 궤도 전경의 <b>시간 눈금</b>에서 천체를 고르면 지난 위치가 표시되고 화살촉은 현재를 향합니다. 세로 화면에서는 궤적을 세워 여덟 행성을 함께 담습니다.</p>
   <p>태양이 시야에 들어오면 카메라가 별하늘의 노출을 낮춥니다. <b>보기 설정 → 별빛 강조</b>로 은하수의 어두운 부분을 더 볼 수 있습니다. 기본 은하 지도는 공전 궤적을 읽기 쉽도록 천체와 궤도의 폭을 확대합니다. 은하 진행 방향으로 이동한 거리는 실제 계산값을 유지합니다. <b>실제 비율</b>을 켜면 천체의 반지름과 거리에 같은 축척을 적용합니다. <a href="https://eol.jsc.nasa.gov/FAQ/default.htm" target="_blank" rel="noreferrer">NASA · 우주 사진의 노출</a></p>

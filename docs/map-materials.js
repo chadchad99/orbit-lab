@@ -4,7 +4,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
   "use strict";
   const {dot,norm,cross,specs,frames}=OrbitFrames;
   const {subtract,distance,radii,clamp}=OrbitMapSpace;
-  const assets=new Map(),pending=new Set(),stamps=new Map();
+  const assets=new Map(),pending=new Set(),retryAt=new Map(),stamps=new Map();
   const work=document.createElement("canvas"),paint=OrbitSoftware.make(work,{cutout:true,maxMapWidth:1024});
   const tau=2*Math.PI, identity=[1,0,0,0,1,0,0,0,1];
   // The close camera draws directly into a viewport-sized buffer, independently of map symbols.
@@ -25,12 +25,22 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     return (["earth","earth-night","earth-clouds"].includes(key)?"lite-":"")+key+".webp";
   }
   function load(key){
-    if(assets.has(key)||pending.has(key))return;
+    if(assets.has(key)||pending.has(key)||performance.now()<(retryAt.get(key)??0))return;
     pending.add(key);
     const image=new Image();image.decoding="async";
-    image.onload=()=>{assets.set(key,image);pending.delete(key);stamps.clear();invalidate();};
-    image.onerror=()=>pending.delete(key);
+    image.onload=()=>{assets.set(key,image);pending.delete(key);retryAt.delete(key);stamps.clear();invalidate();};
+    image.onerror=()=>{pending.delete(key);retryAt.set(key,performance.now()+8000);};
     image.src=LabMedia.file("assets/space/"+filename(key));
+  }
+  function filesFor(index){
+    const id=LabInitial.bodies[index].id;
+    return index===3?[id,"earth-clouds","earth-night","earth-ocean"]:index===6?[id,"ring"]:[id];
+  }
+  function prepare(index){
+    const files=filesFor(index);
+    files.forEach(load);
+    if(files.every(key=>assets.has(key)))return "ready";
+    return files.some(key=>retryAt.has(key))?"unavailable":"loading";
   }
   function requestDetail(key,file,priority){
     if(requested.has(file))return;
@@ -63,7 +73,9 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     }
     const maps=new Map(files.map(key=>[key,detail.get(key)?.im??assets.get(key)]));
     if(!maps.get(id))return false;
-    const resolution=closeGPU?Math.min(ratio,2,2560/Math.max(p.w,p.h)):Math.min(1,850/Math.max(p.w,p.h));
+    const longest=Math.max(p.w,p.h);
+    const resolution=closeGPU?Math.min(ratio,c.flyby?1.5:2,(c.flyby?1920:2560)/longest):
+      Math.min(1,(c.flyby?640:850)/longest);
     const width=Math.max(2,Math.round(p.w*resolution)),height=Math.max(2,Math.round(p.h*resolution));
     if(closeCanvas.width!==width||closeCanvas.height!==height){closeCanvas.width=width;closeCanvas.height=height;}
     closeDraw({...lighting,dist:c.dist*GravityLab.AU/radii[q.index],tanHalfFov:p.h/(2*c.focal),
@@ -77,7 +89,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     ctx.beginPath();ctx.arc(q.x,q.y,radius,0,tau);ctx.fill();
   }
   function planet(ctx,q,camera,lights,ratio){
-    const index=q.index,id=LabInitial.bodies[index].id,sp=specs[index],earth=index===3,saturn=index===6;
+    const index=q.index,id=LabInitial.bodies[index].id,sp=specs[index],saturn=index===6;
     const natural=GravityLab.read(camera.run,index,camera.day);
     const toSun=subtract(lights.physicalSun,natural),toSecond=subtract(lights.physicalCompanion,natural);
     const initial=Math.hypot(...LabInitial.bodies[index].p),solarRange=Math.max(.018,Math.hypot(...toSun)),companionRange=Math.max(.018,Math.hypot(...toSecond));
@@ -86,7 +98,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     const observer=norm(subtract(camera.eye,q.position));
     const primary=norm(toSun),secondary=norm(toSecond);
     if(q.radius<.92){unresolved(ctx,q,flux*(1+dot(observer,primary))/2+flux2*(1+dot(observer,secondary))/2);return;}
-    const files=[id,...(earth?["earth-clouds","earth-night","earth-ocean"]:saturn?["ring"]:[])];
+    const files=filesFor(index);
     files.forEach(load);
     const right=norm(cross(camera.up,observer)),up=norm(cross(observer,right)),axes=[right,up,observer];
     const toView=direction=>axes.map(axis=>dot(axis,direction));
@@ -112,5 +124,5 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     }
     const half=q.radius*extent;ctx.drawImage(stamp,q.x-half,q.y-half,2*half,2*half);
   }
-  return {planet};
+  return {planet,prepare};
 };

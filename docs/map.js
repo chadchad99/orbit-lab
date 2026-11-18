@@ -15,7 +15,7 @@
     function finishChangeover(){
       changeover?.remove();changeover=null;
     }
-    function fadePreviousView(){
+    function fadePreviousView(duration=240){
       finishChangeover();
       if(!w||matchMedia("(prefers-reduced-motion: reduce)").matches||!canvas.animate)return;
       const frame=document.createElement("canvas");
@@ -26,7 +26,7 @@
       canvas.after(frame);changeover=frame;
       requestAnimationFrame(()=>{
         if(changeover!==frame)return;
-        const fade=frame.animate([{opacity:1},{opacity:0}],{duration:240,easing:"ease-out",fill:"forwards"});
+        const fade=frame.animate([{opacity:1},{opacity:0}],{duration,easing:"ease-out",fill:"forwards"});
         fade.onfinish=()=>{if(changeover===frame)finishChangeover();};
       });
     }
@@ -435,12 +435,13 @@
     function draw(s){
       resize();if(!w||!h)return;scope=s.scope;galacticWide=scope==="wide"&&s.reference==="galaxy"&&!s.fixedCamera;
       hits=[];ctx.clearRect(0,0,w,h);
-      const range=S.systemFrame(s);
+      const range=s.flyby?null:S.systemFrame(s);
       const views=panels(s.split).map(pane=>{
         const testView=pane.layer!=="base",run=s.applied&&testView?s.test:s.base;
         const dark=s.applied&&testView&&(s.kind==="black"||s.kind==="vanish");
         const camera=S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch,cruiseTime);
-        const exposure=camera.surveySky?galacticExposure(camera,s,run,testView):dark?1.05:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:s.scope==="wide"?.90:.52;
+        let exposure=camera.surveySky?galacticExposure(camera,s,run,testView):dark?1.05:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:s.scope==="wide"?.90:.52;
+        if(s.flyby&&!dark)exposure*=.43;
         return {pane,run,testView,showSurvey:s.scope==="wide"&&s.allFit,camera,exposure};
       });
       const notes=sky(w,h,dpr,views);views.forEach((view,i)=>drawPanel(view,s,notes[i]||[]));
@@ -491,7 +492,7 @@
       if(!pointers.has(e.pointerId))return;
       const p=coords(e);
       if(!cancel&&!gesture.moved&&!gesture.pinch&&Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)<6){
-        const id=hit(p,e.pointerType==="touch");if(id!==null)onPick(id);
+        const id=hit(p,e.pointerType==="touch");if(id!==null||galacticWide)onPick(id);
       }
       pointers.delete(e.pointerId);if(!pointers.size){gesture=null;canvas.classList.remove("drag")}
       if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);
@@ -512,7 +513,7 @@
       const radius=Math.min(w,h)*.43*zoom;
       yaw=-(uv[0]-.5)*radius/.386595/(w*.2);pitch=-(uv[1]-.5)*radius/.386595/(h*.2);change();
     }
-    return {draw,invalidate,advanceCamera,advanceSun:solar.advance,focusSunspot,needsRender:()=>dirty,reset,zoomBy,switchGalacticCamera};
+    return {draw,invalidate,advanceCamera,advanceSun:solar.advance,focusSunspot,needsRender:()=>dirty,reset,zoomBy,switchGalacticCamera,fadePreviousView,prepare:materials.prepare};
   }
   globalThis.createLabMap=createMap;
 })();
