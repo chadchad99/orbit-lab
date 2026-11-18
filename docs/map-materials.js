@@ -67,7 +67,7 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     const width=Math.max(2,Math.round(p.w*resolution)),height=Math.max(2,Math.round(p.h*resolution));
     if(closeCanvas.width!==width||closeCanvas.height!==height){closeCanvas.width=width;closeCanvas.height=height;}
     closeDraw({...lighting,dist:c.dist*GravityLab.AU/radii[q.index],tanHalfFov:p.h/(2*c.focal),
-      ringProfile:id==="saturn"?1:0,focus:[c.principal[0],1-c.principal[1]],polarRatio:OrbitMapSpace.polarRatio(q.index)},maps);
+      focus:[c.principal[0],1-c.principal[1]],polarRatio:OrbitMapSpace.polarRatio(q.index)},maps);
     ctx.drawImage(closeCanvas,p.x,p.y,p.w,p.h);return true;
   }
   function unresolved(ctx,q,flux){
@@ -93,8 +93,8 @@ globalThis.createMapMaterials = function createMapMaterials(invalidate) {
     const sun=toView(primary),second=toView(secondary);
     const basis=OrbitFrames.bodyFrame(index,camera.run,camera.day),viewToBody=axes.flatMap(v=>[0,3,6].map(i=>dot(v,basis.slice(i,i+3))));
     const lighting={id,body:index,tilt:0,air:sp[6],airColor:sp[7],sun,star:second,flux,flux2,viewToBody,viewToGal:identity,
-      cloudsDrift:0,skyPower:0,sunSize:0,starSize:0,longitudeShift:OrbitFrames.surfaceShift(index,camera.day),
-      polarRatio:OrbitMapSpace.polarRatio(index),ringProfile:saturn?1:0,ringPhase:saturn?SaturnRings.frame(camera.day):null};
+      cloudsDrift:0,skyPower:0,sunSize:Math.min(.09,radii[0]/GravityLab.AU/solarRange),starSize:Math.min(.09,radii[10]/GravityLab.AU/companionRange),longitudeShift:OrbitFrames.surfaceShift(index,camera.day),
+      polarRatio:OrbitMapSpace.polarRatio(index),ringPhase:saturn?SaturnRings.frame(camera.day):null};
     if(camera.closeBody===index&&encounter(ctx,camera,q,files,lighting,ratio))return;
     if(!assets.has(id)){unresolved(ctx,{...q,radius:.9},flux+flux2);return;}
     const physicalDistance=distance(camera.eye,q.position)*GravityLab.AU/radii[index];

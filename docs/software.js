@@ -14,21 +14,26 @@ const b=s.viewToBody,g=s.viewToGal,S=s.sun,T=s.star,E=s.body===3,R=s.body===6,d=
 const flatten=1/(s.polarRatio??1)-1,normalFlatten=flatten*(flatten+2),ox=flatten*d*b[7]*b[1],oy=flatten*d*b[7]*b[4],oz=d*(1+flatten*b[7]*b[7]);
 const surf=s.surfaceParams??[0,0,0,0],white=s.sunTint??[1,.973,.94],other=s.secondTint??[1,.82,.65];
 const phase=R?(s.ringPhase??SaturnRings.frame(0)):null;
+const sunIncidence=S[0]*b[1]+S[1]*b[4]+S[2]*b[7],starIncidence=T[0]*b[1]+T[1]*b[4]+T[2]*b[7];
 function ringShadow(px,py,pz,l){
  const pd=l[0]*b[1]+l[1]*b[4]+l[2]*b[7];
  if(Math.abs(pd)<.001)return 1;
  const rt=-(px*b[1]+py*b[4]+pz*b[7])/pd;
  if(rt<=0)return 1;
  const rr=Math.hypot(px+rt*l[0],py+rt*l[1],pz+rt*l[2]);
- return rr>1.21&&rr<2.27?1-.89*ring.d[idx(ring,(rr-1.21)/1.06,.5)+3]/255:1;
+ return rr>1.21&&rr<2.27?SaturnRings.transmission(ring.d[idx(ring,(rr-1.21)/1.06,.5)+3]/255,pd):1;
 }
-function ringLight(px,py,pz,l,dn,opacity){
- const incidence=l[0]*b[1]+l[1]*b[4]+l[2]*b[7];
+function ringLight(px,py,pz,l,dn,incidence,opacity,coverage,sourceSize){
  const dx=l[0]+flatten*incidence*b[1],dy=l[1]+flatten*incidence*b[4],dz=l[2]+flatten*incidence*b[7];
- const dl=px*dx+py*dy+pz*dz;
- const impact=Math.sqrt(Math.max(0,px*px+py*py+pz*pz-dl*dl/(dx*dx+dy*dy+dz*dz)));
- const shadow=dl<0?.07+.93*sm(.99,1.01,impact):1;
- return shadow*(incidence*dn<0?.60+.40*Math.sqrt(Math.abs(incidence)):.32+.32*(1-opacity));
+ // The sample is in the equatorial plane, unchanged by polar flattening.
+ const behind=-(px*dx+py*dy+pz*dz)/Math.hypot(dx,dy,dz);
+ let shadow=1;
+ if(behind>0){
+   const impact=Math.sqrt(Math.max(0,px*px+py*py+pz*pz-behind*behind));
+   const width=Math.max(.0001,behind*sourceSize+Math.min(.025,d*fac*.5));
+   shadow=.025+.975*sm(1-width,1+width,impact);
+ }
+ return shadow*SaturnRings.scatter(opacity,incidence,dn,coverage);
 }
 for(let y=0,pix=0;y<h;y++){const qy=(sy-y-.5)*fac;for(let x=0;x<w;x++,pix+=4){
  const qx=(x+.5-sx)*fac,k=1/Math.hypot(qx,qy,1),rx=qx*k,ry=(qy*ct+st)*k,rz=(qy*st-ct)*k;
@@ -76,7 +81,16 @@ for(let y=0,pix=0;y<h;y++){const qy=(sy-y-.5)*fac;for(let x=0;x<w;x++,pix+=4){
  if(E){const c=sm(.022,.95,cloud.d[idx(cloud,u+s.cloudsDrift,v)]/255)*.96,light=f1+f2+.00012;
  const hs=Math.hypot(S[0]-rx,S[1]-ry,S[2]-rz)||1,hn=Math.max(0,(ds+nv)/hs),spec=(ocean.d[idx(ocean,u,v)]/255)*s.flux*(ds>0?Math.pow(hn,145):0)*(.035+.63*(1-nv)**4);
  cr=(cr*(1-.27*c)+spec*1.35)*(1-c)+c*.92*light;cg=(cg*(1-.27*c)+spec*1.23)*(1-c)+c*.96*light;cb=(cb*(1-.27*c)+spec*.99)*(1-c)+c*light;
- const ni=idx(night,u,v),nf=.73*(1-sm(.003,.13,light))*(1-.82*c);cr+=lin[night.d[ni]]*nf;cg+=lin[night.d[ni+1]]*nf;cb+=lin[night.d[ni+2]]*nf;}
+ const ni=idx(night,u,v),nf=.73*(1-sm(.003,.13,light))*(1-.82*c);cr+=lin[night.d[ni]]*nf;cg+=lin[night.d[ni+1]]*nf;cb+=lin[night.d[ni+2]]*nf;
+ for(let j=0;j<(s.flux2?2:1);j++){
+   const power=j?s.flux2:s.flux,height=j?dt:ds;
+   if(!power||height<=-.15||height>=.145)continue;
+   const l=j?T:S,tint=j?other:white,forward=Math.max(0,rx*l[0]+ry*l[1]+rz*l[2]);
+   const path=.32+.68*(1-nv)*(1-nv),dusk=sm(-.15,-.018,height)*(1-sm(-.018,.11,height));
+   const lowSun=sm(-.072,.016,height)*(1-sm(.018,.145,height));
+   const sky=(.4+.6*path)*(.006+.011*c)*dusk,warm=path*(.010+.076*c)*lowSun*(.45+.55*forward);
+   cr+=power*tint[0]*(.24*sky+warm);cg+=power*tint[1]*(.46*sky+.43*warm);cb+=power*tint[2]*(sky+.13*warm);
+ }}
  const rim=s.air*Math.min(1.55,s.flux*sm(-.19,.32,ds)+s.flux2*sm(-.19,.32,dt))*(.57*(1-nv)**3.65+.009*(1-nv)**1.3);
  r=film(cr+rim*s.airColor[0]);gr=film(cg+rim*s.airColor[1]);bl=film(cb+rim*s.airColor[2]);
  }else{alpha=cutout?0:1;if(!cutout){const gx=g[0]*rx+g[3]*ry+g[6]*rz,gy=g[1]*rx+g[4]*ry+g[7]*rz,gz=g[2]*rx+g[5]*ry+g[8]*rz;
@@ -84,11 +98,24 @@ for(let y=0,pix=0;y<h;y++){const qy=(sy-y-.5)*fac;for(let x=0;x<w;x++,pix+=4){
  if(s.air&&imp2<1.0527){const imp=Math.sqrt(imp2),tt=-d*rz,nx=rx*tt/imp,ny=ry*tt/imp,nz=(d+rz*tt)/imp,lit=s.flux*sm(-.22,.39,nx*S[0]+ny*S[1]+nz*S[2])+s.flux2*sm(-.22,.39,nx*T[0]+ny*T[1]+nz*T[2]),halo=s.air*.51*Math.min(1.5,lit)*Math.exp(-(imp-1)/(.0036*Math.max(.53,s.air)))*(1-sm(.014,.026,imp-1));const dusk=E?Math.pow(Math.max(0,rx*S[0]+ry*S[1]+rz*S[2]),13)*(1-sm(.025,.19,Math.abs(nx*S[0]+ny*S[1]+nz*S[2])))*Math.exp(-(imp-1)/.0031)*Math.min(1,s.flux)*.64:0;if(cutout){alpha=Math.min(1,Math.max(0,(halo+dusk)**.46));}
 r+=film(halo*s.airColor[0]+.95*dusk);gr+=film(halo*s.airColor[1]+.27*dusk);bl+=film(halo*s.airColor[2]+.042*dusk);}
  if(!cutout)for(let j=0;j<(s.flux2?2:1);j++){const l=j?T:S,f=j?s.flux2:s.flux,ang=j?s.starSize:s.sunSize,co=rx*l[0]+ry*l[1]+rz*l[2];if(co>.986&&f>0){const th=Math.sqrt(Math.max(0,1-co*co)),v=255*((1-sm(Math.max(0,ang-.54/h),ang+.54/h,th))*2.8+.10*Math.exp(-th/Math.max(ang*4,.001))+.019*Math.exp(-th/Math.max(ang*16,.003)));r+=v;gr+=v*(j?.79:.96);bl+=v*(j?.61:.89);}}}
- if(R){const pd=b[1]*rx+b[4]*ry+b[7]*rz,rt=-d*b[7]/pd;if(rt>0&&rt<t){const px=rx*rt,py=ry*rt,pz=d+rz*rt,rad=Math.hypot(px,py,pz);if(rad>1.21&&rad<2.27){const i=idx(ring,(rad-1.21)/1.06,.5),a=s.ringProfile?1-(1-ring.d[i+3]/255)**(1/Math.max(.02,Math.abs(pd))):limit(ring.d[i+3]/255*(1.18-.12*Math.abs(pd)));
+ if(R){const pd=b[1]*rx+b[4]*ry+b[7]*rz,rt=-d*b[7]/pd;if(rt>0&&rt<t){const px=rx*rt,py=ry*rt,pz=d+rz*rt,rad=Math.hypot(px,py,pz);if(rad>1.21&&rad<2.27){const i=idx(ring,(rad-1.21)/1.06,.5),opacity=ring.d[i+3]/255,a=1-SaturnRings.transmission(opacity,pd);
  const gx=(b[0]*px+b[3]*py+b[6]*pz)/rad,gz=(b[2]*px+b[5]*py+b[8]*pz)/rad,markings=SaturnRings.contrast(rad,gx,gz,phase);
- const opacity=ring.d[i+3]/255,light=(s.flux*ringLight(px,py,pz,S,pd,opacity)+s.flux2*ringLight(px,py,pz,T,pd,opacity))*markings+.00018;
  const coverage=alpha*(1-a)+a;
- if(coverage>0){r=(r*alpha*(1-a)+a*film(lin[ring.d[i]]*light))/coverage;gr=(gr*alpha*(1-a)+a*film(lin[ring.d[i+1]]*light))/coverage;bl=(bl*alpha*(1-a)+a*film(lin[ring.d[i+2]]*light))/coverage;}
+ if(coverage>0&&a>0){
+   const red=lin[ring.d[i]],green=lin[ring.d[i+1]],blue=lin[ring.d[i+2]];
+   let rr=0,rg=0,rb=0;
+   for(let j=0;j<(s.flux2?2:1);j++){
+     const power=j?s.flux2:s.flux;if(!power)continue;
+     const l=j?T:S,incidence=j?starIncidence:sunIncidence,tint=j?other:white;
+     const light=power*markings*ringLight(px,py,pz,l,pd,incidence,opacity,a,j?s.starSize:s.sunSize);
+     const mix=incidence*pd>=0?.55:0;
+     const bounce=power*markings*SaturnRings.planetshine(rad,(px*l[0]+py*l[1]+pz*l[2])/rad);
+     rr+=tint[0]*(light*(red+mix*(.53-red))+red*bounce);
+     rg+=tint[1]*(light*(green+mix*(.48-green))+.89*green*bounce);
+     rb+=tint[2]*(light*(blue+mix*(.39-blue))+.72*blue*bounce);
+   }
+   r=(r*alpha*(1-a)+a*film(rr))/coverage;gr=(gr*alpha*(1-a)+a*film(rg))/coverage;bl=(bl*alpha*(1-a)+a*film(rb))/coverage;
+ }
  alpha=coverage;}}}
  a[pix]=r;a[pix+1]=gr;a[pix+2]=bl;a[pix+3]=Math.round(255*alpha);
 }}
