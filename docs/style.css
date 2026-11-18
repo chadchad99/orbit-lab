@@ -303,6 +303,18 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
   .scene-note a { display:inline-block; white-space:nowrap; }
   .map-box:has(#galactic-views:not([hidden])) #galaxy-inset { top:190px; }
 }
+@media(max-width:640px) {
+  .map-box[data-reference=galaxy][data-scope=wide]:not(.cruising) .scene-note { bottom:57px; }
+}
+@media(min-width:641px) and (max-width:800px) {
+  .map-box[data-reference=galaxy][data-scope=wide]:not(.cruising) .scene-note {
+    bottom:14px; max-width:calc(100% - 352px);
+  }
+  .scene-note a { display:inline-block; white-space:nowrap; }
+}
+@media(min-width:651px) and (max-width:800px) {
+  .map-box[data-reference=galaxy][data-scope=wide]:not(.clean-view) .overview-toolbar { max-width:calc(100% - 140px); }
+}
 @media(max-height:430px) and (min-width:520px) {
   .overview-toolbar { top:70px; }
   .map-box.cruising .map-hud { bottom:29px; }

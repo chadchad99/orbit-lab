@@ -71,6 +71,9 @@ globalThis.LabFullLayer=(()=>{
       ctx.drawImage(rec.surface,center.x-side/2,center.y-side/2,side,side);
     }else ctx.drawImage(rec.surface,p.x,p.y,p.w,p.h);ctx.restore();
   }
+  function drawPoint(ctx,x,y,radius){
+    ctx.beginPath();ctx.arc(x,y,radius,0,2*Math.PI);ctx.fill();
+  }
   function sprite(group,c,radius,small){
     const key=[group.key,orientation(c),Math.round(radius)].join('|');if(sprites.has(key))return sprites.get(key);
     const points=group.points,localScale=group.key==='earth'?6378:Math.max(30,(S.radii[major.get(group.key)]||500));
@@ -86,26 +89,31 @@ globalThis.LabFullLayer=(()=>{
       const px=middle+(x*c.right[0]+y*c.right[1]+z*c.right[2])*k,py=middle-(x*c.up[0]+y*c.up[1]+z*c.up[2])*k;
       const natural=kind==='moon'||kind==='candidate',d=natural?(small?1.25:1.48):dense?.57:1.35;
       ctx.fillStyle=natural?'rgba(220,208,185,.57)':kind==='payload'?(dense?'rgba(150,192,217,.065)':'#a4c8daaa'):'rgba(154,153,151,.11)';
-      ctx.fillRect(px-d/2,py-d/2,d,d);
+      if(d<1)ctx.fillRect(px-d/2,py-d/2,d,d);
+      else drawPoint(ctx,px,py,d/2);
     }
     return remember(sprites,key,{im,side},110);
   }
   function satellites(ctx,p,c,s,run,disks,hits){
     if(!survey||!s.showSatellites||s.actualSize||s.fixedCamera)return;
     const known=new Map(disks.map(q=>[q.index,q]));
+    const scale=c.overviewScale??1,markerRadius=Math.max(.62,Math.min(1,scale));
     for(const group of systems.values()){
       const idx=major.get(group.key);let body=known.get(idx);
       if(group.key==='sun'){
-        for(const row of group.points){const q=c.project(galLocation(s,run,row.slice(2,5).map(x=>x/AU)));if(q.inFront){ctx.fillStyle='#99bbc5cb';ctx.fillRect(q.x-1,q.y-1,2,2);}}
+        ctx.fillStyle='#99bbc5cb';
+        for(const row of group.points){
+          const q=c.project(galLocation(s,run,row.slice(2,5).map(x=>x/AU)));
+          if(q.inFront)drawPoint(ctx,q.x,q.y,markerRadius);
+        }
         continue;
       }
       if(!group.points.length&&!s.allFit)continue;
       if(idx!=null&&!body)continue;
       if(!body){const host=hostPositions.get(group.key);if(!host)continue;const q=c.project(galLocation(s,run,host));if(!q.inFront)continue;body={...q,radius:group.group==='dwarf'?2.0:1};}
       if(body.x<p.x-25||body.y<p.y-25||body.x>p.x+p.w+25||body.y>p.y+p.h+25)continue;
-      if(idx==null){ctx.fillStyle=group.points.length?'#c6ba9fbb':'#9eaaa955';ctx.fillRect(body.x-1,body.y-1,2,2);}
+      if(idx==null){ctx.fillStyle=group.points.length?'#c6ba9fbb':'#9eaaa955';drawPoint(ctx,body.x,body.y,markerRadius);}
       if(!group.points.length)continue;
-      const scale=c.overviewScale??1;
       const sp=sprite(group,c,Math.round(body.radius/scale),idx==null),side=sp.side*scale;
       ctx.drawImage(sp.im,body.x-side/2,body.y-side/2,side,side);
       if(idx!==undefined){const r=Math.max(7,side*.48);hits.push({index:group.key,panel:p,box:{x:body.x-r,y:body.y-r,w:r*2,h:r*2}});}

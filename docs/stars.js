@@ -84,7 +84,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   return function paint(width,height,ratio,views){
     if(!started&&views.some(v=>!v.camera.surveySky))load();
     const geometry=[width,height,ratio,...views.flatMap(({pane,camera,exposure})=>[pane.x,pane.y,pane.w,pane.h,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure,Number(!!camera.cruising)])].map(v=>Math.round(v*10000)).join("/");
-    const key=geometry+"/"+views.map(({skyId,showSurvey,camera})=>[skyId??"",!!showSurvey,!!camera.surveySky,celestial?Math.floor((camera.day??0)/32):0,camera.closeBody??0].join("|")).join("/");
+    const key=geometry+"/"+views.map(({skyId,showSurvey,camera})=>[skyId??"",!!showSurvey,!!camera.surveySky,celestial?CosmicSky.observerKey(camera):""].join("|")).join("/");
     if(key===lastKey) return annotations;
     lastKey=key;annotations=[];
     const cw=Math.round(width*ratio),ch=Math.round(height*ratio);
@@ -99,10 +99,10 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
       const {pane,camera,showSurvey,exposure}=views[0];
       annotations.push(celestial(context,pane,camera,showSurvey,exposure));return annotations;
     }
+    if(views.some(v=>v.camera.surveySky))survey??=createSurveySky(refresh);
+    if(survey)survey(context,views,ratio);
     for(const {pane,camera,exposure,showSurvey} of views){
       if(camera.surveySky){
-        survey??=createSurveySky(refresh);
-        context.drawImage(survey(pane,camera,ratio,exposure),pane.x,pane.y,pane.w,pane.h);
         if(celestial)annotations.push(celestial(context,pane,camera,showSurvey,exposure));
         continue;
       }

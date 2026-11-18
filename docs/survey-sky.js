@@ -3,11 +3,10 @@
 globalThis.createSurveySky = function createSurveySky(invalidate) {
   "use strict";
   const names=["px","nx","py","ny","pz","nz"];
-  const faces=names.map(name=>({name,low:null,high:null,pixels:null,texture:null,uploaded:null,retry:0,loading:false}));
+  const faces=names.map(name=>({name,low:null,high:null,pixels:null,texture:null,uploaded:null,retry:0,delay:0,loading:false,lastVisible:0}));
   const canvas=document.createElement("canvas"),cpu=document.createElement("canvas");
   const ctx=cpu.getContext("2d",{alpha:false});
-  let gl=canvas.getContext("webgl",{alpha:false,depth:false,antialias:false});
-  let program,orientation,aperture,offset,gain,frame,wanted=[],inFlight=0;
+  let gl,program,orientation,aperture,offset,gain,frame,wanted=[],inFlight=0,retryTimer;
   const dir="assets/space/galactic/";
   function initialize(){
     const vertex="attribute vec2 corner; varying vec2 screen; void main(){screen=corner; gl_Position=vec4(corner,0.,1.);}";
@@ -43,6 +42,8 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     gl.enableVertexAttribArray(corner);gl.vertexAttribPointer(corner,2,gl.FLOAT,false,0,0);
     [orientation,aperture,offset,gain]=["orientation","aperture","offset","gain"].map(k=>gl.getUniformLocation(program,k));
     for(const [i,face] of faces.entries()){
+      face.uploaded=null;
+      face.pixels=null;
       face.texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,face.texture);
       gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,1,1,0,gl.RGB,gl.UNSIGNED_BYTE,new Uint8Array(3));
       gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
@@ -52,8 +53,13 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
       gl.uniform1i(gl.getUniformLocation(program,face.name),i);
     }
   }
-  if(gl){try{initialize();}catch{gl=null;}}
+  function startWebGL(){
+    gl=canvas.getContext("webgl",{alpha:false,depth:false,antialias:false});
+    if(gl){try{initialize();}catch{gl=null;}}
+  }
+  startWebGL();
   canvas.addEventListener("webglcontextlost",event=>{event.preventDefault();gl=null;invalidate();});
+  canvas.addEventListener("webglcontextrestored",()=>{startWebGL();invalidate();});
   const preview=new Image();
   preview.onload=()=>{
     const side=preview.naturalHeight;
@@ -65,18 +71,39 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   };
   preview.src=LabMedia.file(dir+"preview.webp");
   function requestFaces(){
+    clearTimeout(retryTimer);
+    if(document.hidden)return;
+    const now=performance.now();
+    let nextRetry=Infinity;
     for(const i of wanted){
       if(inFlight>=2)break;
       const face=faces[i];
-      if(face.high||face.loading||performance.now()<face.retry)continue;
+      if(face.high||face.loading)continue;
+      if(face.retry){
+        if(!navigator.onLine)continue;
+        if(face.retry>now){nextRetry=Math.min(nextRetry,face.retry);continue;}
+      }
       face.loading=true;inFlight++;
       const im=new Image();im.decoding="async";
-      const finish=()=>{face.loading=false;inFlight--;invalidate();requestFaces();};
-      im.onload=()=>{if(wanted.includes(i))face.high=im;finish();};
-      im.onerror=()=>{face.retry=performance.now()+30000;finish();};
+      const finish=()=>{face.loading=false;inFlight--;requestFaces();};
+      im.onload=()=>{
+        face.retry=face.delay=0;
+        if(wanted.includes(i)){face.high=im;invalidate();}
+        finish();
+      };
+      im.onerror=()=>{
+        face.delay=Math.min(60000,face.delay?face.delay*2:2000);
+        face.retry=performance.now()+face.delay;finish();
+      };
       im.src=LabMedia.file(dir+face.name+".webp");
     }
+    if(Number.isFinite(nextRetry))retryTimer=setTimeout(requestFaces,Math.max(1,Math.ceil(nextRetry-performance.now())));
   }
+  window.addEventListener("online",()=>{
+    for(const i of wanted)faces[i].retry=faces[i].delay=0;
+    requestFaces();
+  });
+  document.addEventListener("visibilitychange",requestFaces);
   const empty={width:1,data:new Uint8Array(4)};
   function raster(face){
     const source=face.high||face.low;if(!source)return empty;
@@ -114,19 +141,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     }
     ctx.putImageData(frame,0,0);return cpu;
   }
-  return function draw(p,c,ratio,light){
-    const m=[c.right,c.up,c.front].flatMap(OrbitFrames.galactic);
-    const ax=p.w/(2*c.skyFocal),ay=p.h/(2*c.skyFocal),ox=2*c.principal[0]-1,oy=1-2*c.principal[1];
-    // Intersect a conservative view cone with each cube face and fetch the
-    // forward faces first. A low-resolution face covers the first frame and errors.
-    const halfFov=Math.atan(Math.hypot(ax*(1+Math.abs(ox)),ay*(1+Math.abs(oy))));
-    const limit=Math.cos(halfFov+Math.acos(1/Math.sqrt(3)));
-    const facing=[-m[6],m[6],-m[7],m[7],-m[8],m[8]];
-    wanted=[0,1,2,3,4,5].filter(i=>facing[i]>=limit).sort((a,b)=>facing[b]-facing[a]);
-    for(const [i,face] of faces.entries()){
-      if(face.high&&!wanted.includes(i)&&facing[i]<limit-.28){face.high=null;face.pixels=null;}
-    }
-    requestFaces();
+  function render({p,c,exposure:light,m,ax,ay,ox,oy},ratio){
     const scale=gl?Math.min(ratio,c.cruising?1.5:2,(c.cruising?2450:4096)/p.w,2500/p.h):
       Math.min(ratio,c.cruising?1:1.75,(c.cruising?1150:2250)/p.w,(c.cruising?820:1550)/p.h);
     const w=Math.max(1,Math.round(p.w*scale)),h=Math.max(1,Math.round(p.h*scale));
@@ -141,5 +156,59 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     }
     gl.viewport(0,0,w,h);gl.uniformMatrix3fv(orientation,false,m);gl.uniform2f(aperture,ax,ay);
     gl.uniform2f(offset,ox,oy);gl.uniform1f(gain,light);gl.drawArrays(gl.TRIANGLES,0,3);return canvas;
+  }
+  const screen=[[-1,-1],[1,-1],[1,1],[-1,1]];
+  function clip(polygon,a,b,c){
+    const output=[];
+    let last=polygon[polygon.length-1],d0=a*last[0]+b*last[1]+c;
+    for(const point of polygon){
+      const d1=a*point[0]+b*point[1]+c;
+      if((d0>=0)!==(d1>=0)){
+        const t=d0/(d0-d1);
+        output.push([last[0]+t*(point[0]-last[0]),last[1]+t*(point[1]-last[1])]);
+      }
+      if(d1>=0)output.push(point);
+      last=point;d0=d1;
+    }
+    return output;
+  }
+  function visibleArea(face,axes){
+    // A face owns the rays for which its signed axis exceeds both other
+    // absolute components. Each of the four boundaries is a line on screen.
+    const axis=Math.floor(face/2),sign=face%2?-1:1,major=axes[axis];
+    let polygon=screen;
+    for(let k=0;k<3;k++){
+      if(k===axis)continue;
+      const minor=axes[k];
+      for(const edge of [-1,1]){
+        polygon=clip(polygon,sign*major[0]+edge*minor[0],sign*major[1]+edge*minor[1],sign*major[2]+edge*minor[2]);
+        if(polygon.length<3)return 0;
+      }
+    }
+    let twiceArea=0,prev=polygon[polygon.length-1];
+    for(const p of polygon){twiceArea+=prev[0]*p[1]-prev[1]*p[0];prev=p;}
+    return Math.abs(twiceArea)/2;
+  }
+  return function paint(context,views,ratio){
+    const areas=faces.map(()=>0),now=performance.now();
+    const frames=[];
+    for(const {pane:p,camera:c,exposure} of views){
+      if(!c.surveySky)continue;
+      const m=[c.right,c.up,c.front].flatMap(OrbitFrames.galactic);
+      const ax=p.w/(2*c.skyFocal),ay=p.h/(2*c.skyFocal),ox=2*c.principal[0]-1,oy=1-2*c.principal[1];
+      const axes=[0,1,2].map(k=>[m[k]*ax,m[k+3]*ay,-m[k+6]-ox*m[k]*ax-oy*m[k+3]*ay]);
+      for(let i=0;i<faces.length;i++)areas[i]+=visibleArea(i,axes)*p.w*p.h/4;
+      frames.push({p,c,exposure,m,ax,ay,ox,oy});
+    }
+    wanted=faces.map((_,i)=>i).filter(i=>areas[i]>0).sort((a,b)=>areas[b]-areas[a]);
+    for(const i of wanted)faces[i].lastVisible=now;
+    // Keep one recently visible neighbour for pans across a face boundary.
+    const spare=faces.filter((face,i)=>face.high&&!areas[i]).sort((a,b)=>b.lastVisible-a.lastVisible);
+    for(const face of spare.slice(frames.length?1:0)){face.high=null;face.pixels=null;}
+    requestFaces();
+    for(const view of frames){
+      const p=view.p;
+      context.drawImage(render(view,ratio),p.x,p.y,p.w,p.h);
+    }
   };
 };

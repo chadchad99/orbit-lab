@@ -69,6 +69,10 @@ globalThis.CosmicSky = (()=>{
       ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=.92*light;ctx.transform(ax,ay,bx,by,center[0],center[1]);ctx.drawImage(im,-.5,-.5,1,1);ctx.restore();
       if(annotations&&galaxyNames[g.id])annotations.push(note(center,g.id,galaxyNames[g.id],Math.max(4,Math.hypot(ax,ay)*.30)));
     }}
+  function observerKey(cam){
+    const eye=cam.cruising?cam.eye.map(v=>Math.round(v*2)):[];
+    return [Math.floor((cam.day??0)/32),cam.closeBody??0,cam.run?.kind,...eye].join('/');
+  }
   function setupBackdrop(changed){
     let stars=[],galaxies=[],centre=null,survey=null,reading=false,lastObserver='';
     const bump=()=>changed();
@@ -96,9 +100,9 @@ globalThis.CosmicSky = (()=>{
       // Catalogue proper motions already include the Sun's motion. Apply only
       // the local offset of the travelling camera, in AU, for annual parallax.
       const localEye=cam.cruising?cam.eye:null;
-      const observerKey=[Math.floor(day/32),target,cam.run?.kind,...(localEye?localEye.map(v=>Math.round(v*2)):[])].join('/');
-      if(observerKey!==lastObserver){
-        lastObserver=observerKey;
+      const observer=observerKey(cam);
+      if(observer!==lastObserver){
+        lastObserver=observer;
         const years=(LabInitial.jd-2451545+day)/365.25;
         const eye=localEye??(target&&cam.run?GravityLab.read(cam.run,target,day):[0,0,0]);
         for(const star of stars)for(let i=0;i<3;i++)
@@ -113,7 +117,7 @@ globalThis.CosmicSky = (()=>{
       return annotations;
     };
   }
-  return {vec,ecl,camera,screen,color,stellarMotion,dotStars,stamps,getImage,setupBackdrop,src};
+  return {vec,ecl,camera,screen,color,stellarMotion,dotStars,stamps,getImage,observerKey,setupBackdrop,src};
 })();
 
 globalThis.createCosmosViewer=function(){

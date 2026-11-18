@@ -138,8 +138,8 @@
     el("galactic-views").hidden=!galacticWide;
     el("camera-cruise").setAttribute("aria-pressed",String(cruise));
     el("camera-overview").setAttribute("aria-pressed",String(!cruise));
-    el("clean-view").hidden=el("star-exposure").hidden=!galacticWide;
-    el("cruise-settings").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!cruise;
+    el("clean-view").hidden=el("star-exposure").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!galacticWide;
+    el("cruise-settings").hidden=!cruise;
     el("cruise-settings").setAttribute("aria-expanded",String(state.cruiseSettings));
     el("overview-options").hidden=cruise&&!state.cruiseSettings;
     el("star-exposure").setAttribute("aria-pressed",String(state.starExposure));
@@ -171,9 +171,11 @@
     else if(sun&&state.sunBand==="radiant")note.textContent="HMI 광구 · AIA 코로나 · 카메라 노출 합성";
     else if(sun)note.textContent=state.sunBand==="euv"?"2024.05.10 · SDO/AIA · 극자외선 17.1 nm":"2024.05.10 · SDO/HMI · 가시광 617.3 nm";
     else if(wide){
-      const scale=galaxy?(state.linearDistances||state.actualSize?"은하 궤적 · 거리 비례":"은하 궤적 · 궤도 간격 압축"):state.actualSize?"실제 크기와 거리":state.linearDistances||galaxy?"거리 비례 · 천체 확대":"궤도 간격 압축 · 천체 확대";
+      const distance=OrbitMapSpace.compressed(state)?"궤도 간격 압축":"거리 비례";
       const sizes=state.actualSize?"실제 크기":"천체 확대";
-      note.textContent=cruise?"은하 공전 230 km/s · "+(OrbitMapSpace.compressed(state)?"궤도 간격 압축":"거리 비례")+" · "+sizes:solarObservation?scale+(state.showSatellites?" · 위성 분포 2026.11.16":""):scale;
+      const frame=cruise?"은하 공전 230 km/s · ":galaxy?"은하 궤적 · ":"";
+      note.textContent=frame+distance+" · "+sizes;
+      if(!cruise&&solarObservation&&state.showSatellites)note.append(" · 위성 분포 2026.11.16");
       if(galaxy){
         const credit=document.createElement("a");
         credit.href="https://svs.gsfc.nasa.gov/4851/";credit.target="_blank";credit.rel="noreferrer";
