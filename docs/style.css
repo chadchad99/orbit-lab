@@ -315,12 +315,12 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
 .camera-switch button[aria-pressed=true] { background:#c6dbd9; color:#102022; }
 .galactic-views button:focus-visible { outline:2px solid #b9f0e2; outline-offset:3px; }
 #cruise-settings[aria-expanded=true] { border-color:#90b8ae; color:#d9f5ed; }
-.cruising #overview-options {
+.galactic-camera #overview-options {
   max-width:min(480px,100%); gap:5px; padding:8px; border:1px solid #45525d;
   border-radius:12px; background:#0a1018f2;
 }
-.cruising #galaxy-inset { display:none; }
-.cruising:has(#cruise-settings[aria-expanded=true]) #galaxy-inset { display:grid; }
+.galactic-camera #galaxy-inset { display:none; }
+.galactic-camera:has(#cruise-settings[aria-expanded=true]) #galaxy-inset { display:grid; }
 .cruising .tools .tool-range,.cruising .tools>span { display:none; }
 .cruising .tools #glide { margin-right:3px; border-right:1px solid #47535a; border-radius:14px 0 0 14px; }
 .map-box.cruising .map-hud { bottom:clamp(44px,5.8%,62px); }

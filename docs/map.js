@@ -118,7 +118,7 @@
     }
     function trailAges(p,c,s,run){
       const id=s.trailBody;
-      if(!c.orthographic||s.allFit||s.cleanView||!s.showPaths||!run.active.includes(id))return [];
+      if(!(c.overview||c.orthographic)||s.allFit||s.cleanView||!s.showPaths||!run.active.includes(id))return [];
       const at=day=>c.project(S.world(s,run,id,day));
       const current=at(s.day),notes=[],marked=[current],compact=p.w<550;
       ctx.save();ctx.lineJoin="round";ctx.lineWidth=1.4;ctx.strokeStyle="rgb("+trailColors[id]+")";
@@ -155,7 +155,7 @@
       const atNow=v=>[v[0]-shift[0],v[1]-shift[1],v[2]-shift[2]];
       const shifted={near:c.near,project:v=>c.project(atNow(v))};
       for(const {id,start,step,points} of cache.paths){
-        const rgb=trailColors[id],selected=id===s.watch;
+        const rgb=trailColors[id],selected=id===(c.overview?s.trailBody:s.watch);
         const oldest=id===M.COMPANION?Math.max(0,s.day-365):s.day-365;
         const firstSample=Math.max(0,Math.ceil((oldest-start)/step)),chunk=18/step;
         if(firstSample<points.length&&oldest<start+firstSample*step){
@@ -167,15 +167,16 @@
           const depth=shifted.project(points[(first+last)>>1]).z;
           const proximity=clamp(c.dist/Math.max(c.near,depth),.34,1.55);
           const nearFade=clamp((depth-c.near)/(c.dist*.30),0,1);
-          const opacity=Math.min(.92,(.09+.70*(1-age/365)**1.25)*Math.sqrt(proximity)*(selected?1.17:id===0?.95:.88))*nearFade;
-          curve(shifted,points.slice(first,last+1),"rgba("+rgb+","+opacity+")",(selected?1.55:1.18)*Math.sqrt(proximity));
+          const brightness=c.overview?.24+.57*(1-age/365):.09+.70*(1-age/365)**1.25;
+          const opacity=Math.min(.95,brightness*Math.sqrt(proximity)*(selected?1.18:id===0?.98:.88))*nearFade;
+          curve(shifted,points.slice(first,last+1),"rgba("+rgb+","+opacity+")",(selected?(c.overview?1.9:1.55):1.18)*Math.sqrt(proximity));
         }
         const tip=S.world(s,run,id,s.day),end=atNow(points[points.length-1]);
         curve(c,[end,tip],"rgba("+rgb+",.78)",selected?1.32:1.04);
       }
     }
     function galacticTrails(p,c,s,run,testView){
-      if(c.cruising)cruiseTrails(c,s,run);
+      if(c.cruising||c.overview)cruiseTrails(c,s,run);
       else if(c.orthographic)cachedTrails(c,s,run);
       else for(const id of run.active){
         const from=id===M.COMPANION?Math.max(0,s.day-365):s.day-365;
@@ -245,9 +246,9 @@
       const distanceInRadii=c.dist*M.AU/S.radii[index];
       const lunarSize=Math.min(p.w,p.h)*.115*(S.radii[index]/S.radii[M.EARTH])*zoom;
       const shortSide=c.overviewShortSide??Math.min(p.w,p.h);
-      const wideSize=index===0?(c.orthographic?clamp(shortSide*.061,17,43):clamp(shortSide*.077+3,18,60)):
+      const wideSize=index===0?(c.orthographic||c.overview?clamp(shortSide*.061,17,43):clamp(shortSide*.077+3,18,60)):
         isStar?clamp(shortSide*.053,14,46):clamp(shortSide*.039,11,32)*(S.radii[index]/S.radii[5])**.49;
-      const travelScale=c.cruising?clamp(c.dist/Math.max(c.near,q.z),.24,3.4)*(isStar?.78:1.2):1;
+      const travelScale=c.cruising?clamp(c.dist/Math.max(c.near,q.z),.24,3.4)*(isStar?.78:1.2):c.overview?clamp(c.dist/q.z,.48,1.65):1;
       const radius=s.scope==="wide"&&!s.actualSize?Math.max(physical(S.radii[index]),wideSize*(c.overviewScale??1)*zoom**.37*travelScale):s.scope==="lunar"&&!s.actualSize?Math.max(physical(S.radii[index]),lunarSize):index===c.closeBody?c.focal/Math.sqrt(distanceInRadii**2-1):
         real?physical(S.radii[index]):Math.max(physical(S.radii[index]),enlarged*(s.displayScale??1.8));
       const solidReach=radius*(index===6?2.3:1);
@@ -257,29 +258,29 @@
     function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
     function labels(p,c,s,disks){
       if(!s.showNames||s.cleanView)return;
-      const compact=p.w<550;
+      const compact=p.w<550,overview=c.overview||c.orthographic;
       const boxes=[{x:p.x,y:p.y,w:116,h:p.layer==="both"?39:65},{x:p.x,y:p.y+p.h-31,w:116,h:31},{x:p.x+p.w-247,y:p.y+p.h-45,w:247,h:45}];
       const inset=document.getElementById("galaxy-inset");
-      if(c.orthographic&&inset.offsetWidth)boxes.push({x:inset.offsetLeft-3,y:inset.offsetTop-3,w:inset.offsetWidth+6,h:inset.offsetHeight+6});
+      if(overview&&inset.offsetWidth)boxes.push({x:inset.offsetLeft-3,y:inset.offsetTop-3,w:inset.offsetWidth+6,h:inset.offsetHeight+6});
       const bodiesInView=disks.filter(q=>q.inFront&&inPanel(p,q));
       const blocked=bodiesInView.filter(q=>!q.note).map(q=>{
         const halfHeight=q.index===0?q.reach:q.radius;
         return {x:q.x-q.reach-3,y:q.y-halfHeight-3,w:q.reach*2+6,h:halfHeight*2+6};
       });
-      const selectedId=c.orthographic?s.trailBody:s.watch;
+      const selectedId=overview?s.trailBody:s.watch;
       const priority=q=>q.note?(q.note==="age"?-.5:q.note==='small'?-1:-2):q.index===selectedId?100:q.index===hover?99:q.ghost?90:q.index===0?60:q.radius;
       const order=bodiesInView.toSorted?bodiesInView.toSorted((a,b)=>priority(b)-priority(a)):bodiesInView.slice().sort((a,b)=>priority(b)-priority(a));
       for(const q of order){
         if(q.index===c.closeBody)continue;
         const selected=q.index===selectedId,shade=q.note==="age"?"#c2d5df":q.note==='small'?'#c7bba4':q.note==='sky'?'#a1b5c8':selected?"#e9e9e3":q.ghost?mint:"#b3bbbf",special=selected||q.index===hover||q.ghost;
-        if(q.note!=="age"&&(!c.orthographic||q.note)&&!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&priority(o)>priority(q)&&Math.hypot(q.x-o.x,q.y-o.y)<(q.note?o.reach+6:compact?33:37)))continue;
+        if(q.note!=="age"&&(!overview||q.note)&&!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&priority(o)>priority(q)&&Math.hypot(q.x-o.x,q.y-o.y)<(q.note?o.reach+6:compact?33:37)))continue;
         const name=q.label??names[q.index],size=q.note?(compact?9:10):compact?10:12;
         ctx.font=(selected?"600 ":"460 ")+size+"px "+font;ctx.textBaseline="middle";
         const width=ctx.measureText(name).width+5,height=size+5;
         const gap=q.reach+(special?12:5);
         const offsets=[[1,-.4],[-1,-.4],[1,.65],[-1,.65],[0,-1],[0,1]];
         let chosen;
-        for(const extra of (special||c.orthographic?[0,9,18,28,43,60]:[0,10])){
+        for(const extra of (special||overview?[0,9,18,28,43,60]:[0,10])){
           for(const [dx,dy] of offsets){
             const x=q.x+dx*(gap+extra)+(dx===-1?-width:dx===0?-width/2:0);
             const y=q.y+dy*(q.radius+extra+8)-height/2;
@@ -291,7 +292,7 @@
           if(chosen)break;
         }
         if(!chosen)continue;
-        if(special||c.orthographic&&Math.hypot(q.x-(chosen.x+width/2),q.y-(chosen.y+height/2))>q.radius+25){
+        if(special||overview&&Math.hypot(q.x-(chosen.x+width/2),q.y-(chosen.y+height/2))>q.radius+25){
           const tx=clamp(q.x,chosen.x,chosen.x+width),ty=clamp(q.y,chosen.y,chosen.y+height),angle=Math.atan2(ty-q.y,tx-q.x);
           ctx.lineWidth=.68;ctx.strokeStyle=q.ghost?"#93c8ba96":"#b1c3c48c";ctx.beginPath();
           ctx.moveTo(q.x+Math.cos(angle)*(q.radius+1.7),q.y+Math.sin(angle)*(q.radius+1.7));ctx.lineTo(tx,ty);ctx.stroke();
