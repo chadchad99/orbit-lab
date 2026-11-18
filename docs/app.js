@@ -9,7 +9,7 @@
   const base=M.solve();
   const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
   const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false,
-    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,cleanView:false};
+    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,cleanView:false,trailBody:M.EARTH};
   const guides={near:{showPaths:false,showNames:false},far:{showPaths:true,showNames:true}};
   function setScope(scope){
     const group=v=>v==="near"||v==="sun"?"near":"far";
@@ -140,6 +140,11 @@
     el("camera-overview").setAttribute("aria-pressed",String(!cruise));
     el("clean-view").hidden=el("star-exposure").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!galacticWide;
     el("cruise-settings").hidden=!cruise;
+    el("camera-home").hidden=!galacticWide;
+    el("trail-body-control").hidden=!galacticWide||cruise||state.fixedCamera||state.allFit||!state.showPaths;
+    const noSun=active&&state.kind==="vanish"&&!state.split;
+    el("trail-body").options[0].disabled=noSun;
+    if(noSun&&state.trailBody===0){state.trailBody=M.EARTH;el("trail-body").value=String(M.EARTH);}
     el("cruise-settings").setAttribute("aria-expanded",String(state.cruiseSettings));
     el("overview-options").hidden=cruise&&!state.cruiseSettings;
     el("star-exposure").setAttribute("aria-pressed",String(state.starExposure));
@@ -171,7 +176,7 @@
     else if(sun&&state.sunBand==="radiant")note.textContent="HMI 광구 · AIA 코로나 · 카메라 노출 합성";
     else if(sun)note.textContent=state.sunBand==="euv"?"2024.05.10 · SDO/AIA · 극자외선 17.1 nm":"2024.05.10 · SDO/HMI · 가시광 617.3 nm";
     else if(wide){
-      const distance=OrbitMapSpace.compressed(state)?"궤도 간격 압축":"거리 비례";
+      const distance=OrbitMapSpace.compressed(state)?(galaxy?"궤도 폭 확대":"궤도 간격 압축"):"거리 비례";
       const sizes=state.actualSize?"실제 크기":"천체 확대";
       const frame=cruise?"은하 공전 230 km/s · ":galaxy?"은하 궤적 · ":"";
       note.textContent=frame+distance+" · "+sizes;
@@ -186,7 +191,7 @@
     note.hidden=!sun&&!lunar&&!wide;
     el("view-near").textContent=state.watch===M.MOON?"달 근접":"행성 곁";
     el("glide").hidden=!near&&!cruise;el("glide").setAttribute("aria-pressed",String(state.glide));
-    el("glide").title=state.glide?"자동 선회 멈추기":"자동 선회 시작";el("glide").setAttribute("aria-label",el("glide").title);
+    el("glide").title=(cruise?"카메라 이동":"자동 선회")+(state.glide?" 멈추기":" 시작");el("glide").setAttribute("aria-label",el("glide").title);
     el("glide").querySelector("use").setAttribute("href",state.glide?"#i-pause":"#i-play");
     el("view-fit").textContent="은하 궤적";el("galactic-trails").textContent=galaxy?"태양 기준 보기":"은하 궤적 보기";
     el("map-light").textContent=active?"실험 전으로":definitions[state.kind].action;
@@ -300,11 +305,18 @@
     const option=new Option(b.name,String(i+1));el("watch").add(option);el("map-target").add(new Option(b.name,String(i+1)));el("destination").add(new Option(b.name,String(i+1)));
   });
   el("watch").value=el("destination").value=String(state.watch);
+  planets.slice(0,9).forEach((body,i)=>el("trail-body").add(new Option(body.name,String(i))));
+  el("trail-body").value=String(state.trailBody);
+  el("trail-body").onchange=e=>{state.trailBody=Number(e.target.value);mark();};
+  el("camera-home").onclick=()=>{map.reset();mark();};
   el("map-play").addEventListener("click",togglePlay);
   el("galactic-trails").onclick=()=>{state.reference=state.reference==="galaxy"?"solar":"galaxy";state.fixedCamera=false;map.reset();updateControls();mark();};
   function selectGalacticCamera(cruise){
+    const previousView=state.allFit||state.fixedCamera?null:state.cruise;
+    if(previousView===cruise)return;
+    map.switchGalacticCamera(previousView,cruise);
     state.cruise=cruise;state.allFit=state.fixedCamera=false;
-    map.reset();updateControls();mark();
+    updateControls();mark();
   }
   el("camera-cruise").onclick=()=>selectGalacticCamera(true);
   el("camera-overview").onclick=()=>selectGalacticCamera(false);
@@ -316,7 +328,12 @@
     state.cleanView=!state.cleanView;state.cruiseSettings=false;updateControls();mark();
   }
   el("clean-view").onclick=toggleCleanView;
-  el("all-fit").onclick=()=>{state.allFit=!state.allFit;state.fixedCamera=false;map.reset();updateControls();mark();};
+  el("all-fit").onclick=()=>{
+    if(state.scope==="wide"&&state.reference==="galaxy"){
+      map.switchGalacticCamera(state.allFit||state.fixedCamera?null:state.cruise,state.allFit?state.cruise:null);
+    }else map.reset();
+    state.allFit=!state.allFit;state.fixedCamera=false;updateControls();mark();
+  };
   el("satellite-layer").onclick=()=>{
     const key=OrbitMapSpace.cruising(state)?"cruiseSatellites":"showSatellites";
     state[key]=!state[key];updateControls();mark();
@@ -359,7 +376,13 @@
     map.reset();updateControls();mark();
   }
   for(const [id,scope] of [["view-fit","fit"],["view-all","wide"],["view-near","near"],["view-sun","sun"],["view-lunar","lunar"]])
-    el(id).addEventListener("click",()=>{if(id==="view-fit"||id==="view-all"){state.reference=id==="view-fit"?"galaxy":"solar";if(id==="view-fit")state.cruise=false;state.fixedCamera=state.allFit=false;showView("wide");}else showView(scope);});
+    el(id).addEventListener("click",()=>{
+      if(id==="view-fit"&&state.reference==="galaxy"&&state.scope==="wide"){selectGalacticCamera(false);return;}
+      if(id==="view-fit"||id==="view-all"){
+        state.reference=id==="view-fit"?"galaxy":"solar";if(id==="view-fit")state.cruise=false;
+        state.fixedCamera=state.allFit=false;showView("wide");
+      }else showView(scope);
+    });
   for(const band of ["radiant","visible","euv","granules"])el("sun-"+band).addEventListener("click",()=>{state.sunBand=band;map.reset();updateControls();mark();});
   el("sun-spot").addEventListener("click",()=>{map.focusSunspot([.69267,.60973]);mark();});
   el("distance-toggle").addEventListener("click",()=>{state.linearDistances=!state.linearDistances;updateControls();mark();});

@@ -6,24 +6,41 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
   const faces=names.map(name=>({name,low:null,high:null,pixels:null,texture:null,uploaded:null,retry:0,delay:0,loading:false,lastVisible:0}));
   const canvas=document.createElement("canvas"),cpu=document.createElement("canvas");
   const ctx=cpu.getContext("2d",{alpha:false});
-  let gl,program,orientation,aperture,offset,gain,frame,wanted=[],inFlight=0,retryTimer;
+  let gl,program,orientation,aperture,offset,gain,positiveSides,negativeSides,frame,wanted=[],inFlight=0,retryTimer;
   const dir="assets/space/galactic/";
   function initialize(){
     const vertex="attribute vec2 corner; varying vec2 screen; void main(){screen=corner; gl_Position=vec4(corner,0.,1.);}";
-    const fragment=`precision highp float;
+    const derivatives=gl.getExtension("OES_standard_derivatives");
+    const textureLod=derivatives&&gl.getExtension("EXT_shader_texture_lod");
+    // Implicit per-face mip derivatives jump at face boundaries. Derive the
+    // footprint from the continuous sky ray before selecting a face.
+    const extensions=textureLod?"#extension GL_EXT_shader_texture_lod : enable\n#extension GL_OES_standard_derivatives : enable\n#define EXPLICIT_LOD\n":"";
+    const fragment=extensions+`precision highp float;
       varying vec2 screen; uniform vec2 aperture,offset; uniform mat3 orientation; uniform float gain;
       uniform sampler2D px,nx,py,ny,pz,nz;
+      vec3 sampleFace(sampler2D face,vec2 uv,float lod){
+        #ifdef EXPLICIT_LOD
+          return texture2DLodEXT(face,uv,lod).rgb;
+        #else
+          return texture2D(face,uv).rgb;
+        #endif
+      }
+      uniform vec3 positiveSides,negativeSides;
       void main(){
         vec3 v=orientation*vec3((screen-offset)*aperture,-1.); vec3 a=abs(v),c;
+        float footprint=0.;
+        #ifdef EXPLICIT_LOD
+          footprint=.5*max(length(dFdx(v)),length(dFdy(v)))/max(a.x,max(a.y,a.z));
+        #endif
         if(a.x>=a.y&&a.x>=a.z){
-          if(v.x>0.)c=texture2D(px,.5+.5*vec2(-v.y,-v.z)/a.x).rgb;
-          else c=texture2D(nx,.5+.5*vec2(v.y,-v.z)/a.x).rgb;
+          if(v.x>0.)c=sampleFace(px,.5+.5*vec2(-v.y,-v.z)/a.x,log2(max(1.,footprint*positiveSides.x)));
+          else c=sampleFace(nx,.5+.5*vec2(v.y,-v.z)/a.x,log2(max(1.,footprint*negativeSides.x)));
         }else if(a.y>=a.z){
-          if(v.y>0.)c=texture2D(py,.5+.5*vec2(v.x,-v.z)/a.y).rgb;
-          else c=texture2D(ny,.5+.5*vec2(-v.x,-v.z)/a.y).rgb;
+          if(v.y>0.)c=sampleFace(py,.5+.5*vec2(v.x,-v.z)/a.y,log2(max(1.,footprint*positiveSides.y)));
+          else c=sampleFace(ny,.5+.5*vec2(-v.x,-v.z)/a.y,log2(max(1.,footprint*negativeSides.y)));
         }else{
-          if(v.z>0.)c=texture2D(pz,.5+.5*vec2(-v.y,v.x)/a.z).rgb;
-          else c=texture2D(nz,.5+.5*vec2(-v.y,-v.x)/a.z).rgb;
+          if(v.z>0.)c=sampleFace(pz,.5+.5*vec2(-v.y,v.x)/a.z,log2(max(1.,footprint*positiveSides.z)));
+          else c=sampleFace(nz,.5+.5*vec2(-v.y,-v.x)/a.z,log2(max(1.,footprint*negativeSides.z)));
         }
         gl_FragColor=vec4(max(vec3(0.),c-.003)*gain,1.);
       }`;
@@ -40,7 +57,7 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
     const corner=gl.getAttribLocation(program,"corner");
     gl.enableVertexAttribArray(corner);gl.vertexAttribPointer(corner,2,gl.FLOAT,false,0,0);
-    [orientation,aperture,offset,gain]=["orientation","aperture","offset","gain"].map(k=>gl.getUniformLocation(program,k));
+    [orientation,aperture,offset,gain,positiveSides,negativeSides]=["orientation","aperture","offset","gain","positiveSides","negativeSides"].map(k=>gl.getUniformLocation(program,k));
     for(const [i,face] of faces.entries()){
       face.uploaded=null;
       face.pixels=null;
@@ -155,6 +172,8 @@ globalThis.createSurveySky = function createSurveySky(invalidate) {
       face.uploaded=source;
     }
     gl.viewport(0,0,w,h);gl.uniformMatrix3fv(orientation,false,m);gl.uniform2f(aperture,ax,ay);
+    gl.uniform3f(positiveSides,faces[0].uploaded?.width||1,faces[2].uploaded?.width||1,faces[4].uploaded?.width||1);
+    gl.uniform3f(negativeSides,faces[1].uploaded?.width||1,faces[3].uploaded?.width||1,faces[5].uploaded?.width||1);
     gl.uniform2f(offset,ox,oy);gl.uniform1f(gain,light);gl.drawArrays(gl.TRIANGLES,0,3);return canvas;
   }
   const screen=[[-1,-1],[1,-1],[1,1],[-1,1]];

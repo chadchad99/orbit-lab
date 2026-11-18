@@ -20,6 +20,12 @@ globalThis.OrbitMapSpace = (() => {
     const k=(inverse?.26*Math.expm1(r*logSpan/30):scaleRadius(r))/r;
     return [point[0]*k,point[1]*k,point[2]*k];
   }
+  function galacticOffset(v){
+    const expanded=radial(v);
+    // Enlarge only across the direction of travel. Stretching this component
+    // as well can make Mercury appear to reverse through the Galaxy.
+    return along(expanded,direction,dot(v,direction)-dot(expanded,direction));
+  }
   const compressed=s=>s.scope==="wide"&&!s.linearDistances&&!s.actualSize;
   function world(state,run,index,date){
     const point=samples(run,index,date);
@@ -27,7 +33,7 @@ globalThis.OrbitMapSpace = (() => {
     if(state.reference==="galaxy"){
       let body=point;
       if(compressed(state)){
-        const sun=samples(run,0,date);body=along(radial(subtract(point,sun)),sun,1);
+        const sun=samples(run,0,date);body=along(galacticOffset(subtract(point,sun)),sun,1);
       }
       return along(body,direction,(date-(state.fixedCamera?0:state.day))*speedInAU);
     }
@@ -58,7 +64,9 @@ globalThis.OrbitMapSpace = (() => {
     const span=Math.max(1.42,...all.map(v=>distance(v,center)),.83*Math.hypot(...far));
     return {center,span,watch};
   }
-  const envelopes=new WeakMap();
+  const envelopes=new WeakMap(),playbackBounds=new WeakMap();
+  const skyBank=p=>.46+.80*clamp((p.h/p.w-1)/.9,0,1);
+  const skyFocalLength=p=>Math.min(p.h*.98,p.w*(p.h>p.w?.87:1.02));
   // Fit the bodies and their actual one-year paths for this orientation, including a
   // rolling margin at both ends. Smoothly interpolate adjacent fits during playback.
   function trailEnvelope(s,run,right,up){
@@ -83,40 +91,89 @@ globalThis.OrbitMapSpace = (() => {
     const a=bounds(t0),b=bounds(t0+interval),u=(s.day-t0)/interval;return a.map((v,i)=>v+(b[i]-v)*u);
   }
   function wideGalacticCamera(p,s,run,zoom,yaw,pitch){
-    const az=-1.85+yaw,el=clamp(.92+pitch,-1.43,1.43);
-    const front=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)];
+    // Look from the same side of the track as the flight camera. Establish
+    // the roll once, so dragging across the direction of travel cannot flip it.
+    const az=2.10,el=-1.05;
+    let front=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)];
     let right=[-Math.sin(az),Math.cos(az),0],up=norm(cross(front,right));
-    const roll=Math.atan2(dot(direction,up),dot(direction,right))-.46;
+    // Roll the same sky and trajectories together so a tall viewport can use
+    // its vertical field without cropping the outer planets.
+    const portrait=clamp((p.h/p.w-1)/.9,0,1),trackAngle=skyBank(p);
+    const roll=Math.atan2(dot(direction,up),dot(direction,right))-trackAngle;
     right=comb(right,up,Math.cos(roll),Math.sin(roll));up=norm(cross(front,right));
+    [front,right,up]=turnFrame(front,right,up,yaw,pitch);
     const b=trailEnvelope(s,run,right,up);
-    const mx=Math.min(p.w*.115,84),top=Math.min(p.h*.23,107),bottom=Math.min(p.h*.20,83);
+    if(run.kind==="control"){
+      // Keep a full playback block in frame. Move the framing only while
+      // overlapping two blocks, so ordinary orbital motion never pumps the zoom.
+      const block=M.DAYS,t=Math.floor(s.day/block)*block,u=(s.day-t)/block;
+      let memo=playbackBounds.get(run);
+      if(!memo){memo=new Map();playbackBounds.set(run,memo);}
+      function blockBounds(start){
+        const key=["playback",start,s.allFit,compressed(s),...right,...up].join("|");
+        let bounds=memo.get(key);
+        if(!bounds){
+          bounds=[Infinity,-Infinity,Infinity,-Infinity];
+          for(let day=Math.max(0,start-block);day<=start+block;day+=block/8){
+            const sample=trailEnvelope({...s,day},run,right,up);
+            bounds[0]=Math.min(bounds[0],sample[0]);bounds[1]=Math.max(bounds[1],sample[1]);
+            bounds[2]=Math.min(bounds[2],sample[2]);bounds[3]=Math.max(bounds[3],sample[3]);
+          }
+          if(memo.size>=16)memo.delete(memo.keys().next().value);
+          memo.set(key,bounds);
+        }
+        return bounds;
+      }
+      const a=blockBounds(t),next=blockBounds(t+block),blend=u*u*(3-2*u);
+      for(let i=0;i<4;i++){
+        const limit=a[i]+(next[i]-a[i])*blend;
+        b[i]=i%2?Math.max(b[i],limit):Math.min(b[i],limit);
+      }
+    }
+    const mx=Math.min(p.w*.10,84),top=Math.min(p.h*(.17+.06*portrait),107+56*portrait),bottom=Math.min(p.h*(.12+.08*portrait),83+26*portrait);
     const px=Math.min((p.w-2*mx)/Math.max(1,b[1]-b[0]),(p.h-top-bottom)/Math.max(1,b[3]-b[2]))*zoom;
     const midX=(b[0]+b[1])/2,midY=(b[2]+b[3])/2,center=comb(right,up,midX,midY);
     const ox=p.x+p.w*.5-midX*px,oy=p.y+(p.h+top-bottom)*.5+midY*px;
     const dist=Math.max(6000,px*10),eye=along(center,front,dist);
     function project(v){return {x:ox+dot(v,right)*px,y:oy-dot(v,up)*px,z:dist-dot(v,front),scale:px,inFront:true};}
-    return {run,day:s.day,project,projectDisplay:project,orthographic:true,surveySky:true,ox,oy,dist,px,near:.001,eye,front,up,right,center,principal:[.5,.49],focal:px*dist,skyFocal:Math.min(p.h*.85,p.w*.91)*zoom,closeBody:null,pane:p};
+    const skyFocal=skyFocalLength(p)*zoom;
+    return {run,day:s.day,project,projectDisplay:project,orthographic:true,surveySky:true,ox,oy,dist,px,near:.001,eye,front,up,right,center,principal:[.5,.49],focal:px*dist,skyFocal,closeBody:null,pane:p};
   }
   const cruising=s=>s.cruise&&s.scope==="wide"&&s.reference==="galaxy"&&!s.fixedCamera&&!s.allFit;
-  // Follow the Sun in its translating frame. Keep the direction of Galactic
-  // travel slightly above horizontal while the camera banks around the track.
+  // Follow the Sun in its translating frame using the orientation of its track.
   const outward=norm([.92,.34,.24]);
   const broadside=norm(comb(outward,direction,1,-dot(outward,direction)));
   const transverse=cross(direction,broadside);
+  function turnFrame(front,right,up,yaw,pitch){
+    // Orbit about the screen's up and right axes, including its current roll.
+    if(yaw){
+      const co=Math.cos(yaw),si=Math.sin(yaw);
+      [front,right]=[comb(front,right,co,si),comb(right,front,co,-si)];
+    }
+    if(pitch){
+      const co=Math.cos(pitch),si=Math.sin(pitch);
+      [front,up]=[comb(front,up,co,si),comb(up,front,co,-si)];
+    }
+    return [front,right,up];
+  }
   function cruiseCamera(p,s,run,zoom,yaw,pitch,travel){
-    const heading=1.13+yaw+.43*Math.sin(travel*.039)+.12*Math.sin(travel*.082);
-    const angle=clamp(2.59+pitch+.16*Math.sin(travel*.047),.12,Math.PI-.12);
+    const heading=1.13,angle=2.59;
     const side=comb(broadside,transverse,Math.cos(heading),Math.sin(heading));
-    const front=comb(direction,side,Math.cos(angle),Math.sin(angle));
+    let front=comb(direction,side,Math.cos(angle),Math.sin(angle));
     const track=comb(direction,side,Math.sin(angle),-Math.cos(angle));
     const portrait=p.h>p.w;
-    const bank=(portrait?1.06:.32)+.035*Math.sin(travel*.055);
-    const right=comb(track,cross(front,track),Math.cos(bank),-Math.sin(bank));
-    const up=cross(front,right);
-    const dist=(42-2.8*Math.sin(travel*.052))/zoom;
-    const center=along(world(s,run,0,s.day),direction,-9.5);
+    const bank=skyBank(p);
+    let right=comb(track,cross(front,track),Math.cos(bank),-Math.sin(bank)),up=cross(front,right);
+    [front,right,up]=turnFrame(front,right,up,yaw,pitch);
+    // Zoom with the lens and shift the aim toward the selected body. Lateral
+    // camera travel gives nearby orbits parallax without rotating the sky.
+    const sun=world(s,run,0,s.day),focus=clamp(Math.log(Math.max(1,zoom))/Math.log(4),0,1);
+    const dist=42-1.8*(1-focus)*Math.sin(travel*.052);
+    const center=comb(along(sun,direction,-9.5),world(s,run,s.watch,s.day),1-focus,focus);
+    const drift=1-focus;
+    for(let i=0;i<3;i++)center[i]+=drift*(right[i]*1.15*Math.sin(travel*.080)+up[i]*.6*Math.sin(travel*.053));
     const eye=along(center,front,dist),near=Math.max(.018,dist*.004);
-    const focal=Math.min(p.h*.98,p.w*(portrait?.87:1.02)),principal=portrait?[.46,.55]:[.48,.60];
+    const focal=skyFocalLength(p)*zoom,principal=portrait?[.46,.55]:[.48,.60];
     const cx=p.x+p.w*principal[0],cy=p.y+p.h*principal[1];
     function project(v){
       const x=v[0]-eye[0],y=v[1]-eye[1],z=v[2]-eye[2];
@@ -137,20 +194,16 @@ globalThis.OrbitMapSpace = (() => {
     const fitted={...c,pane:p,principal,overviewScale:scale,overviewShortSide:desktopPane.h,
       focal:c.focal*scale,skyFocal:c.skyFocal*scale,px:c.px*scale,
       project:v=>fit(c.project(v)),projectDisplay:v=>fit(c.projectDisplay(v))};
-    if(c.surveySky&&p.h>p.w&&c.orthographic){
-      const zoom=c.skyFocal/(desktopPane.h*.85);
-      fitted.skyFocal=Math.max(fitted.skyFocal,Math.min(p.h*.68,p.w*1.6)*zoom);
-    }
     if(c.orthographic){fitted.ox=left+c.ox*scale;fitted.oy=top+c.oy*scale;}
     return fitted;
   }
   function camera(p,s,run,range,zoom,yaw,pitch,travel=0){
     if(cruising(s))return cruiseCamera(p,s,run,zoom,yaw,pitch,travel);
+    if(s.scope==="wide"&&s.reference==="galaxy"&&!s.fixedCamera)return wideGalacticCamera(p,s,run,zoom,yaw,pitch);
     if(s.scope==="wide"&&(p.h>p.w||p.w<900)){
       return fitOverview(camera(desktopPane,s,run,range,zoom,yaw,pitch),p);
     }
     const galaxy=s.reference==="galaxy", close=s.scope==="near";
-    if(s.scope==="wide"&&galaxy&&!s.fixedCamera)return wideGalacticCamera(p,s,run,zoom,yaw,pitch);
     let focal=Math.min(p.h*.96,p.w*(close?.80:1.36));
     const pole=[0,0,1],az0=Math.atan2(LabInitial.bodies[s.watch].p[1],LabInitial.bodies[s.watch].p[0]);
     let right,up,front,eye,center,principal=[.50,.50],distanceToCenter;
@@ -226,5 +279,5 @@ globalThis.OrbitMapSpace = (() => {
     }
     return {run,day:s.day,surveySky:s.scope==="wide"&&galaxy,skyFocal:s.scope==="wide"&&!galaxy?Math.min(p.h*.87,p.w*.95):focal,pane:p,closeBody:s.scope==="sun"?0:close?s.watch:null,project,projectDisplay,focal,eye,front,up,right,center,principal,near,dist:distanceToCenter,px:focal/distanceToCenter};
   }
-  return {camera,cruising,world,systemFrame,radii,polarRatio,subtract,distance,clamp,speedInAU,direction,radial,compressed,scaleRadius};
+  return {camera,cruising,world,systemFrame,radii,polarRatio,subtract,distance,clamp,speedInAU,direction,radial,galacticOffset,compressed,scaleRadius};
 })();

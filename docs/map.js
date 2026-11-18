@@ -9,15 +9,46 @@
   function createMap(canvas,stars,onPick,onChange){
     const ctx=canvas.getContext("2d");
     let glideTime=0,glideOffset=0,cruiseTime=0,scope="wide";
-    let w=0,h=0,dpr=1,zoom=1,yaw=0,pitch=0,dirty=true,hits=[],hover=0;
+    let w=0,h=0,dpr=1,zoom=1,yaw=0,pitch=0,dirty=true,hits=[],hover=0,galacticWide=false;
+    const galacticPoses=new Map();
+    let changeover=null;
+    function finishChangeover(){
+      changeover?.remove();changeover=null;
+    }
+    function fadePreviousView(){
+      finishChangeover();
+      if(!w||matchMedia("(prefers-reduced-motion: reduce)").matches||!canvas.animate)return;
+      const frame=document.createElement("canvas");
+      frame.className="camera-changeover";frame.setAttribute("aria-hidden","true");
+      frame.width=canvas.width;frame.height=canvas.height;
+      const context=frame.getContext("2d",{alpha:false});
+      context.drawImage(stars,0,0,frame.width,frame.height);context.drawImage(canvas,0,0);
+      canvas.after(frame);changeover=frame;
+      requestAnimationFrame(()=>{
+        if(changeover!==frame)return;
+        const fade=frame.animate([{opacity:1},{opacity:0}],{duration:240,easing:"ease-out",fill:"forwards"});
+        fade.onfinish=()=>{if(changeover===frame)finishChangeover();};
+      });
+    }
     const ringPaths=new Map();
     LabFullLayer.load(invalidate);
     const pointers=new Map();let gesture=null;
     function invalidate(){dirty=true;}
     const sky=createMapSky(stars,invalidate),materials=createMapMaterials(invalidate),solar=createSolarOptics(invalidate);
     function change(){dirty=true;onChange(zoom);}
-    function zoomBy(mult){zoom=clamp(zoom*mult,.45,12);change();}
-    function reset(){zoom=1;yaw=pitch=glideOffset=glideTime=cruiseTime=0;lastGlide=null;hover=0;change();}
+    function movePitch(delta){
+      const low=scope==="sun"?-4:galacticWide?-1.4:-1.45,high=scope==="sun"?4:galacticWide?1.4:1.75;
+      pitch=clamp(pitch+delta,low,high);
+    }
+    function zoomBy(mult){finishChangeover();zoom=clamp(zoom*mult,.45,12);change();}
+    function reset(){finishChangeover();zoom=1;yaw=pitch=glideOffset=glideTime=cruiseTime=0;lastGlide=null;hover=0;change();}
+    function switchGalacticCamera(from,to){
+      fadePreviousView();
+      if(from!==null)galacticPoses.set(from,{zoom,yaw,pitch,cruiseTime});
+      const pose=galacticPoses.get(to);
+      zoom=pose?.zoom??1;yaw=pose?.yaw??0;pitch=pose?.pitch??0;cruiseTime=pose?.cruiseTime??0;
+      hover=0;lastGlide=null;change();
+    }
     function resize(){
       const r=canvas.getBoundingClientRect(),ratio=Math.min(devicePixelRatio||1,2);
       if(r.width<1||r.height<1||(r.width===w&&r.height===h&&ratio===dpr))return;
@@ -77,12 +108,31 @@
       const dx=-dot(S.direction,c.right)*lag,dy=dot(S.direction,c.up)*lag;
       ctx.save();ctx.translate(c.ox+dx*c.px,c.oy+dy*c.px);ctx.scale(c.px,c.px);
       for(const {id,lines,end} of entry.paths){
-        ctx.lineWidth=(id===s.watch?1.50:id===0?1.3:1.05)/c.px;
-        const alpha=id===s.watch?.82:id===0?.69:.57;
+        const selected=id===s.trailBody;
+        ctx.lineWidth=(selected?1.8:id===0?1.3:1.05)/c.px;
+        const alpha=selected?.95:id===0?.65:.51;
         lines.forEach((line,j)=>{ctx.strokeStyle="rgba("+trailColors[id]+","+(alpha*(.29+.71*(j+1)/lines.length))+")";ctx.stroke(line);});
         const tip=S.world(s,run,id,s.day);ctx.beginPath();ctx.moveTo(...end);ctx.lineTo(dot(tip,c.right)-dx,-dot(tip,c.up)-dy);ctx.stroke();
       }
       ctx.restore();
+    }
+    function trailAges(p,c,s,run){
+      const id=s.trailBody;
+      if(!c.orthographic||s.allFit||s.cleanView||!s.showPaths||!run.active.includes(id))return [];
+      const at=day=>c.project(S.world(s,run,id,day));
+      const current=at(s.day),notes=[],marked=[current],compact=p.w<550;
+      ctx.save();ctx.lineJoin="round";ctx.lineWidth=1.4;ctx.strokeStyle="rgb("+trailColors[id]+")";
+      for(const age of [365,180,90]){
+        const day=s.day-age,q=at(day),ahead=at(day+1);
+        if(!q.inFront||!inPanel(p,q,8)||marked.some(m=>Math.hypot(q.x-m.x,q.y-m.y)<(compact?34:43)))continue;
+        const dx=ahead.x-q.x,dy=ahead.y-q.y,len=Math.hypot(dx,dy);
+        if(len<.001)continue;
+        const x=dx/len,y=dy/len;
+        ctx.beginPath();ctx.moveTo(q.x-5*x+2.5*y,q.y-5*y-2.5*x);ctx.lineTo(q.x,q.y);
+        ctx.lineTo(q.x-5*x-2.5*y,q.y-5*y+2.5*x);ctx.stroke();
+        notes.push({...q,index:-5,radius:3,reach:4,note:"age",label:age+"일 전"});marked.push(q);
+      }
+      ctx.restore();return notes;
     }
     const cruisePaths=new WeakMap();
     function cruiseTrails(c,s,run){
@@ -116,7 +166,8 @@
           const age=s.day-(start+(first+last)*step/2);
           const depth=shifted.project(points[(first+last)>>1]).z;
           const proximity=clamp(c.dist/Math.max(c.near,depth),.34,1.55);
-          const opacity=Math.min(.92,(.09+.70*(1-age/365)**1.25)*Math.sqrt(proximity)*(selected?1.17:id===0?.95:.88));
+          const nearFade=clamp((depth-c.near)/(c.dist*.30),0,1);
+          const opacity=Math.min(.92,(.09+.70*(1-age/365)**1.25)*Math.sqrt(proximity)*(selected?1.17:id===0?.95:.88))*nearFade;
           curve(shifted,points.slice(first,last+1),"rgba("+rgb+","+opacity+")",(selected?1.55:1.18)*Math.sqrt(proximity));
         }
         const tip=S.world(s,run,id,s.day),end=atNow(points[points.length-1]);
@@ -208,17 +259,20 @@
       if(!s.showNames||s.cleanView)return;
       const compact=p.w<550;
       const boxes=[{x:p.x,y:p.y,w:116,h:p.layer==="both"?39:65},{x:p.x,y:p.y+p.h-31,w:116,h:31},{x:p.x+p.w-247,y:p.y+p.h-45,w:247,h:45}];
+      const inset=document.getElementById("galaxy-inset");
+      if(c.orthographic&&inset.offsetWidth)boxes.push({x:inset.offsetLeft-3,y:inset.offsetTop-3,w:inset.offsetWidth+6,h:inset.offsetHeight+6});
       const bodiesInView=disks.filter(q=>q.inFront&&inPanel(p,q));
       const blocked=bodiesInView.filter(q=>!q.note).map(q=>{
         const halfHeight=q.index===0?q.reach:q.radius;
         return {x:q.x-q.reach-3,y:q.y-halfHeight-3,w:q.reach*2+6,h:halfHeight*2+6};
       });
-      const priority=q=>q.note?(q.note==='small'?-1:-2):q.index===s.watch?100:q.index===hover?99:q.ghost?90:q.index===0?60:q.radius;
+      const selectedId=c.orthographic?s.trailBody:s.watch;
+      const priority=q=>q.note?(q.note==="age"?-.5:q.note==='small'?-1:-2):q.index===selectedId?100:q.index===hover?99:q.ghost?90:q.index===0?60:q.radius;
       const order=bodiesInView.toSorted?bodiesInView.toSorted((a,b)=>priority(b)-priority(a)):bodiesInView.slice().sort((a,b)=>priority(b)-priority(a));
       for(const q of order){
         if(q.index===c.closeBody)continue;
-        const selected=q.index===s.watch,shade=q.note==='small'?'#c7bba4':q.note==='sky'?'#a1b5c8':selected?"#e9e9e3":q.ghost?mint:"#b3bbbf",special=selected||q.index===hover||q.ghost;
-        if((!c.orthographic||q.note)&&!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&priority(o)>priority(q)&&Math.hypot(q.x-o.x,q.y-o.y)<(q.note?o.reach+6:compact?33:37)))continue;
+        const selected=q.index===selectedId,shade=q.note==="age"?"#c2d5df":q.note==='small'?'#c7bba4':q.note==='sky'?'#a1b5c8':selected?"#e9e9e3":q.ghost?mint:"#b3bbbf",special=selected||q.index===hover||q.ghost;
+        if(q.note!=="age"&&(!c.orthographic||q.note)&&!special&&q.index!==0&&bodiesInView.some(o=>o!==q&&priority(o)>priority(q)&&Math.hypot(q.x-o.x,q.y-o.y)<(q.note?o.reach+6:compact?33:37)))continue;
         const name=q.label??names[q.index],size=q.note?(compact?9:10):compact?10:12;
         ctx.font=(selected?"600 ":"460 ")+size+"px "+font;ctx.textBaseline="middle";
         const width=ctx.measureText(name).width+5,height=size+5;
@@ -311,6 +365,7 @@
         if(s.scope==="lunar")curve(c,timePoints(s,run,M.MOON,s.day-27.32,s.day,144),"rgba(183,197,202,.52)",1.2);
         else if(s.reference==="galaxy")galacticTrails(p,c,s,run,testView);else solarTrails(p,c,s,run);
       }
+      const ageNotes=trailAges(p,c,s,run);
       const black=s.applied&&testView&&s.kind==="black",vanished=s.applied&&testView&&s.kind==="vanish";
       const lights={physicalSun:M.read(run,0,s.day),physicalCompanion:M.read(run,M.COMPANION,s.day),primary:!black&&!vanished,secondary:s.applied&&testView&&s.kind==="binary"};
       if(s.scope==="sun"&&s.sunBand==="granules"&&!black&&!vanished){
@@ -355,7 +410,7 @@
           list.push({...ref,index:-1,diam:6,reach:3,radius:3,label:"원래 "+names[s.watch],ghost:true});
         }
       }
-      const notes=s.scope==="wide"?[...smallNotes,...skyNotes]:[];
+      const notes=s.scope==="wide"?[...ageNotes,...smallNotes,...skyNotes]:[];
       labels(p,c,s,list.concat(notes));if(!s.cleanView){catalogMark(p,c,s,run,testView);if(!S.compressed(s))scaleBar(p,c);}
       if(p.layer!=="both"){
         ctx.font="550 11px "+font;ctx.textBaseline="top";ctx.fillStyle=p.layer==="base"?mint:coral;
@@ -375,10 +430,10 @@
         const weight=clamp((1.42-edge)/.62,0,1);
         glare+=weight*weight*(3-2*weight);
       }
-      return Math.round(64*(.86/(1+(c.cruising?2.65:.7)*glare)))/64;
+      return Math.round(64*(.86/(1+1.05*glare)))/64;
     }
     function draw(s){
-      resize();if(!w||!h)return;scope=s.scope;
+      resize();if(!w||!h)return;scope=s.scope;galacticWide=scope==="wide"&&s.reference==="galaxy"&&!s.fixedCamera;
       hits=[];ctx.clearRect(0,0,w,h);
       const range=S.systemFrame(s);
       const views=panels(s.split).map(pane=>{
@@ -398,7 +453,7 @@
     let lastGlide=null;
     function advanceCamera(s,now){
       const cruise=S.cruising(s);
-      if((s.scope!=="near"&&!(cruise&&s.running))||!s.glide||gesture){lastGlide=null;return;}
+      if((s.scope!=="near"&&!cruise)||!s.glide||gesture){lastGlide=null;return;}
       if(lastGlide===null){lastGlide=now;return;}
       if(now-lastGlide<(cruise?32:50))return;
       const elapsed=Math.min(.16,(now-lastGlide)/1000);
@@ -417,7 +472,7 @@
     }
     const gap=()=>{const [a,b]=pointers.values();return Math.hypot(a.x-b.x,a.y-b.y)};
     canvas.addEventListener("pointerdown",e=>{
-      if(e.button!==0)return;const p=coords(e);pointers.set(e.pointerId,p);canvas.setPointerCapture(e.pointerId);
+      if(e.button!==0)return;finishChangeover();const p=coords(e);pointers.set(e.pointerId,p);canvas.setPointerCapture(e.pointerId);
       if(pointers.size===1)gesture={start:p,last:p,moved:false,pinch:false};
       else if(pointers.size===2){gesture.pinch=true;gesture.gap=gap();gesture.zoom=zoom}
     });
@@ -428,7 +483,7 @@
       if(pointers.size===2){zoom=clamp(gesture.zoom*gap()/Math.max(1,gesture.gap),.45,12);change()}
       else if(pointers.size===1&&!gesture.pinch){
         if(Math.hypot(p.x-gesture.start.x,p.y-gesture.start.y)>3)gesture.moved=true;
-        if(gesture.moved){yaw+=(p.x-gesture.last.x)*(scope==="sun"?5/w:-.006);pitch=clamp(pitch+(p.y-gesture.last.y)*(scope==="sun"?5/h:.004),scope==="sun"?-4:-1.45,scope==="sun"?4:1.75);canvas.classList.add("drag");change()}
+        if(gesture.moved){yaw+=(p.x-gesture.last.x)*(scope==="sun"?5/w:-.006);movePitch((p.y-gesture.last.y)*(scope==="sun"?5/h:.004));canvas.classList.add("drag");change()}
       }
       gesture.last=p;
     });
@@ -445,9 +500,9 @@
     canvas.addEventListener("wheel",e=>{e.preventDefault();const d=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?h:1);zoomBy(Math.exp(-clamp(d,-300,300)*.0018))},{passive:false});
     canvas.addEventListener("keydown",e=>{
       if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","-","+","=","Home"].includes(e.key))return;
-      e.preventDefault();
+      e.preventDefault();finishChangeover();
       if(e.key==="ArrowLeft"||e.key==="ArrowRight"){yaw+=e.key==="ArrowLeft"?-.12:.12;change()}
-      if(e.key==="ArrowUp"||e.key==="ArrowDown"){pitch=clamp(pitch+(e.key==="ArrowUp"?.07:-.07),-1.45,1.75);change()}
+      if(e.key==="ArrowUp"||e.key==="ArrowDown"){movePitch(e.key==="ArrowUp"?.07:-.07);change();}
       if(e.key==="-"||e.key==="+"||e.key==="=")zoomBy(e.key==="-"?.8:1.25);
       if(e.key==="Home")reset();
     });
@@ -457,7 +512,7 @@
       const radius=Math.min(w,h)*.43*zoom;
       yaw=-(uv[0]-.5)*radius/.386595/(w*.2);pitch=-(uv[1]-.5)*radius/.386595/(h*.2);change();
     }
-    return {draw,invalidate,advanceCamera,advanceSun:solar.advance,focusSunspot,needsRender:()=>dirty,reset,zoomBy};
+    return {draw,invalidate,advanceCamera,advanceSun:solar.advance,focusSunspot,needsRender:()=>dirty,reset,zoomBy,switchGalacticCamera};
   }
   globalThis.createLabMap=createMap;
 })();
