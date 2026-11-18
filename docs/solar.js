@@ -16,10 +16,22 @@ globalThis.createSolarOptics=function(invalidate){
     surface.globalCompositeOperation="destination-in";surface.fillStyle=edge;surface.fillRect(0,0,field.width,field.height);
     return field;
   }
+  function opticalCorona(image){
+    // Keep the observed opacity of every loop. Use a pearl-gold display
+    // color for the EUV overlay beside the white-light photosphere.
+    const field=document.createElement("canvas");field.width=image.naturalWidth;field.height=image.naturalHeight;
+    const g=field.getContext("2d");g.drawImage(image,0,0);
+    g.globalCompositeOperation="source-atop";g.fillStyle="rgba(255,238,207,.47)";g.fillRect(0,0,field.width,field.height);
+    return field;
+  }
   function request(file){
     if(!pictures.has(file)&&!pending.has(file)&&performance.now()>=(retryAt.get(file)??0)){
       pending.add(file);const image=new Image();image.decoding="async";
-      image.onload=()=>{pending.delete(file);retryAt.delete(file);pictures.set(file,file.startsWith("sun-euv")?coronaField(image):image);invalidate();};
+      image.onload=()=>{
+        pending.delete(file);retryAt.delete(file);
+        const source=file.startsWith("corona-optical")?opticalCorona(image):file.startsWith("sun-euv")?coronaField(image):image;
+        pictures.set(file,source);invalidate();
+      };
       image.onerror=()=>{pending.delete(file);retryAt.set(file,performance.now()+15000);};
       image.src=LabMedia.file("assets/space/"+file+".webp");
     }
@@ -43,24 +55,31 @@ globalThis.createSolarOptics=function(invalidate){
     }
     ctx.restore();
   }
-  let flightSurface;
-  function flightSun(ctx,q){
-    const photo=request("sun-visible-lite"),r=q.radius;
-    if(photo&&!flightSurface){
-      // The visible-light HMI disk supplies the spots and limb darkening.
-      // Compress contrast at camera white, preserving the measured features.
-      flightSurface=document.createElement("canvas");
-      flightSurface.width=flightSurface.height=320;
-      const g=flightSurface.getContext("2d");
-      const diameter=2*geometry.visible.r*photo.naturalWidth;
-      g.drawImage(photo,(photo.naturalWidth-diameter)/2,(photo.naturalHeight-diameter)/2,diameter,diameter,0,0,320,320);
-      const pixels=g.getImageData(0,0,320,320);
-      for(let i=0;i<pixels.data.length;i+=4){
-        const intensity=pixels.data[i]/255,light=1-Math.exp(-3.5*intensity);
-        pixels.data[i]=255*light;pixels.data[i+1]=252*light;pixels.data[i+2]=239*light;
-      }
-      g.putImageData(pixels,0,0);
+  let mapSurface;
+  function photosphere(){
+    const visible=request("sun-atlas-visible"),activity=request("sun-radiant");
+    if(!visible||!activity)return visible||activity;
+    if(mapSurface)return mapSurface;
+    // The two observations are registered to the same disk. HMI sets the
+    // exposure and spot positions; the composite adds local active-region detail.
+    const size=visible.naturalWidth,field=document.createElement("canvas");
+    field.width=field.height=size;
+    const g=field.getContext("2d",{willReadFrequently:true});
+    g.drawImage(activity,0,0,size,size);
+    const active=g.getImageData(0,0,size,size).data;
+    g.clearRect(0,0,size,size);g.drawImage(visible,0,0,size,size);
+    const pixels=g.getImageData(0,0,size,size),data=pixels.data;
+    for(let i=0;i<data.length;i+=4){
+      if(!data[i+3])continue;
+      const hmi=data[i]/255,luma=(.2126*active[i]+.7152*active[i+1]+.0722*active[i+2])/255;
+      const detail=Math.max(-.11,Math.min(.08,luma-.92));
+      const light=255*(.018+.994*Math.pow(hmi,.72)+.94*detail);
+      data[i]=light*1.025;data[i+1]=light*(.947+.044*hmi);data[i+2]=light*(.785+.158*hmi);
     }
+    g.putImageData(pixels,0,0);mapSurface=field;return field;
+  }
+  function flightGlow(ctx,q){
+    const r=q.radius;
     const reach=r*4.7;
     const halo=ctx.createRadialGradient(q.x,q.y,r*.85,q.x,q.y,reach);
     halo.addColorStop(0,"rgba(255,244,216,.83)");
@@ -70,13 +89,12 @@ globalThis.createSolarOptics=function(invalidate){
     halo.addColorStop(1,"rgba(237,193,136,0)");
     ctx.save();ctx.globalCompositeOperation="screen";ctx.fillStyle=halo;
     ctx.fillRect(q.x-reach,q.y-reach,2*reach,2*reach);ctx.restore();
-    return flightSurface;
   }
   function luminousDisk(ctx,q,s,close=false,cruising=false){
-    if(!cruising)starlight(ctx,q);
-    const surface=cruising?flightSun(ctx,q):close?(request("sun-radiant-close")||request("sun-radiant")):request("sun-radiant");
+    if(cruising)flightGlow(ctx,q);else starlight(ctx,q);
+    const surface=close?(request("sun-radiant-close")||request("sun-radiant")):photosphere();
     const poster=request("corona-optical-poster"),sequence=s.coronaPlaying?request("corona-optical"):pictures.get("corona-optical");
-    const size=q.radius/corona.diskFraction,x=q.x-size/2,y=q.y-size/2,coronaGain=cruising?.22:.94;
+    const size=q.radius/corona.diskFraction,x=q.x-size/2,y=q.y-size/2,coronaGain=cruising?.52:.86;
     ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.globalCompositeOperation="lighter";
     if(sequence){
       const first=Math.floor(framePosition),mix=framePosition-first;
