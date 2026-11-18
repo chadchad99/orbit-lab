@@ -1,4 +1,4 @@
-// Observed solar images are displayed in the orientation in which the instruments recorded them.
+// Instrument views retain their recorded orientation. The galactic map uses a spherical surface.
 globalThis.createSolarOptics=function(invalidate){
   const pictures=new Map(),pending=new Set(),retryAt=new Map(),tau=2*Math.PI;
   const geometry={
@@ -37,9 +37,11 @@ globalThis.createSolarOptics=function(invalidate){
     }
     return pictures.get(file);
   }
+  const emission=createSolarEmission(request);
   function advance(s,seconds){
     const visible=s.scope==="wide"&&!s.actualSize||s.scope==="sun"&&s.sunBand==="radiant";
-    if(!visible||!s.coronaPlaying||!pictures.has("corona-optical"))return false;
+    const mapped=s.scope==="wide"&&s.reference==="galaxy"&&!s.fixedCamera;
+    if(!visible||!s.coronaPlaying||!pictures.has(mapped?"sun-map-corona":"corona-optical"))return false;
     if(s.applied&&!s.split&&(s.kind==="vanish"||s.kind==="black"))return false;
     const delta=Math.min(seconds,.25);
     framePosition=(framePosition+delta*corona.fps)%corona.count;
@@ -78,23 +80,11 @@ globalThis.createSolarOptics=function(invalidate){
     }
     g.putImageData(pixels,0,0);mapSurface=field;return field;
   }
-  function flightGlow(ctx,q){
-    const r=q.radius;
-    const reach=r*4.7;
-    const halo=ctx.createRadialGradient(q.x,q.y,r*.85,q.x,q.y,reach);
-    halo.addColorStop(0,"rgba(255,244,216,.83)");
-    halo.addColorStop(.065,"rgba(255,233,188,.46)");
-    halo.addColorStop(.23,"rgba(249,211,151,.105)");
-    halo.addColorStop(.56,"rgba(237,193,136,.025)");
-    halo.addColorStop(1,"rgba(237,193,136,0)");
-    ctx.save();ctx.globalCompositeOperation="screen";ctx.fillStyle=halo;
-    ctx.fillRect(q.x-reach,q.y-reach,2*reach,2*reach);ctx.restore();
-  }
-  function luminousDisk(ctx,q,s,close=false,cruising=false){
-    if(cruising)flightGlow(ctx,q);else starlight(ctx,q);
+  function luminousDisk(ctx,q,s,close=false){
+    starlight(ctx,q);
     const surface=close?(request("sun-radiant-close")||request("sun-radiant")):photosphere();
     const poster=request("corona-optical-poster"),sequence=s.coronaPlaying?request("corona-optical"):pictures.get("corona-optical");
-    const size=q.radius/corona.diskFraction,x=q.x-size/2,y=q.y-size/2,coronaGain=cruising?.52:.86;
+    const size=q.radius/corona.diskFraction,x=q.x-size/2,y=q.y-size/2,coronaGain=.86;
     ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.globalCompositeOperation="lighter";
     if(sequence){
       const first=Math.floor(framePosition),mix=framePosition-first;
@@ -106,14 +96,15 @@ globalThis.createSolarOptics=function(invalidate){
     }else if(poster){ctx.globalAlpha=coronaGain;ctx.drawImage(poster,x,y,size,size);}
     ctx.restore();ctx.save();
     const r=q.radius;
-    if(cruising){ctx.beginPath();ctx.arc(q.x,q.y,r,0,tau);ctx.clip();}
     if(surface){ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(surface,q.x-r,q.y-r,r*2,r*2);}
     else{const core=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,r);core.addColorStop(0,"#fffbed");core.addColorStop(.82,"#ffedbf");core.addColorStop(1,"#eeb96f");ctx.fillStyle=core;ctx.beginPath();ctx.arc(q.x,q.y,r,0,tau);ctx.fill();}
     ctx.restore();
   }
-  function disk(ctx,q,c,s,companion){
+  function disk(ctx,q,c,s,companion,bodies=[]){
     const observational=c.closeBody===0&&!companion&&s.sunBand!=="radiant";
-    if(!observational&&!s.actualSize&&q.radius>=2&&!companion){luminousDisk(ctx,q,s,c.closeBody===0,c.cruising);return;}
+    if(!companion&&!s.actualSize&&q.radius>=2&&(c.cruising||c.overview||c.orthographic))
+      return emission.draw(ctx,q,c,s,framePosition,bodies);
+    if(!observational&&!s.actualSize&&q.radius>=2&&!companion){luminousDisk(ctx,q,s,c.closeBody===0);return;}
     if(c.closeBody===0&&s.sunBand==="radiant"&&!companion){luminousDisk(ctx,q,s,true);return;}
     const close=c.closeBody===0&&!companion;
     const band=close&&s.sunBand==="euv"?"euv":"visible";

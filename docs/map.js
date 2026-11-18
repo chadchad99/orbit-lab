@@ -390,17 +390,20 @@
         LabFullLayer.satellites(ctx,p,c,c.cruising?{...s,showSatellites:true}:s,run,list,hits);
       }
       list.sort((a,b)=>b.z-a.z);
+      let transitLight;
       for(const q of list){
         if(q.index===0&&black){
           q.label="블랙홀";q.radius=s.actualSize||s.scope==="near"||s.scope==="sun"?2.95/GravityLab.AU*q.scale:Math.min(3,q.radius);
           q.reach=q.radius;q.diam=Math.max(3,q.radius*2);
           if(q.radius>.18){ctx.fillStyle="#010102";ctx.beginPath();ctx.arc(q.x,q.y,q.radius,0,tau);ctx.fill();}
         }else if(q.index===0||q.index===M.COMPANION){
-          solar.disk(ctx,q,c,s,q.index===M.COMPANION);
+          const light=solar.disk(ctx,q,c,s,q.index===M.COMPANION,list);
+          if(light)transitLight=light;
           if(q.index===0)hits.push({index:0,panel:p,circle:q});
         }
         else{materials.planet(ctx,q,c,lights,dpr);hits.push({index:q.index,panel:p,circle:q});}
       }
+      if(transitLight)transitLight();
       if(vanished&&s.showNames){
         const o=c.project(S.world(s,run,0,0));if(o.inFront)list.push({...o,index:-2,radius:1,reach:2,diam:3,label:"태양이 있던 자리"});
       }
