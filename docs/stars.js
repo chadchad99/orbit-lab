@@ -5,7 +5,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   const context = canvas.getContext("2d", {alpha: false});
   const buffer = document.createElement("canvas");
   const panorama = new Image();
-  const gl = buffer.getContext("webgl", {alpha:false, depth:false, antialias:false});
+  let gl, survey;
   const photoCache=typeof withCatalog==="function"?document.createElement("canvas"):null;let photoKey="";
   let program, uniforms, texture, pixels, started = false, loaded = false, lastKey = "", annotations=[];
   const refresh=()=>{lastKey="";invalidate();};
@@ -48,6 +48,7 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   }
   function load(){
     started=true;
+    gl=buffer.getContext("webgl", {alpha:false, depth:false, antialias:false});
     panorama.onload=()=>{
       loaded=true;
       try {initialize();} catch {program=null;}
@@ -57,14 +58,14 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
   }
   buffer.addEventListener("webglcontextlost",event=>{event.preventDefault();program=null;lastKey="";invalidate();});
   const cpu=document.createElement("canvas"), cpuCtx=cpu.getContext("2d",{alpha:false});
-  function software(width,height,m,aperture,offset,exposure){
+  function software(width,height,m,aperture,offset,exposure,moving){
     if(!pixels){
       const strip=document.createElement("canvas");
       strip.width=Math.min(2048,panorama.naturalWidth);strip.height=strip.width/2;
       const read=strip.getContext("2d",{willReadFrequently:true});read.drawImage(panorama,0,0,strip.width,strip.height);
       pixels=read.getImageData(0,0,strip.width,strip.height);
     }
-    const scale=Math.min(1,830/width,560/height);
+    const scale=Math.min(1,(moving?600:830)/width,(moving?420:560)/height);
     cpu.width=Math.max(1,Math.round(width*scale));cpu.height=Math.max(1,Math.round(height*scale));
     const result=cpuCtx.createImageData(cpu.width,cpu.height),out=result.data,photo=pixels.data;
     const tones=Array.from({length:256},(_,v)=>Math.max(0,(v/255*(1.35-.40*v/255)-.013)*exposure)*255);
@@ -81,16 +82,15 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
     cpuCtx.putImageData(result,0,0);return cpu;
   }
   return function paint(width,height,ratio,views){
-    if(!started) load();
-    const geometry=[width,height,ratio,...views.flatMap(({pane,camera,exposure})=>[pane.x,pane.y,pane.w,pane.h,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure])].map(v=>Math.round(v*10000)).join("/");
-    const key=geometry+"/"+views.map(({skyId,showSurvey,camera})=>[skyId??"",!!showSurvey,celestial?Math.floor((camera.day??0)/32):0,camera.closeBody??0].join("|")).join("/");
+    if(!started&&views.some(v=>!v.camera.surveySky))load();
+    const geometry=[width,height,ratio,...views.flatMap(({pane,camera,exposure})=>[pane.x,pane.y,pane.w,pane.h,camera.skyFocal??camera.focal,...camera.principal,...camera.right,...camera.up,exposure,Number(!!camera.cruising)])].map(v=>Math.round(v*10000)).join("/");
+    const key=geometry+"/"+views.map(({skyId,showSurvey,camera})=>[skyId??"",!!showSurvey,!!camera.surveySky,celestial?Math.floor((camera.day??0)/32):0,camera.closeBody??0].join("|")).join("/");
     if(key===lastKey) return annotations;
     lastKey=key;annotations=[];
     const cw=Math.round(width*ratio),ch=Math.round(height*ratio);
     if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}
     context.setTransform(ratio,0,0,ratio,0,0);
     context.fillStyle="#020305";context.fillRect(0,0,width,height);
-    if(!loaded) return annotations;
     // A change in the catalogue epoch only moves individual stars. Reuse the
     // panorama projection while the field of view and exposure are unchanged.
     const cachePhoto=photoCache&&views.length===1;
@@ -100,18 +100,26 @@ globalThis.createMapSky = function createMapSky(canvas, invalidate, withCatalog=
       annotations.push(celestial(context,pane,camera,showSurvey,exposure));return annotations;
     }
     for(const {pane,camera,exposure,showSurvey} of views){
+      if(camera.surveySky){
+        survey??=createSurveySky(refresh);
+        context.drawImage(survey(pane,camera,ratio,exposure),pane.x,pane.y,pane.w,pane.h);
+        if(celestial)annotations.push(celestial(context,pane,camera,showSurvey,exposure));
+        continue;
+      }
+      if(!loaded){annotations.push([]);continue;}
       const m=[camera.right,camera.up,camera.front].flatMap(OrbitFrames.panorama);
       const focal=camera.skyFocal??camera.focal;
       const aperture=[pane.w/(2*focal),pane.h/(2*focal)];
       const offset=[2*camera.principal[0]-1,1-2*camera.principal[1]];
       let image;
       if(program){
-        const scale=Math.min(ratio,1.55,2300/pane.w);
-        buffer.width=Math.max(1,Math.round(pane.w*scale));buffer.height=Math.max(1,Math.round(pane.h*scale));
+        const scale=camera.cruising?Math.min(ratio,1.2,1700/pane.w,1100/pane.h):Math.min(ratio,1.55,2300/pane.w);
+        const bw=Math.max(1,Math.round(pane.w*scale)),bh=Math.max(1,Math.round(pane.h*scale));
+        if(buffer.width!==bw||buffer.height!==bh){buffer.width=bw;buffer.height=bh;}
         gl.viewport(0,0,buffer.width,buffer.height);gl.uniformMatrix3fv(uniforms.galactic,false,m);
         gl.uniform2fv(uniforms.aperture,aperture);gl.uniform2fv(uniforms.offset,offset);gl.uniform1f(uniforms.exposure,exposure);
         gl.drawArrays(gl.TRIANGLES,0,3);image=buffer;
-      }else image=software(pane.w,pane.h,m,aperture,offset,exposure);
+      }else image=software(pane.w,pane.h,m,aperture,offset,exposure,camera.cruising);
       context.drawImage(image,pane.x,pane.y,pane.w,pane.h);
       if(cachePhoto){
         if(photoCache.width!==cw||photoCache.height!==ch){photoCache.width=cw;photoCache.height=ch;}

@@ -8,7 +8,8 @@
   const cache=new Map(), values=Object.fromEntries(Object.entries(definitions).map(([id,d])=>[id,d.initial??1]));
   const base=M.solve();
   const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
-  const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false};
+  const state={base,test:null,kind:"vanish",watch:M.EARTH,scope:"wide",reference:"galaxy",allFit:false,showSatellites:true,sunBand:"radiant",linearDistances:false,displayScale:1.8,fixedCamera:false,showPaths:true,showNames:true,coronaPlaying:!motionPreference.matches,glide:!motionPreference.matches,actualSize:false,observing:false,split:false,mode:"map",day:0,applied:false,running:false,
+    cruise:true,cruiseSettings:false,cruiseSatellites:false,starExposure:false,cleanView:false};
   const guides={near:{showPaths:false,showNames:false},far:{showPaths:true,showNames:true}};
   function setScope(scope){
     const group=v=>v==="near"||v==="sun"?"near":"far";
@@ -121,14 +122,35 @@
     el("play").setAttribute("aria-label",state.running?"일시 정지":active?"재생":state.mode==="map"?"원래 태양계 재생":"실험 재생");
     el("overlay").setAttribute("aria-pressed",String(!state.split));el("split").setAttribute("aria-pressed",String(state.split));
     el("map-box").classList.toggle("split",state.split);
-    el("map-box").dataset.reference=state.reference;el("galactic-trails").setAttribute("aria-pressed",String(state.reference==="galaxy"));el("all-fit").setAttribute("aria-pressed",String(state.allFit));el("satellite-layer").setAttribute("aria-pressed",String(state.showSatellites));
+    el("map-box").dataset.reference=state.reference;el("galactic-trails").setAttribute("aria-pressed",String(state.reference==="galaxy"));el("all-fit").setAttribute("aria-pressed",String(state.allFit));
     const fly=state.mode==="flight",box=el("map-box");
     box.dataset.mode=state.mode;el("flight-mode").setAttribute("aria-pressed",String(fly));el("map-mode").setAttribute("aria-pressed",String(!fly));
     el("flight-layer").hidden=!fly;el("flight-foot").hidden=!fly;el("map-legend").hidden=fly||!active||!state.showPaths;el("map-compare").hidden=fly;
     el("map-settings").hidden=el("map-caption").hidden=fly;
     const galaxy=state.reference==="galaxy",near=state.scope==="near",sun=state.scope==="sun",lunar=state.scope==="lunar",wide=state.scope==="wide";
+    const galacticWide=!fly&&wide&&galaxy;
+    const cruise=!fly&&OrbitMapSpace.cruising(state);
+    el("satellite-layer").setAttribute("aria-pressed",String(cruise?state.cruiseSatellites:state.showSatellites));
+    if(!galacticWide)state.cleanView=false;
+    if(!cruise)state.cruiseSettings=false;
+    box.classList.toggle("cruising",cruise);
+    box.classList.toggle("clean-view",state.cleanView);
+    el("galactic-views").hidden=!galacticWide;
+    el("camera-cruise").setAttribute("aria-pressed",String(cruise));
+    el("camera-overview").setAttribute("aria-pressed",String(!cruise));
+    el("clean-view").hidden=el("star-exposure").hidden=!galacticWide;
+    el("cruise-settings").hidden=el("cruise-paths").hidden=el("cruise-scale").hidden=!cruise;
+    el("cruise-settings").setAttribute("aria-expanded",String(state.cruiseSettings));
+    el("overview-options").hidden=cruise&&!state.cruiseSettings;
+    el("star-exposure").setAttribute("aria-pressed",String(state.starExposure));
+    el("cruise-paths").setAttribute("aria-pressed",String(state.showPaths));
+    el("cruise-scale").setAttribute("aria-pressed",String(state.actualSize));
+    el("clean-view").setAttribute("aria-pressed",String(state.cleanView));
+    el("clean-view").textContent=state.cleanView?"조작 표시":"화면만 보기";
+    const wideOption=el("map-target").querySelector('option[value="wide"]');
+    wideOption.textContent=cruise?"은하 궤적":"태양계 전체";
     for(const [id,pressed] of [["galactic-frame",galaxy],["solar-frame",!galaxy],["paths-toggle",state.showPaths],["names-toggle",state.showNames],["size-toggle",state.actualSize||near],["view-near",near]])el(id).setAttribute("aria-pressed",String(pressed));
-    el("target-label").textContent=wide&&galaxy?"은하 궤적 · 지난 365일":"관측 천체";
+    el("target-label").textContent=cruise?"태양계 · 지난 365일":wide&&galaxy?"은하 궤적 · 지난 365일":"관측 천체";
     const quickMoons=el("host-moons");quickMoons.hidden=fly||!near||state.watch<3||state.watch>8;quickMoons.textContent=planets[state.watch].name+" 위성 보기";
     const solarObservation=(wide&&!state.actualSize||sun&&state.sunBand==="radiant")&&(!active||state.split||(state.kind!=="black"&&state.kind!=="vanish"));
     const coronaButton=el("corona-play");
@@ -150,18 +172,27 @@
     else if(sun)note.textContent=state.sunBand==="euv"?"2024.05.10 · SDO/AIA · 극자외선 17.1 nm":"2024.05.10 · SDO/HMI · 가시광 617.3 nm";
     else if(wide){
       const scale=galaxy?(state.linearDistances||state.actualSize?"은하 궤적 · 거리 비례":"은하 궤적 · 궤도 간격 압축"):state.actualSize?"실제 크기와 거리":state.linearDistances||galaxy?"거리 비례 · 천체 확대":"궤도 간격 압축 · 천체 확대";
-      note.textContent=solarObservation?scale+(state.showSatellites?" · 위성 분포 2026.11.16":""):scale;
+      const sizes=state.actualSize?"실제 크기":"천체 확대";
+      note.textContent=cruise?"은하 공전 230 km/s · "+(OrbitMapSpace.compressed(state)?"궤도 간격 압축":"거리 비례")+" · "+sizes:solarObservation?scale+(state.showSatellites?" · 위성 분포 2026.11.16":""):scale;
+      if(galaxy){
+        const credit=document.createElement("a");
+        credit.href="https://svs.gsfc.nasa.gov/4851/";credit.target="_blank";credit.rel="noreferrer";
+        credit.textContent="NASA/SVS · ESA/Gaia/DPAC";note.append(" · ",credit);
+      }
     }
     else if(!lunar)note.textContent="";
     note.hidden=!sun&&!lunar&&!wide;
     el("view-near").textContent=state.watch===M.MOON?"달 근접":"행성 곁";
-    el("glide").hidden=!near;el("glide").setAttribute("aria-pressed",String(state.glide));
+    el("glide").hidden=!near&&!cruise;el("glide").setAttribute("aria-pressed",String(state.glide));
     el("glide").title=state.glide?"자동 선회 멈추기":"자동 선회 시작";el("glide").setAttribute("aria-label",el("glide").title);
     el("glide").querySelector("use").setAttribute("href",state.glide?"#i-pause":"#i-play");
     el("view-fit").textContent="은하 궤적";el("galactic-trails").textContent=galaxy?"태양 기준 보기":"은하 궤적 보기";
     el("map-light").textContent=active?"실험 전으로":definitions[state.kind].action;
     el("size-toggle").disabled=near||sun;el("camera-anchor").hidden=!galaxy||near||sun||lunar;el("camera-anchor").setAttribute("aria-pressed",String(state.fixedCamera));el("map-travel").hidden=!galaxy||sun||lunar;
     el("map-description").textContent=lunar?"지구 중심 · 달의 지난 27.3일 궤적":sun?"태양 근접 관측":(galaxy?"은하 회전 방향 · 약 230 km/s"+(state.showPaths?" · 지난 365일의 자취":""):"태양을 기준으로 본 위치") + "  ·  " + (state.actualSize||near?"천체 실제 크기":"천체 확대 표시");
+    const skyCredit=el("map-caption").querySelector("a");
+    skyCredit.href=wide&&galaxy?"https://svs.gsfc.nasa.gov/4851/":"https://www.eso.org/public/images/eso0932a/";
+    skyCredit.textContent=wide&&galaxy?"별 지도 NASA/SVS · ESA/Gaia/DPAC":"하늘 사진 ESO/S. Brunier";
     el("sky").tabIndex=fly?-1:0;el("flight-gl").tabIndex=el("flight-cpu").tabIndex=fly?0:-1;
     const moon=state.watch===3,notes=["","햇빛이 비스듬히 스치는 충돌구","두꺼운 구름이 감싼 행성","구름 아래로 낮과 밤이 지나갑니다","붉은 먼지가 덮인 지표","구름 띠 사이로 흐르는 소용돌이","안쪽 고리가 더 빠릅니다 · 입자 무늬 강조","옅은 청록빛 구름층","푸른빛에 잠긴 먼 대기","충돌구와 바다가 이어지는 달 표면"];
     el("flight-note").textContent=!active?notes[state.watch]:state.kind==="vanish"?(moon?"햇빛이 사라지고 도시의 불빛만 남았습니다":"햇빛이 사라진 행성의 밤"):state.kind==="black"?"빛을 내지 않는 블랙홀 주위를 비행 중":state.kind==="binary"?"두 별의 빛이 서로 다른 방향에서 닿습니다":notes[state.watch];
@@ -269,8 +300,25 @@
   el("watch").value=el("destination").value=String(state.watch);
   el("map-play").addEventListener("click",togglePlay);
   el("galactic-trails").onclick=()=>{state.reference=state.reference==="galaxy"?"solar":"galaxy";state.fixedCamera=false;map.reset();updateControls();mark();};
+  function selectGalacticCamera(cruise){
+    state.cruise=cruise;state.allFit=state.fixedCamera=false;
+    map.reset();updateControls();mark();
+  }
+  el("camera-cruise").onclick=()=>selectGalacticCamera(true);
+  el("camera-overview").onclick=()=>selectGalacticCamera(false);
+  el("cruise-settings").onclick=()=>{state.cruiseSettings=!state.cruiseSettings;updateControls();};
+  el("star-exposure").onclick=()=>{state.starExposure=!state.starExposure;updateControls();mark();};
+  el("cruise-paths").onclick=()=>{state.showPaths=!state.showPaths;updateControls();mark();};
+  el("cruise-scale").onclick=()=>{state.actualSize=!state.actualSize;updateControls();mark();};
+  function toggleCleanView(){
+    state.cleanView=!state.cleanView;state.cruiseSettings=false;updateControls();mark();
+  }
+  el("clean-view").onclick=toggleCleanView;
   el("all-fit").onclick=()=>{state.allFit=!state.allFit;state.fixedCamera=false;map.reset();updateControls();mark();};
-  el("satellite-layer").onclick=()=>{state.showSatellites=!state.showSatellites;updateControls();mark();};
+  el("satellite-layer").onclick=()=>{
+    const key=OrbitMapSpace.cruising(state)?"cruiseSatellites":"showSatellites";
+    state[key]=!state[key];updateControls();mark();
+  };
   el("corona-play").addEventListener("click",()=>{state.coronaPlaying=!state.coronaPlaying;updateControls();mark();});
   el("map-target").addEventListener("change",e=>{
     const value=e.target.value;
@@ -309,7 +357,7 @@
     map.reset();updateControls();mark();
   }
   for(const [id,scope] of [["view-fit","fit"],["view-all","wide"],["view-near","near"],["view-sun","sun"],["view-lunar","lunar"]])
-    el(id).addEventListener("click",()=>{if(id==="view-fit"||id==="view-all"){state.reference=id==="view-fit"?"galaxy":"solar";state.fixedCamera=state.allFit=false;showView("wide");}else showView(scope);});
+    el(id).addEventListener("click",()=>{if(id==="view-fit"||id==="view-all"){state.reference=id==="view-fit"?"galaxy":"solar";if(id==="view-fit")state.cruise=false;state.fixedCamera=state.allFit=false;showView("wide");}else showView(scope);});
   for(const band of ["radiant","visible","euv","granules"])el("sun-"+band).addEventListener("click",()=>{state.sunBand=band;map.reset();updateControls();mark();});
   el("sun-spot").addEventListener("click",()=>{map.focusSunspot([.69267,.60973]);mark();});
   el("distance-toggle").addEventListener("click",()=>{state.linearDistances=!state.linearDistances;updateControls();mark();});
@@ -332,7 +380,12 @@
   for(const button of [immersive,el("map-full")])button.addEventListener("click",()=>{if(screen){closeScreen();return;}fullFlag(true);if(box.requestFullscreen){try{const req=box.requestFullscreen();if(req?.catch)req.catch(()=>{});}catch{} }else if(box.webkitRequestFullscreen){try{box.webkitRequestFullscreen();}catch{}}});
   for(const evt of ["fullscreenchange","webkitfullscreenchange"])document.addEventListener(evt,()=>fullFlag(!!(document.fullscreenElement||document.webkitFullscreenElement)));
   for(const evt of ["pointermove","pointerdown","keydown","focusin"])box.addEventListener(evt,wake);
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&screen&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open){closeScreen();}});
+  document.addEventListener("keydown",e=>{
+    if(e.key!=="Escape"||el("object-explorer").open||el("cosmos-view").open||el("exo-view").open||el("guide").open)return;
+    if(state.cleanView){toggleCleanView();el("clean-view").focus();}
+    else if(state.cruiseSettings){state.cruiseSettings=false;updateControls();el("cruise-settings").focus();}
+    else if(screen)closeScreen();
+  });
   for(const [id,mode] of [["flight-mode","flight"],["map-mode","map"]])el(id).addEventListener("click",()=>{state.mode=mode;flight.setVisible(mode==="flight");updateControls();mark();});
   el("far-lens").addEventListener("click",()=>flight.setNear(false));el("near-lens").addEventListener("click",()=>flight.setNear(true));
   el("rise-lens").addEventListener("click",()=>flight.setRise());
@@ -360,10 +413,12 @@
   el("object-explorer").addEventListener("close",()=>mark());
   flight.setVisible(false);choose("vanish",true);selectPlanet(state.watch);
   function openMapLink(){
-    const match=location.hash.match(/^#map(?:\/(solar|galaxy))?(?:\/([a-z]+))?(?:\/(near|trails|wide|lunar|sun|euv))?(\/play)?$/);
+    const match=location.hash.match(/^#map(?:\/(solar|galaxy))?(?:\/([a-z]+))?(?:\/(near|trails|wide|cruise|lunar|sun|euv))?(\/play)?$/);
     if(!match)return;
     state.mode="map";state.reference=match[1]||"galaxy";flight.setVisible(false);
-    setScope(match[3]==="trails"?"fit":match[3]==="lunar"?"lunar":match[2]==="sun"?"sun":match[3]==="wide"||!match[2]?"wide":"near");
+    state.cruise=match[3]==="cruise";state.cleanView=state.cruiseSettings=false;
+    if(state.cruise){state.reference="galaxy";state.fixedCamera=state.allFit=false;if(!rateChosen)setPlaybackRate(3);}
+    setScope(match[3]==="trails"?"fit":match[3]==="lunar"?"lunar":match[2]==="sun"?"sun":state.cruise||match[3]==="wide"||!match[2]?"wide":"near");
     if(match[2]==="sun")state.sunBand=match[3]==="euv"?"euv":"radiant";
     const target=planets.findIndex(body=>body.id===match[2]);if(target>0)selectPlanet(target);
     if(state.scope==="lunar"&&!rateChosen)setPlaybackRate(1);
@@ -373,7 +428,7 @@
     map.reset();updateControls();mark();
   }
   openMapLink();
-  if(!location.hash||location.hash.startsWith("#system/")){state.running=state.observing=true;updateControls();}
+  if(!location.hash||location.hash.startsWith("#system/")){state.observing=true;state.running=!motionPreference.matches;updateControls();}
   fullFlag(true);exoplanets.route();window.addEventListener("hashchange",openMapLink);
   function animate(now){
     const visible=!document.hidden&&!guide.open&&!el("object-explorer").open&&!el("cosmos-view").open&&!el("exo-view").open;

@@ -8,7 +8,7 @@
   const trailColors=["221,198,157","149,157,168","208,188,159","148,187,213","210,165,141","206,195,180","208,197,171","155,195,197","150,177,210","192,191,187","224,190,151"];
   function createMap(canvas,stars,onPick,onChange){
     const ctx=canvas.getContext("2d");
-    let glideTime=0,glideOffset=0,scope="wide";
+    let glideTime=0,glideOffset=0,cruiseTime=0,scope="wide";
     let w=0,h=0,dpr=1,zoom=1,yaw=0,pitch=0,dirty=true,hits=[],hover=0;
     const ringPaths=new Map();
     LabFullLayer.load(invalidate);
@@ -17,7 +17,7 @@
     const sky=createMapSky(stars,invalidate),materials=createMapMaterials(invalidate),solar=createSolarOptics(invalidate);
     function change(){dirty=true;onChange(zoom);}
     function zoomBy(mult){zoom=clamp(zoom*mult,.45,12);change();}
-    function reset(){zoom=1;yaw=pitch=glideOffset=glideTime=0;hover=0;change();}
+    function reset(){zoom=1;yaw=pitch=glideOffset=glideTime=cruiseTime=0;lastGlide=null;hover=0;change();}
     function resize(){
       const r=canvas.getBoundingClientRect(),ratio=Math.min(devicePixelRatio||1,2);
       if(r.width<1||r.height<1||(r.width===w&&r.height===h&&ratio===dpr))return;
@@ -84,8 +84,48 @@
       }
       ctx.restore();
     }
+    const cruisePaths=new WeakMap();
+    function cruiseTrails(c,s,run){
+      // Reuse world coordinates as the camera moves. A translation accounts
+      // for the time since the epoch without shifting the trails off the planets.
+      const epoch=Math.floor(s.day/2)*2, compressed=S.compressed(s);
+      let cache=cruisePaths.get(run);
+      if(!cache||cache.epoch!==epoch||cache.compressed!==compressed){
+        const frame={...s,day:epoch},paths=[];
+        for(const id of run.active){
+          const step=id===1?.5:id===2||id===M.EARTH||id===M.MOON?1:2;
+          const start=id===M.COMPANION?Math.max(0,epoch-364):epoch-364;
+          const points=[];
+          for(let t=start;t<=epoch;t+=step)points.push(S.world(frame,run,id,t));
+          paths.push({id,start,step,points});
+        }
+        cache={epoch,compressed,paths};cruisePaths.set(run,cache);
+      }
+      const lag=(s.day-epoch)*S.speedInAU,shift=S.direction.map(v=>v*lag);
+      const atNow=v=>[v[0]-shift[0],v[1]-shift[1],v[2]-shift[2]];
+      const shifted={near:c.near,project:v=>c.project(atNow(v))};
+      for(const {id,start,step,points} of cache.paths){
+        const rgb=trailColors[id],selected=id===s.watch;
+        const oldest=id===M.COMPANION?Math.max(0,s.day-365):s.day-365;
+        const firstSample=Math.max(0,Math.ceil((oldest-start)/step)),chunk=18/step;
+        if(firstSample<points.length&&oldest<start+firstSample*step){
+          curve(c,[S.world(s,run,id,oldest),atNow(points[firstSample])],"rgba("+rgb+",.08)",1);
+        }
+        for(let first=firstSample;first<points.length-1;first+=chunk){
+          const last=Math.min(first+chunk,points.length-1);
+          const age=s.day-(start+(first+last)*step/2);
+          const depth=shifted.project(points[(first+last)>>1]).z;
+          const proximity=clamp(c.dist/Math.max(c.near,depth),.34,1.55);
+          const opacity=Math.min(.92,(.09+.70*(1-age/365)**1.25)*Math.sqrt(proximity)*(selected?1.17:id===0?.95:.88));
+          curve(shifted,points.slice(first,last+1),"rgba("+rgb+","+opacity+")",(selected?1.55:1.18)*Math.sqrt(proximity));
+        }
+        const tip=S.world(s,run,id,s.day),end=atNow(points[points.length-1]);
+        curve(c,[end,tip],"rgba("+rgb+",.78)",selected?1.32:1.04);
+      }
+    }
     function galacticTrails(p,c,s,run,testView){
-      if(c.orthographic)cachedTrails(c,s,run);
+      if(c.cruising)cruiseTrails(c,s,run);
+      else if(c.orthographic)cachedTrails(c,s,run);
       else for(const id of run.active){
         const from=id===M.COMPANION?Math.max(0,s.day-365):s.day-365;
         if(s.day-from<.01)continue;
@@ -156,7 +196,8 @@
       const shortSide=c.overviewShortSide??Math.min(p.w,p.h);
       const wideSize=index===0?(c.orthographic?clamp(shortSide*.061,17,43):clamp(shortSide*.077+3,18,60)):
         isStar?clamp(shortSide*.053,14,46):clamp(shortSide*.039,11,32)*(S.radii[index]/S.radii[5])**.49;
-      const radius=s.scope==="wide"&&!s.actualSize?Math.max(physical(S.radii[index]),wideSize*(c.overviewScale??1)*zoom**.37):s.scope==="lunar"&&!s.actualSize?Math.max(physical(S.radii[index]),lunarSize):index===c.closeBody?c.focal/Math.sqrt(distanceInRadii**2-1):
+      const travelScale=c.cruising?clamp(c.dist/Math.max(c.near,q.z),.24,3.4)*(isStar?.78:1.2):1;
+      const radius=s.scope==="wide"&&!s.actualSize?Math.max(physical(S.radii[index]),wideSize*(c.overviewScale??1)*zoom**.37*travelScale):s.scope==="lunar"&&!s.actualSize?Math.max(physical(S.radii[index]),lunarSize):index===c.closeBody?c.focal/Math.sqrt(distanceInRadii**2-1):
         real?physical(S.radii[index]):Math.max(physical(S.radii[index]),enlarged*(s.displayScale??1.8));
       const solidReach=radius*(index===6?2.3:1);
       const reach=index===0&&s.scope==="wide"&&!s.actualSize?radius*1.48:solidReach;
@@ -164,7 +205,7 @@
     }
     function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
     function labels(p,c,s,disks){
-      if(!s.showNames)return;
+      if(!s.showNames||s.cleanView)return;
       const compact=p.w<550;
       const boxes=[{x:p.x,y:p.y,w:116,h:p.layer==="both"?39:65},{x:p.x,y:p.y+p.h-31,w:116,h:31},{x:p.x+p.w-247,y:p.y+p.h-45,w:247,h:45}];
       const bodiesInView=disks.filter(q=>q.inFront&&inPanel(p,q));
@@ -229,7 +270,7 @@
         const r=Math.hypot(...v),phase=(1-OrbitFrames.dot(v,c.front)/r)*.5;
         const light=clamp(phase*(2.7/r)**2,.07,1);
         const width=(region?1.55:1.02+.64*light)*scale;
-        ctx.globalAlpha=(region?.62:.22)+light*(region?.34:.50);
+        ctx.globalAlpha=((region?.62:.22)+light*(region?.34:.50))*(c.cruising&&!region?.36:1);
         ctx.fillRect(q.x-width/2,q.y-width/2,width,width);
       }
       ctx.globalAlpha=1;
@@ -263,9 +304,9 @@
     function drawPanel({pane:p,camera:c,run,testView},s,skyNotes){
       ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();
       const world=(index)=>S.world(s,run,index,s.day);
-      const populations=s.scope==="wide"&&!(s.applied&&testView);
-      if(populations)LabFullLayer.density(ctx,p,c,s,run);
-      const smallNotes=catalogPoints(p,c,s,testView);
+      const populations=s.scope==="wide"&&!s.cleanView&&!(s.applied&&testView);
+      if(populations&&!c.cruising)LabFullLayer.density(ctx,p,c,s,run);
+      const smallNotes=s.cleanView?[]:catalogPoints(p,c,s,testView);
       if(s.showPaths){
         if(s.scope==="lunar")curve(c,timePoints(s,run,M.MOON,s.day-27.32,s.day,144),"rgba(183,197,202,.52)",1.2);
         else if(s.reference==="galaxy")galacticTrails(p,c,s,run,testView);else solarTrails(p,c,s,run);
@@ -289,7 +330,9 @@
           if(gap<leg){const angle=Math.atan2(dy,dx);moon.x=earth.x+leg*Math.cos(angle);moon.y=earth.y+leg*Math.sin(angle);}
         }
       }
-      if(populations)LabFullLayer.satellites(ctx,p,c,s,run,list,hits);
+      if(populations&&(!c.cruising||s.cruiseSatellites&&!s.cleanView)){
+        LabFullLayer.satellites(ctx,p,c,c.cruising?{...s,showSatellites:true}:s,run,list,hits);
+      }
       list.sort((a,b)=>b.z-a.z);
       for(const q of list){
         if(q.index===0&&black){
@@ -313,12 +356,26 @@
         }
       }
       const notes=s.scope==="wide"?[...smallNotes,...skyNotes]:[];
-      labels(p,c,s,list.concat(notes));catalogMark(p,c,s,run,testView);if(!S.compressed(s))scaleBar(p,c);
+      labels(p,c,s,list.concat(notes));if(!s.cleanView){catalogMark(p,c,s,run,testView);if(!S.compressed(s))scaleBar(p,c);}
       if(p.layer!=="both"){
         ctx.font="550 11px "+font;ctx.textBaseline="top";ctx.fillStyle=p.layer==="base"?mint:coral;
         ctx.fillText(p.layer==="base"?"원래 태양계":"실험 태양계",p.x+14,p.y+((p.x===0&&p.y===0)?43:13));
       }
       ctx.restore();
+    }
+    function galacticExposure(c,s,run,testView){
+      if(s.starExposure)return .98;
+      const experiment=s.applied&&testView;
+      const lights=experiment&&s.kind==="binary"?[0,M.COMPANION]:experiment&&(s.kind==="black"||s.kind==="vanish")?[]:[0];
+      let glare=0;
+      for(const id of lights){
+        const q=c.project(S.world(s,run,id,s.day)),p=c.pane;
+        if(!q.inFront)continue;
+        const edge=Math.max(Math.abs((q.x-p.x)/p.w-.5),Math.abs((q.y-p.y)/p.h-.5))*2;
+        const weight=clamp((1.42-edge)/.62,0,1);
+        glare+=weight*weight*(3-2*weight);
+      }
+      return Math.round(64*(.86/(1+(c.cruising?2.65:.7)*glare)))/64;
     }
     function draw(s){
       resize();if(!w||!h)return;scope=s.scope;
@@ -327,7 +384,9 @@
       const views=panels(s.split).map(pane=>{
         const testView=pane.layer!=="base",run=s.applied&&testView?s.test:s.base;
         const dark=s.applied&&testView&&(s.kind==="black"||s.kind==="vanish");
-        return {pane,run,testView,showSurvey:s.scope==="wide"&&s.allFit,camera:S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch),exposure:dark?1.05:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:s.scope==="wide"?.90:.52};
+        const camera=S.camera(pane,s,run,range,zoom,yaw+(s.scope==="near"?glideOffset:0),pitch,cruiseTime);
+        const exposure=camera.surveySky?galacticExposure(camera,s,run,testView):dark?1.05:s.scope==="sun"?.035:s.scope==="near"?.14:s.scope==="lunar"?.25:s.scope==="wide"?.90:.52;
+        return {pane,run,testView,showSurvey:s.scope==="wide"&&s.allFit,camera,exposure};
       });
       const notes=sky(w,h,dpr,views);views.forEach((view,i)=>drawPanel(view,s,notes[i]||[]));
       if(s.split){
@@ -338,11 +397,13 @@
     }
     let lastGlide=null;
     function advanceCamera(s,now){
-      if(s.scope!=="near"||!s.glide||gesture){lastGlide=null;return;}
+      const cruise=S.cruising(s);
+      if((s.scope!=="near"&&!(cruise&&s.running))||!s.glide||gesture){lastGlide=null;return;}
       if(lastGlide===null){lastGlide=now;return;}
-      if(now-lastGlide<50)return;
-      glideTime+=Math.min(.12,(now-lastGlide)/1000);
-      glideOffset=.19*Math.sin(glideTime*.044);
+      if(now-lastGlide<(cruise?32:50))return;
+      const elapsed=Math.min(.16,(now-lastGlide)/1000);
+      if(cruise)cruiseTime+=elapsed;
+      else{glideTime+=elapsed;glideOffset=.19*Math.sin(glideTime*.044);}
       lastGlide=now;dirty=true;
     }
     function coords(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}

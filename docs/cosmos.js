@@ -27,17 +27,32 @@ globalThis.CosmicSky = (()=>{
   }
   function dotStars(ctx,p,cam,stars,light=1,annotations){
     const scale=Math.max(.69,Math.min(1,cam.overviewScale??1));
+    const survey=cam.surveySky;
+    // Expose each catalogue point at screen resolution. Zoom changes the
+    // angular separation of stars while the brightest cores stay compact.
+    const limitingMag=survey?7.45+2.5*Math.log10(Math.max(.001,light*light)):Infinity;
     for(const star of stars){
+      if(star.mag>limitingMag+.5)continue;
       const xy=screen(p,cam,star.v);
       if(!xy||xy[0]<p.x||xy[0]>p.x+p.w||xy[1]<p.y||xy[1]>p.y+p.h)continue;
       const flux=Math.min(1.9,10**(-.14*(star.mag-2))),power=Math.min(1,flux);
-      if(star.mag<4){
+      const response=survey?Math.sqrt(light)*Math.min(1,limitingMag+.5-star.mag):light;
+      if(survey){
+        const power=10**(-.4*(star.mag-2)),core=Math.min(1.8,.51+.32*Math.sqrt(power));
+        if(star.mag<2.6){
+          const halo=(2.3+core*2.5)*scale;
+          ctx.globalAlpha=.55*response;
+          ctx.drawImage(starSprite(star.color),xy[0]-halo,xy[1]-halo,2*halo,2*halo);
+        }
+        ctx.fillStyle=star.color;ctx.globalAlpha=response*Math.min(1,.11+.86*Math.sqrt(power));
+        ctx.beginPath();ctx.arc(xy[0],xy[1],core*scale,0,2*Math.PI);ctx.fill();
+      }else if(star.mag<4){
         const width=(3.2+6.8*flux)*scale;
-        ctx.globalAlpha=light*(.64+.36*power);
+        ctx.globalAlpha=response*(.64+.36*power);
         ctx.drawImage(starSprite(star.color),xy[0]-width/2,xy[1]-width/2,width,width);
       }else{
         const width=(.61+.79*flux)*scale;
-        ctx.globalAlpha=light*(.19+.78*power);ctx.fillStyle=star.color;
+        ctx.globalAlpha=response*(.19+.78*power);ctx.fillStyle=star.color;
         ctx.fillRect(xy[0]-width/2,xy[1]-width/2,width,width);
       }
       if(annotations&&star.label&&star.mag<2.1&&annotations.length<(p.w<550?1:2)&&
@@ -78,11 +93,14 @@ globalThis.CosmicSky = (()=>{
     return(ctx,p,cam,showSurvey,exposure)=>{
       const annotations=[],light=Math.min(1,exposure*1.15);
       const day=cam.day??0,target=cam.closeBody??0;
-      const observerKey=[Math.floor(day/32),target,cam.run?.kind].join('/');
+      // Catalogue proper motions already include the Sun's motion. Apply only
+      // the local offset of the travelling camera, in AU, for annual parallax.
+      const localEye=cam.cruising?cam.eye:null;
+      const observerKey=[Math.floor(day/32),target,cam.run?.kind,...(localEye?localEye.map(v=>Math.round(v*2)):[])].join('/');
       if(observerKey!==lastObserver){
         lastObserver=observerKey;
         const years=(LabInitial.jd-2451545+day)/365.25;
-        const eye=target&&cam.run?GravityLab.read(cam.run,target,day):[0,0,0];
+        const eye=localEye??(target&&cam.run?GravityLab.read(cam.run,target,day):[0,0,0]);
         for(const star of stars)for(let i=0;i<3;i++)
           star.v[i]=star.base[i]+(star.drift?.[i]??0)*years-eye[i]*star.perAU;
       }

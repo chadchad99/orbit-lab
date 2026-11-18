@@ -43,29 +43,59 @@ globalThis.createSolarOptics=function(invalidate){
     }
     ctx.restore();
   }
-  function luminousDisk(ctx,q,s,close=false){
-    starlight(ctx,q);
-    const lite=request("sun-radiant"),surface=close?(request("sun-radiant-close")||lite):lite;
+  let flightSurface;
+  function flightSun(ctx,q){
+    const photo=request("sun-visible-lite"),r=q.radius;
+    if(photo&&!flightSurface){
+      // The visible-light HMI disk supplies the spots and limb darkening.
+      // Compress contrast at camera white, preserving the measured features.
+      flightSurface=document.createElement("canvas");
+      flightSurface.width=flightSurface.height=320;
+      const g=flightSurface.getContext("2d");
+      const diameter=2*geometry.visible.r*photo.naturalWidth;
+      g.drawImage(photo,(photo.naturalWidth-diameter)/2,(photo.naturalHeight-diameter)/2,diameter,diameter,0,0,320,320);
+      const pixels=g.getImageData(0,0,320,320);
+      for(let i=0;i<pixels.data.length;i+=4){
+        const intensity=pixels.data[i]/255,light=1-Math.exp(-3.5*intensity);
+        pixels.data[i]=255*light;pixels.data[i+1]=252*light;pixels.data[i+2]=239*light;
+      }
+      g.putImageData(pixels,0,0);
+    }
+    const reach=r*4.7;
+    const halo=ctx.createRadialGradient(q.x,q.y,r*.85,q.x,q.y,reach);
+    halo.addColorStop(0,"rgba(255,244,216,.83)");
+    halo.addColorStop(.065,"rgba(255,233,188,.46)");
+    halo.addColorStop(.23,"rgba(249,211,151,.105)");
+    halo.addColorStop(.56,"rgba(237,193,136,.025)");
+    halo.addColorStop(1,"rgba(237,193,136,0)");
+    ctx.save();ctx.globalCompositeOperation="screen";ctx.fillStyle=halo;
+    ctx.fillRect(q.x-reach,q.y-reach,2*reach,2*reach);ctx.restore();
+    return flightSurface;
+  }
+  function luminousDisk(ctx,q,s,close=false,cruising=false){
+    if(!cruising)starlight(ctx,q);
+    const surface=cruising?flightSun(ctx,q):close?(request("sun-radiant-close")||request("sun-radiant")):request("sun-radiant");
     const poster=request("corona-optical-poster"),sequence=s.coronaPlaying?request("corona-optical"):pictures.get("corona-optical");
-    const size=q.radius/corona.diskFraction,x=q.x-size/2,y=q.y-size/2;
+    const size=q.radius/corona.diskFraction,x=q.x-size/2,y=q.y-size/2,coronaGain=cruising?.22:.94;
     ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.globalCompositeOperation="lighter";
     if(sequence){
       const first=Math.floor(framePosition),mix=framePosition-first;
       for(let i=0;i<2;i++){
         const weight=i===0?1-mix:mix;if(weight===0)continue;
         const frame=(first+i)%corona.count,sx=(frame%corona.columns)*corona.tile,sy=Math.floor(frame/corona.columns)*corona.tile;
-        ctx.globalAlpha=.94*weight;ctx.drawImage(sequence,sx,sy,corona.tile,corona.tile,x,y,size,size);
+        ctx.globalAlpha=coronaGain*weight;ctx.drawImage(sequence,sx,sy,corona.tile,corona.tile,x,y,size,size);
       }
-    }else if(poster){ctx.globalAlpha=.94;ctx.drawImage(poster,x,y,size,size);}
+    }else if(poster){ctx.globalAlpha=coronaGain;ctx.drawImage(poster,x,y,size,size);}
     ctx.restore();ctx.save();
     const r=q.radius;
+    if(cruising){ctx.beginPath();ctx.arc(q.x,q.y,r,0,tau);ctx.clip();}
     if(surface){ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(surface,q.x-r,q.y-r,r*2,r*2);}
     else{const core=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,r);core.addColorStop(0,"#fffbed");core.addColorStop(.82,"#ffedbf");core.addColorStop(1,"#eeb96f");ctx.fillStyle=core;ctx.beginPath();ctx.arc(q.x,q.y,r,0,tau);ctx.fill();}
     ctx.restore();
   }
   function disk(ctx,q,c,s,companion){
     const observational=c.closeBody===0&&!companion&&s.sunBand!=="radiant";
-    if(!observational&&!s.actualSize&&q.radius>=2&&!companion){luminousDisk(ctx,q,s,c.closeBody===0);return;}
+    if(!observational&&!s.actualSize&&q.radius>=2&&!companion){luminousDisk(ctx,q,s,c.closeBody===0,c.cruising);return;}
     if(c.closeBody===0&&s.sunBand==="radiant"&&!companion){luminousDisk(ctx,q,s,true);return;}
     const close=c.closeBody===0&&!companion;
     const band=close&&s.sunBand==="euv"?"euv":"visible";

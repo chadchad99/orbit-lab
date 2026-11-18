@@ -1,0 +1,12 @@
+{
+  "title": "Deep Star Maps 2020 – Galactic-coordinate Milky Way layer",
+  "credit": "NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC.",
+  "visualizer": "Ernie Wright",
+  "page": "https://svs.gsfc.nasa.gov/4851/",
+  "source": "https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004851/milkyway_2020_8k_gal.exr",
+  "source_sha256": "d319113f35e45f7f66f2844f088639cc07cda74a5049299a6098d41e2ade3d28",
+  "source_pixels": [8192, 4096],
+  "projection": "Galactic longitude zero at centre, increasing to the left, Galactic north at the top.",
+  "processing": "Resampled linear EXR radiance onto six 2048-square cube faces. Tone mapped as 1-exp(-4.4*L), converted to sRGB and encoded as WebP at quality 92. A 256-pixel-per-face preview covers loading and missing detail.",
+  "use": "Galactic overview and travelling camera. The background layer excludes the Hipparcos and Tycho foreground. Orbit Lab plots its own Hipparcos subset separately from stellar magnitudes, colours and positions."
+}

@@ -253,3 +253,58 @@ body{background:#080d12}.mast{height:58px;background:#090e13}.mast-inner,.page{m
 }
 
 #exo-surface{flex-basis:100%;color:#b7c9cb;font-size:11px;text-shadow:0 1px 5px #000}#exo-surface:empty{display:none}
+
+.overview-toolbar {
+  position:absolute;
+  z-index:3;
+  top:clamp(82px,12%,106px);
+  left:clamp(12px,3.2%,52px);
+  max-width:calc(100% - 28px);
+  display:grid;
+  justify-items:start;
+  gap:8px;
+  pointer-events:none;
+}
+.map-box:not([data-scope=wide]) .overview-toolbar,
+.map-box[data-mode=flight] .overview-toolbar { display:none; }
+.overview-toolbar .overview-options { position:static; max-width:100%; pointer-events:auto; }
+.galactic-views { display:flex; align-items:center; flex-wrap:wrap; gap:7px; pointer-events:auto; }
+.galactic-views .map-light { font-size:11px; padding:7px 11px; background:#080e15c9; }
+.camera-switch {
+  display:inline-flex; padding:3px; gap:2px; border:1px solid #69778685;
+  border-radius:22px; background:#080e15da;
+}
+.camera-switch button { padding:5px 12px; border-radius:18px; color:#acb9c3; font:550 12px var(--sans); }
+.camera-switch button[aria-pressed=true] { background:#c6dbd9; color:#102022; }
+.galactic-views button:focus-visible { outline:2px solid #b9f0e2; outline-offset:3px; }
+#cruise-settings[aria-expanded=true] { border-color:#90b8ae; color:#d9f5ed; }
+.cruising #overview-options {
+  max-width:min(480px,100%); gap:5px; padding:8px; border:1px solid #45525d;
+  border-radius:12px; background:#0a1018f2;
+}
+.cruising #galaxy-inset { display:none; }
+.cruising:has(#cruise-settings[aria-expanded=true]) #galaxy-inset { display:grid; }
+.cruising .tools .tool-range,.cruising .tools>span { display:none; }
+.cruising .tools #glide { margin-right:3px; border-right:1px solid #47535a; border-radius:14px 0 0 14px; }
+.map-box.cruising .map-hud { bottom:clamp(44px,5.8%,62px); }
+.cruising .scene-note { color:#a6b2ba; }
+.map-box.clean-view :is(.encounter-picker,.map-actions,.map-hud,.scene-note,.tools,.catalog-pin,.camera-switch,#cruise-settings,#galaxy-inset,#overview-options) { display:none; }
+.clean-view .overview-toolbar { inset:auto max(14px,2.3%) max(14px,3.3%) auto; }
+.clean-view #clean-view { opacity:.52; }
+.clean-view #clean-view:is(:hover,:focus-visible) { opacity:1; }
+@media(max-width:650px) {
+  .overview-toolbar { top:76px; gap:5px; }
+  .galactic-views { gap:5px; }
+  .galactic-views .map-light { padding:6px 8px; }
+  .camera-switch button { padding:5px 9px; font-size:11px; }
+  .map-box[data-mode=map] #map-rate { width:94px; }
+  .map-box.cruising .map-hud { bottom:56px; }
+  .cruising .scene-note { bottom:27px; max-width:calc(100% - 104px); }
+  .scene-note a { display:inline-block; white-space:nowrap; }
+  .map-box:has(#galactic-views:not([hidden])) #galaxy-inset { top:190px; }
+}
+@media(max-height:430px) and (min-width:520px) {
+  .overview-toolbar { top:70px; }
+  .map-box.cruising .map-hud { bottom:29px; }
+  .cruising .scene-note { bottom:8px; }
+}

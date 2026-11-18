@@ -95,7 +95,35 @@ globalThis.OrbitMapSpace = (() => {
     const ox=p.x+p.w*.5-midX*px,oy=p.y+(p.h+top-bottom)*.5+midY*px;
     const dist=Math.max(6000,px*10),eye=along(center,front,dist);
     function project(v){return {x:ox+dot(v,right)*px,y:oy-dot(v,up)*px,z:dist-dot(v,front),scale:px,inFront:true};}
-    return {run,day:s.day,project,projectDisplay:project,orthographic:true,ox,oy,dist,px,near:.001,eye,front,up,right,center,principal:[.5,.49],focal:px*dist,skyFocal:Math.min(p.h*.85,p.w*.91),closeBody:null,pane:p};
+    return {run,day:s.day,project,projectDisplay:project,orthographic:true,surveySky:true,ox,oy,dist,px,near:.001,eye,front,up,right,center,principal:[.5,.49],focal:px*dist,skyFocal:Math.min(p.h*.85,p.w*.91)*zoom,closeBody:null,pane:p};
+  }
+  const cruising=s=>s.cruise&&s.scope==="wide"&&s.reference==="galaxy"&&!s.fixedCamera&&!s.allFit;
+  // Follow the Sun in its translating frame. Keep the direction of Galactic
+  // travel slightly above horizontal while the camera banks around the track.
+  const outward=norm([.92,.34,.24]);
+  const broadside=norm(comb(outward,direction,1,-dot(outward,direction)));
+  const transverse=cross(direction,broadside);
+  function cruiseCamera(p,s,run,zoom,yaw,pitch,travel){
+    const heading=1.13+yaw+.43*Math.sin(travel*.039)+.12*Math.sin(travel*.082);
+    const angle=clamp(2.59+pitch+.16*Math.sin(travel*.047),.12,Math.PI-.12);
+    const side=comb(broadside,transverse,Math.cos(heading),Math.sin(heading));
+    const front=comb(direction,side,Math.cos(angle),Math.sin(angle));
+    const track=comb(direction,side,Math.sin(angle),-Math.cos(angle));
+    const portrait=p.h>p.w;
+    const bank=(portrait?1.06:.32)+.035*Math.sin(travel*.055);
+    const right=comb(track,cross(front,track),Math.cos(bank),-Math.sin(bank));
+    const up=cross(front,right);
+    const dist=(42-2.8*Math.sin(travel*.052))/zoom;
+    const center=along(world(s,run,0,s.day),direction,-9.5);
+    const eye=along(center,front,dist),near=Math.max(.018,dist*.004);
+    const focal=Math.min(p.h*.98,p.w*(portrait?.87:1.02)),principal=portrait?[.46,.55]:[.48,.60];
+    const cx=p.x+p.w*principal[0],cy=p.y+p.h*principal[1];
+    function project(v){
+      const x=v[0]-eye[0],y=v[1]-eye[1],z=v[2]-eye[2];
+      const depth=-(x*front[0]+y*front[1]+z*front[2]),scale=focal/Math.max(near,depth);
+      return {x:cx+scale*(x*right[0]+y*right[1]+z*right[2]),y:cy-scale*(x*up[0]+y*up[1]+z*up[2]),z:depth,scale,inFront:depth>near};
+    }
+    return {cruising:true,surveySky:true,run,day:s.day,pane:p,project,projectDisplay:project,dist,near,eye,front,up,right,center,principal,focal,skyFocal:focal,px:focal/dist,closeBody:null};
   }
   const desktopPane={x:0,y:0,w:1120,h:720};
   function fitOverview(c,p){
@@ -109,10 +137,15 @@ globalThis.OrbitMapSpace = (() => {
     const fitted={...c,pane:p,principal,overviewScale:scale,overviewShortSide:desktopPane.h,
       focal:c.focal*scale,skyFocal:c.skyFocal*scale,px:c.px*scale,
       project:v=>fit(c.project(v)),projectDisplay:v=>fit(c.projectDisplay(v))};
+    if(c.surveySky&&p.h>p.w&&c.orthographic){
+      const zoom=c.skyFocal/(desktopPane.h*.85);
+      fitted.skyFocal=Math.max(fitted.skyFocal,Math.min(p.h*.68,p.w*1.6)*zoom);
+    }
     if(c.orthographic){fitted.ox=left+c.ox*scale;fitted.oy=top+c.oy*scale;}
     return fitted;
   }
-  function camera(p,s,run,range,zoom,yaw,pitch){
+  function camera(p,s,run,range,zoom,yaw,pitch,travel=0){
+    if(cruising(s))return cruiseCamera(p,s,run,zoom,yaw,pitch,travel);
     if(s.scope==="wide"&&(p.h>p.w||p.w<900)){
       return fitOverview(camera(desktopPane,s,run,range,zoom,yaw,pitch),p);
     }
@@ -191,7 +224,7 @@ globalThis.OrbitMapSpace = (() => {
       const scale=focal/Math.max(near,z);
       return {x:cx+dot(v,right)*scale,y:cy-dot(v,up)*scale,z,scale,inFront:z>near};
     }
-    return {run,day:s.day,skyFocal:s.scope==="wide"&&!galaxy?Math.min(p.h*.87,p.w*.95):focal,pane:p,closeBody:s.scope==="sun"?0:close?s.watch:null,project,projectDisplay,focal,eye,front,up,right,center,principal,near,dist:distanceToCenter,px:focal/distanceToCenter};
+    return {run,day:s.day,surveySky:s.scope==="wide"&&galaxy,skyFocal:s.scope==="wide"&&!galaxy?Math.min(p.h*.87,p.w*.95):focal,pane:p,closeBody:s.scope==="sun"?0:close?s.watch:null,project,projectDisplay,focal,eye,front,up,right,center,principal,near,dist:distanceToCenter,px:focal/distanceToCenter};
   }
-  return {camera,world,systemFrame,radii,polarRatio,subtract,distance,clamp,speedInAU,direction,radial,compressed,scaleRadius};
+  return {camera,cruising,world,systemFrame,radii,polarRatio,subtract,distance,clamp,speedInAU,direction,radial,compressed,scaleRadius};
 })();
